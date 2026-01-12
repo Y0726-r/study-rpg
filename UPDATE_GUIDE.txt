@@ -1,0 +1,28 @@
+========================================
+  GitHubの更新方法
+========================================
+
+修正したファイルをGitHubに反映する手順：
+
+【ステップ1】変更を確認
+cd study-rpg-github
+git status
+
+【ステップ2】変更をステージング
+git add index.html style-retro.css
+
+【ステップ3】コミット
+git commit -m "Fix: キャラクターと宝箱の絵文字を直接表示"
+
+【ステップ4】プッシュ
+git push
+
+【ステップ5】確認
+数分後、以下のURLをリロード：
+https://y0726-r.github.io/study-app/
+
+ブラウザのキャッシュクリアも忘れずに！
+Windows/Linux: Ctrl + Shift + R
+Mac: Cmd + Shift + R
+
+========================================

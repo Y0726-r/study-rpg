@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4a4a4a">
+    <title>StudyQuest - 勉強RPG</title>
+    <link rel="stylesheet" href="style-retro.css">
+</head>
+
+<body>
+    <!-- ホーム画面 -->
+    <div id="home-screen" class="screen active">
+        <div class="header">
+            <div class="status-top">
+                <div class="level-shield">
+                    <span class="shield-text">Lv.<span id="player-level">1</span></span>
+                </div>
+                <div class="exp-bar-group">
+                    <div class="exp-bar-label">EXP</div>
+                    <div class="exp-bar-container">
+                        <div class="exp-bar" id="exp-bar"></div>
+                        <span class="exp-text"><span id="current-exp">0</span>/<span id="max-exp">100</span></span>
+                    </div>
+                </div>
+                <div class="coin-display-mvp">
+                    <span class="coin-icon">💰</span>
+                    <span id="coin-count">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="character-container">
+            <div class="character-sprite"><img src="assets/player.jpg" alt="Player"></div>
+            <p class="character-message">勉強してレベルアップしよう！</p>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-button" onclick="showScreen('study-screen')">
+                <span class="nav-icon image-nav study"></span>
+                <span class="nav-label">勉強</span>
+            </button>
+            <button class="nav-button" onclick="showScreen('gacha-screen')">
+                <span class="nav-icon image-nav gacha"></span>
+                <span class="nav-label">ガチャ</span>
+            </button>
+            <button class="nav-button" onclick="showScreen('menu-screen')">
+                <span class="nav-icon image-nav menu"></span>
+                <span class="nav-label">メニュー</span>
+            </button>
+            <button class="nav-button" onclick="showScreen('log-screen')">
+                <span class="nav-icon image-nav log"></span>
+                <span class="nav-label">ログ</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- 勉強タイマー画面 -->
+    <div id="study-screen" class="screen">
+        <div class="screen-header">
+            <button class="back-button" onclick="showScreen('home-screen')">← 戻る</button>
+            <h2>勉強タイマー</h2>
+        </div>
+
+        <div class="timer-container">
+            <div class="timer-display" id="timer-display">00:00:00</div>
+            <div class="reward-info">+10 EXP, +5 コイン / 分</div>
+        </div>
+
+        <div class="subject-selector">
+            <button class="subject-btn active" data-subject="数学" onclick="selectSubject(this)">📐 数学</button>
+            <button class="subject-btn" data-subject="英語" onclick="selectSubject(this)">📖 英語</button>
+            <button class="subject-btn" data-subject="理科" onclick="selectSubject(this)">🔬 理科</button>
+            <button class="subject-btn" data-subject="その他" onclick="selectSubject(this)">✏️ その他</button>
+        </div>
+
+        <div class="timer-controls">
+            <button class="start-button" id="start-button" onclick="startTimer()">開始</button>
+            <button class="stop-button hidden" id="stop-button" onclick="stopTimer()">停止</button>
+        </div>
+
+        <div class="today-stats">
+            <p>今日の勉強時間: <span id="today-time">0</span>分</p>
+        </div>
+    </div>
+
+    <!-- ガチャ画面 -->
+    <div id="gacha-screen" class="screen">
+        <div class="screen-header">
+            <button class="back-button" onclick="showScreen('home-screen')">← 戻る</button>
+            <h2>ガチャ</h2>
+        </div>
+
+        <div class="gacha-container">
+            <div class="coin-balance">
+                <span class="coin-icon">💰</span>
+                <span id="gacha-coin-count">0</span> コイン
+            </div>
+
+            <div class="chest-display">
+                <div class="chest-icon"><img src="assets/chest.jpg" alt="Treasure Chest"></div>
+            </div>
+
+            <div class="gacha-info">
+                <p>★1 (60%) | ★2 (30%) | ★3 (10%)</p>
+            </div>
+
+            <button class="pull-button" onclick="pullGacha()">
+                引く (100コイン)
+            </button>
+
+            <div id="gacha-result" class="gacha-result hidden">
+                <div class="result-content">
+                    <p class="result-text">獲得！</p>
+                    <div class="result-item">
+                        <span class="item-icon" id="result-icon">⚔️</span>
+                        <p class="item-name" id="result-name">アイテム名</p>
+                        <p class="item-rarity" id="result-rarity">★★★</p>
+                    </div>
+                    <button class="ok-button" onclick="closeGachaResult()">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メニュー画面 -->
+    <div id="menu-screen" class="screen">
+        <div class="screen-header">
+            <button class="back-button" onclick="showScreen('home-screen')">← 戻る</button>
+            <h2>持っているアイテム</h2>
+        </div>
+
+        <div class="inventory-container" id="inventory-container">
+            <p class="empty-message">まだアイテムを持っていません</p>
+        </div>
+
+        <div class="menu-footer">
+            <button class="reset-button" onclick="confirmReset()">データリセット</button>
+        </div>
+    </div>
+
+    <!-- ログ画面 -->
+    <div id="log-screen" class="screen">
+        <div class="screen-header">
+            <button class="back-button" onclick="showScreen('home-screen')">← 戻る</button>
+            <h2>勉強記録</h2>
+        </div>
+
+        <div class="log-stats">
+            <div class="stat-card">
+                <p class="stat-label">総勉強時間</p>
+                <p class="stat-value"><span id="total-time">0</span>分</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">総獲得EXP</p>
+                <p class="stat-value"><span id="total-exp">0</span></p>
+            </div>
+        </div>
+
+        <div class="log-container" id="log-container">
+            <p class="empty-message">まだ勉強記録がありません</p>
+        </div>
+    </div>
+
+    <!-- レベルアップモーダル -->
+    <div id="levelup-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="levelup-title">🎉 レベルアップ！</h2>
+            <div class="character-sprite large"><img src="assets/player.jpg" alt="Player"></div>
+            <p class="levelup-text">
+                Lv.<span id="old-level">1</span> → Lv.<span id="new-level">2</span>
+            </p>
+            <button class="ok-button" onclick="closeLevelUpModal()">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

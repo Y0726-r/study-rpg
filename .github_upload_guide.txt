@@ -1,0 +1,37 @@
+===========================================
+  GitHubへのアップロード完全ガイド
+===========================================
+
+【手順1】GitHubでリポジトリ作成
+1. https://github.com にアクセス
+2. 右上「+」→「New repository」
+3. Repository name: study-rpg
+4. Description: 勉強RPGアプリ
+5. Public を選択
+6. 「Create repository」クリック
+
+【手順2】ローカルでGit操作
+ターミナル/コマンドプロンプトで以下を実行：
+
+cd study-rpg
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/あなたのユーザー名/study-rpg.git
+git push -u origin main
+
+※「あなたのユーザー名」は実際のGitHubユーザー名に変更
+
+【手順3】GitHub Pagesで公開
+1. リポジトリページで「Settings」
+2. 左メニュー「Pages」
+3. Source: Deploy from a branch
+4. Branch: main / (root)
+5. 「Save」クリック
+6. 数分後、URLが表示される
+
+【完成！】
+https://あなたのユーザー名.github.io/study-rpg/
+
+===========================================
