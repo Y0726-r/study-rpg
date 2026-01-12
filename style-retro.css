@@ -810,16 +810,58 @@ body {
     width: 100%;
     background: #f56565;
     color: white;
-    border: none;
-    border-radius: 8px;
+    border: 3px solid #6b4400;
     padding: 12px;
     font-weight: bold;
     cursor: pointer;
+    font-family: "Press Start 2P", cursive;
+    font-size: 10px;
+    box-shadow: 0 4px #4b1919;
 }
 
-.reset-button:active {
-    transform: translateY(3px);
+.reset-button-mvp:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px #4b1919;
 }
+
+/* Log Action Buttons */
+.log-btn {
+    background: #3e3e3c;
+    border: 2px solid #2a2a29;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 14px;
+    transition: 0.1s;
+    box-shadow: 0 3px #111;
+}
+
+.log-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px #111;
+}
+
+.log-btn.edit {
+    background: #ffd43b;
+    color: #2c1810;
+}
+
+.log-btn.delete {
+    background: #f56565;
+    color: white;
+}
+
+/* Modal Content Adjustment */
+.modal-content.rpg-window {
+    background: #fdf6e3;
+    /* Cream/Retro Paper color */
+    border: 6px solid #6b4400;
+    padding: 24px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+    color: #2c1810;
+}
+
 
 /* ========================================
    ログ画面 (MVP Style)
