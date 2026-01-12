@@ -12,10 +12,9 @@
 }
 
 body {
-    font-family: 'Courier New', 'MS Gothic', monospace;
-    /* 草原と青空の背景 */
-    background: #2c1810;
-    /* Dark background to make the frame pop */
+    font-family: "Press Start 2P", 'Courier New', 'MS Gothic', monospace;
+    background: #7df9ff;
+    /* Sky Blue for field view */
     color: #2c1810;
     min-height: 100vh;
     overflow-x: hidden;
@@ -57,95 +56,89 @@ body {
 /* ========================================
    ホーム画面
    ======================================== */
-.header {
-    margin-bottom: 24px;
-}
-
-.status-top {
+/* ========================================
+   ホーム画面 (MVP 2nd Style)
+   ======================================== */
+.header-mvp {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    background: #2c1810;
-    padding: 12px;
-    border-radius: 12px;
-    border: 3px solid #4a2c00;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    padding: 10px 0;
+    margin-bottom: 30px;
 }
 
 .level-shield {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 70px;
     background: #8b5a00;
-    border: 3px solid #ffd43b;
-    border-radius: 8px;
+    border: 4px solid #ffd43b;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
     clip-path: polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%);
+    box-shadow: 0 4px #4a2c00;
 }
 
 .shield-text {
     color: white;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     text-shadow: 2px 2px 0 black;
+    font-family: "Press Start 2P", cursive;
 }
 
 .exp-bar-group {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.exp-bar-label {
-    font-size: 10px;
-    font-weight: bold;
-    color: #ffd43b;
-    text-shadow: 1px 1px 0 black;
+    margin: 0 15px;
 }
 
 .exp-bar-container {
-    height: 20px;
+    height: 24px;
     background: #1a1a1a;
-    border: 2px solid #4a2c00;
-    border-radius: 4px;
+    border: 3px solid #6b4400;
     position: relative;
+    overflow: hidden;
 }
 
 .exp-bar {
-    background: linear-gradient(to right, #7cfc00, #32cd32);
+    background: #a8ff60;
+    /* 黄緑 */
     height: 100%;
     width: 0%;
     transition: width 0.3s;
 }
 
+.exp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 8px;
+    font-family: "Press Start 2P", cursive;
+    text-shadow: 1px 1px 0 black;
+    white-space: nowrap;
+}
+
 .coin-display-mvp {
     display: flex;
     align-items: center;
-    gap: 6px;
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
+    gap: 4px;
+    color: #ffd43b;
+    font-family: "Press Start 2P", cursive;
+    font-size: 10px;
 }
 
-.coin-icon {
-    margin-right: 4px;
-}
-
-.character-container {
+.field-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 20px 0;
-    padding: 20px;
-    background: linear-gradient(to bottom, #7df9ff 0%, #90ee90 100%);
-    border-radius: 20px;
-    border: 4px solid #fff;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to bottom, #7df9ff 0%, #7df9ff 50%, #90ee90 50%, #90ee90 100%);
+    border: 6px solid #6b4400;
+    margin-bottom: 20px;
+    position: relative;
 }
 
 .character-sprite {
@@ -154,8 +147,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: float 2s ease-in-out infinite;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    background: transparent !important;
 }
 
 .character-sprite img {
@@ -163,55 +155,77 @@ body {
     height: 100%;
     object-fit: contain;
     image-rendering: pixelated;
-    image-rendering: crisp-edges;
+    background: transparent !important;
 }
 
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0px);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
 }
 
-.character-sprite.large {
-    width: 160px;
-    height: 160px;
+.modal-content {
+    width: 90%;
+    max-width: 320px;
 }
 
-.character-message {
-    margin-top: 20px;
-    font-size: 13px;
-    text-align: center;
-    background: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    border: 3px solid #495057;
-    box-shadow:
-        0 3px 0 #343a40,
-        0 4px 8px rgba(0, 0, 0, 0.2);
-    max-width: 90%;
-    color: #2c1810;
-    position: relative;
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.character-message::before {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid white;
-    filter: drop-shadow(0 3px 0 #343a40);
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
+
+.form-group label {
+    font-size: 10px;
+    font-family: "Press Start 2P", cursive;
+}
+
+.form-group select,
+.form-group input {
+    padding: 8px;
+    font-family: inherit;
+    border: 3px solid #4a2c00;
+}
+
+.modal-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.cancel-button,
+.save-button {
+    flex: 1;
+    padding: 10px;
+    font-family: "Press Start 2P", cursive;
+    font-size: 8px;
+    border: 3px solid #4a2c00;
+    cursor: pointer;
+}
+
+.cancel-button {
+    background: #adb5bd;
+}
+
+.save-button {
+    background: #6fa66f;
+    color: white;
+}
+
 
 /* ========================================
    ボトムナビゲーション
@@ -590,6 +604,7 @@ body {
     object-fit: contain;
     image-rendering: pixelated;
     animation: bounce 2s ease-in-out infinite;
+    background: transparent !important;
 }
 
 .pull-btn-mvp {

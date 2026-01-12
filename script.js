@@ -135,17 +135,27 @@ function updateHomeScreen() {
 // ========================================
 
 function selectSubject(button) {
-    // 全ての科目ボタンからactiveクラスを削除
-    document.querySelectorAll('.subject-btn').forEach(btn => {
+    // If the button is already active, deselect it
+    if (button.classList.contains('active')) {
+        button.classList.remove('active');
+        currentSubject = null;
+        return;
+    }
+
+    // Otherwise, deselect all and select this one
+    document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
         btn.classList.remove('active');
     });
 
-    // クリックされたボタンにactiveクラスを追加
     button.classList.add('active');
     currentSubject = button.dataset.subject;
 }
 
 function startTimer() {
+    if (!currentSubject) {
+        alert("勉強する科目を選択してください！");
+        return;
+    }
     if (timerInterval) return; // 既に動いている場合は何もしない
 
     document.getElementById('start-button').classList.add('hidden');
@@ -451,38 +461,89 @@ function updateLogScreen() {
     document.getElementById('total-time').textContent = totalMinutes;
     document.getElementById('total-exp').textContent = totalExp;
 
-    // ログリストの表示
     const container = document.getElementById('log-container');
-
     if (gameData.studyLogs.length === 0) {
         container.innerHTML = '<p class="empty-message">まだ勉強記録がありません</p>';
         return;
     }
 
     container.innerHTML = '';
-
-    // 新しい順に表示
-    const sortedLogs = [...gameData.studyLogs].reverse();
+    // reverse to show newest first, but keep track of actual index
+    const logsWithIndex = gameData.studyLogs.map((log, index) => ({ ...log, index }));
+    const sortedLogs = logsWithIndex.reverse();
 
     sortedLogs.forEach(log => {
         const date = new Date(log.date);
-        const dateStr = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 
         const logItem = document.createElement('div');
         logItem.className = 'item-list-card';
         logItem.innerHTML = `
             <div class="card-icon-box" style="font-size: 20px;">📜</div>
             <div class="card-main">
-                <div class="card-title">${dateStr}</div>
-                <div class="card-subtitle">${log.subject}</div>
+                <div class="card-title">${log.subject}</div>
+                <div class="card-subtitle" style="color: #666;">${dateStr}</div>
             </div>
-            <div class="card-badge" style="text-align: right; font-size: 10px;">
-                ${log.minutes}min<br>
-                +${log.exp} EXP
+            <div class="card-badge" style="text-align: right; position: relative;">
+                <div style="font-size: 11px;">${log.minutes}m / +${log.exp}E</div>
+                <div class="log-actions" style="margin-top: 4px;">
+                    <button class="log-btn edit" onclick="openEditLogModal(${log.index})">📝</button>
+                    <button class="log-btn delete" onclick="deleteLog(${log.index})">🗑️</button>
+                </div>
             </div>
         `;
         container.appendChild(logItem);
     });
+}
+
+// Log management
+let editingLogIndex = null;
+
+function deleteLog(index) {
+    if (confirm("この記録を削除しますか？")) {
+        gameData.studyLogs.splice(index, 1);
+        saveGameData();
+        updateLogScreen();
+        updateHomeScreen();
+        calculateTodayStats();
+    }
+}
+
+function openEditLogModal(index) {
+    editingLogIndex = index;
+    const log = gameData.studyLogs[index];
+    document.getElementById('edit-log-subject').value = log.subject;
+    document.getElementById('edit-log-minutes').value = log.minutes;
+    document.getElementById('edit-log-modal').classList.remove('hidden');
+}
+
+function closeEditLogModal() {
+    document.getElementById('edit-log-modal').classList.add('hidden');
+    editingLogIndex = null;
+}
+
+function saveEditedLog() {
+    if (editingLogIndex === null) return;
+
+    const newSubject = document.getElementById('edit-log-subject').value;
+    const newMinutes = parseInt(document.getElementById('edit-log-minutes').value);
+
+    if (isNaN(newMinutes) || newMinutes <= 0) {
+        alert("有効な時間を入力してください");
+        return;
+    }
+
+    const log = gameData.studyLogs[editingLogIndex];
+    log.subject = newSubject;
+    log.minutes = newMinutes;
+    log.exp = newMinutes * 10;
+    log.coins = newMinutes * 5;
+
+    saveGameData();
+    closeEditLogModal();
+    updateLogScreen();
+    updateHomeScreen();
+    calculateTodayStats();
 }
 
 // ========================================

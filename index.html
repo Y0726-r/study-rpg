@@ -13,26 +13,23 @@
 <body>
     <!-- ホーム画面 -->
     <div id="home-screen" class="screen active">
-        <div class="header">
-            <div class="status-top">
-                <div class="level-shield">
-                    <span class="shield-text">Lv.<span id="player-level">1</span></span>
+        <div class="header-mvp">
+            <div class="level-shield">
+                <span class="shield-text">Lv.<span id="player-level">1</span></span>
+            </div>
+            <div class="exp-bar-group">
+                <div class="exp-bar-container">
+                    <div class="exp-bar" id="exp-bar"></div>
+                    <span class="exp-text">EXP <span id="current-exp">0</span>/<span id="max-exp">100</span></span>
                 </div>
-                <div class="exp-bar-group">
-                    <div class="exp-bar-label">EXP</div>
-                    <div class="exp-bar-container">
-                        <div class="exp-bar" id="exp-bar"></div>
-                        <span class="exp-text"><span id="current-exp">0</span>/<span id="max-exp">100</span></span>
-                    </div>
-                </div>
-                <div class="coin-display-mvp">
-                    <span class="coin-icon">💰</span>
-                    <span id="coin-count">0</span>
-                </div>
+            </div>
+            <div class="coin-display-mvp">
+                <span class="coin-icon">💰</span>
+                <span id="coin-count">0</span>
             </div>
         </div>
 
-        <div class="character-container">
+        <div class="field-container">
             <div class="character-sprite"><img src="assets/player.jpg" alt="Player"></div>
             <p class="character-message">勉強してレベルアップしよう！</p>
         </div>
@@ -71,7 +68,7 @@
         </div>
 
         <div class="subject-selector-mvp">
-            <button class="subject-btn-mvp active" data-subject="数学" onclick="selectSubject(this)">
+            <button class="subject-btn-mvp" data-subject="数学" onclick="selectSubject(this)">
                 <div class="subject-icon math"></div>
                 <span>MATH</span>
             </button>
@@ -207,6 +204,32 @@
                 Lv.<span id="old-level">1</span> → Lv.<span id="new-level">2</span>
             </p>
             <button class="ok-button" onclick="closeLevelUpModal()">OK</button>
+        </div>
+    </div>
+
+    <!-- ログ編集モーダル -->
+    <div id="edit-log-modal" class="modal hidden">
+        <div class="modal-content rpg-window">
+            <h2 class="screen-title-mvp" style="color: #2c1810; font-size: 16px;">EDIT LOG</h2>
+            <div class="edit-form">
+                <div class="form-group">
+                    <label>SUBJECT:</label>
+                    <select id="edit-log-subject">
+                        <option value="数学">MATH</option>
+                        <option value="英語">ENGLISH</option>
+                        <option value="理科">SCIENCE</option>
+                        <option value="その他">OTHER</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>MINUTES:</label>
+                    <input type="number" id="edit-log-minutes" min="1">
+                </div>
+                <div class="modal-controls">
+                    <button class="cancel-button" onclick="closeEditLogModal()">CANCEL</button>
+                    <button class="save-button" onclick="saveEditedLog()">SAVE</button>
+                </div>
+            </div>
         </div>
     </div>
 
