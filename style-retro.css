@@ -340,167 +340,182 @@ body {
    勉強タイマー画面 (MVP Style)
    ======================================== */
 .screen-title-mvp {
-    flex: 1;
+    font-size: 20px;
     text-align: center;
-    font-size: 24px;
-    color: #e9ecef;
+    margin-bottom: 20px;
     letter-spacing: 2px;
+    color: #e8e8e8;
+    font-family: "Press Start 2P", cursive;
+}
+
+.back-button-mvp {
+    background: none;
+    border: none;
+    color: #ddd;
+    font-size: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-family: "Press Start 2P", cursive;
 }
 
 .timer-container-mvp {
-    background: #1a1a1a;
-    border: 4px solid #4a5568;
-    border-radius: 12px;
-    padding: 30px 10px;
-    margin-bottom: 24px;
-    box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
+    text-align: center;
 }
 
 .timer-display-lcd {
-    font-size: 56px;
-    font-weight: bold;
-    color: #39FF14;
-    /* Neon Green */
+    background: #0a0f08;
+    border: 4px solid #4a6b50;
+    border-radius: 6px;
+    padding: 24px 10px;
+    margin: 20px auto;
+    width: 90%;
     text-align: center;
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+    color: #a8ff60;
+    /* 黄緑液晶色 */
+    font-size: 32px;
     letter-spacing: 4px;
+    font-family: 'Courier New', monospace;
+    /* Fallback for digital */
+    text-shadow: 0 0 10px #70ff3c;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .subject-selector-mvp {
+    margin-top: 10px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-bottom: 24px;
+    gap: 6px;
 }
 
 .subject-btn-mvp {
-    background: #2d3748;
-    border: 3px solid #4a5568;
-    border-radius: 8px;
-    padding: 8px;
+    background: #3e3e3c;
+    border: 3px solid #2a2a29;
+    border-radius: 6px;
+    padding: 8px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     cursor: pointer;
-    transition: all 0.2s;
-}
-
-.subject-btn-mvp span {
-    font-size: 9px;
-    font-weight: bold;
-    color: #a0aec0;
+    color: #eee;
+    font-size: 8px;
+    font-family: "Press Start 2P", cursive;
+    transition: 0.1s;
+    box-shadow: 0 4px #222;
 }
 
 .subject-btn-mvp.active {
-    background: #4a5568;
-    border-color: #39FF14;
-}
-
-.subject-btn-mvp.active span {
-    color: white;
+    background: #6fa66f;
+    border-color: #4e864e;
+    box-shadow: 0 4px #3d6a3d;
 }
 
 .subject-icon {
     width: 32px;
     height: 32px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+    margin-bottom: 4px;
+    background-size: 600% auto;
+    image-rendering: pixelated;
 }
 
-/* Simulating icons with basic shapes or assets if I had them */
+/* Using items sheet for icons */
 .subject-icon.math {
-    background: #ed8936;
-    border-radius: 4px;
+    background-image: url('assets/items_sheet.png');
+    background-position: 55% 45%;
 }
 
 .subject-icon.english {
-    background: #4299e1;
-    border-radius: 4px;
+    background-image: url('assets/items_sheet.png');
+    background-position: 85% 45%;
 }
 
 .subject-icon.science {
-    background: #48bb78;
-    border-radius: 4px;
+    background-image: url('assets/items_sheet.png');
+    background-position: 72% 0%;
 }
 
 .subject-icon.other {
-    background: #a0aec0;
-    border-radius: 4px;
+    background-image: url('assets/items_sheet.png');
+    background-position: 90% 0%;
 }
 
 .reward-box-mvp {
-    background: rgba(0, 0, 0, 0.3);
-    border: 2px solid #4a5568;
-    border-radius: 8px;
+    margin: 20px auto;
+    width: 90%;
     padding: 12px;
+    background: #1d1d1b;
+    border: 3px solid #525252;
+    color: #ccc;
+    font-size: 10px;
     text-align: center;
-    color: #ffd43b;
-    font-size: 13px;
-    margin-bottom: 24px;
+    border-radius: 6px;
+    box-shadow: 0 4px #111;
+    font-family: "Press Start 2P", cursive;
+    line-height: 1.5;
 }
 
 .timer-controls-mvp {
     display: flex;
-    gap: 16px;
+    gap: 12px;
+    justify-content: center;
     margin-bottom: 24px;
 }
 
 .start-button-mvp,
 .stop-button-mvp {
     flex: 1;
-    padding: 16px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 18px;
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 6px;
     cursor: pointer;
-    border: none;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    font-family: "Press Start 2P", cursive;
 }
 
 .start-button-mvp {
-    background: #48bb78;
-    color: #1a1a1a;
+    background: #3d7f3d;
+    border: 4px solid #1e4d1e;
+    color: #d9ffd9;
+    box-shadow: 0 4px #1b441b;
 }
 
 .stop-button-mvp {
-    background: #f56565;
-    color: white;
+    background: #993c3c;
+    border: 4px solid #5e1f1f;
+    color: #ffe4e4;
+    box-shadow: 0 4px #4b1919;
+}
+
+.stop-button-mvp.hidden {
+    display: none;
 }
 
 .today-stats-mvp {
-    background: #1a1a1a;
-    border: 3px solid #4a5568;
-    border-radius: 8px;
-    padding: 12px;
+    margin-top: 25px;
+    padding: 15px;
+    background: #0f0f0d;
+    border: 3px solid #4a4a4a;
+    border-radius: 6px;
+    color: #a8ff60;
+    text-shadow: 0 0 4px #70ff3c;
     text-align: center;
 }
 
-.stats-label {
-    font-size: 10px;
+.today-stats-mvp .stats-label {
+    font-family: "Press Start 2P", cursive;
+    font-size: 8px;
     color: #a0aec0;
-    margin-bottom: 4px;
+    display: block;
+    margin-bottom: 10px;
 }
 
-.stats-value {
+.today-stats-mvp .stats-value {
+    font-family: "Courier New", monospace;
     font-size: 24px;
-    color: #39FF14;
-    font-family: 'Courier New', monospace;
 }
 
-.back-button-mvp {
-    background: #4a5568;
-    border: 3px solid #2d3748;
-    border-radius: 8px;
-    color: white;
-    padding: 8px 16px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+display: flex;
+align-items: center;
+gap: 8px;
 }
 
 /* ========================================
