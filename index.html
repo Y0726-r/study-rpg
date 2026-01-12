@@ -59,67 +59,97 @@
     <!-- 勉強タイマー画面 -->
     <div id="study-screen" class="screen">
         <div class="screen-header">
-            <button class="back-button" onclick="showScreen('home-screen')">← 戻る</button>
-            <h2>勉強タイマー</h2>
+            <button class="back-button-mvp" onclick="showScreen('home-screen')">
+                <span class="back-arrow">⬅️</span> 戻る
+            </button>
+            <h2 class="screen-title-mvp">STUDY TIMER</h2>
         </div>
 
-        <div class="timer-container">
-            <div class="timer-display" id="timer-display">00:00:00</div>
-            <div class="reward-info">+10 EXP, +5 コイン / 分</div>
+        <div class="timer-container-mvp">
+            <div class="timer-display-lcd" id="timer-display">00:00:00</div>
         </div>
 
-        <div class="subject-selector">
-            <button class="subject-btn active" data-subject="数学" onclick="selectSubject(this)">📐 数学</button>
-            <button class="subject-btn" data-subject="英語" onclick="selectSubject(this)">📖 英語</button>
-            <button class="subject-btn" data-subject="理科" onclick="selectSubject(this)">🔬 理科</button>
-            <button class="subject-btn" data-subject="その他" onclick="selectSubject(this)">✏️ その他</button>
+        <div class="subject-selector-mvp">
+            <button class="subject-btn-mvp active" data-subject="数学" onclick="selectSubject(this)">
+                <div class="subject-icon math"></div>
+                <span>MATH</span>
+            </button>
+            <button class="subject-btn-mvp" data-subject="英語" onclick="selectSubject(this)">
+                <div class="subject-icon english"></div>
+                <span>ENGLISH</span>
+            </button>
+            <button class="subject-btn-mvp" data-subject="理科" onclick="selectSubject(this)">
+                <div class="subject-icon science"></div>
+                <span>SCIENCE</span>
+            </button>
+            <button class="subject-btn-mvp" data-subject="その他" onclick="selectSubject(this)">
+                <div class="subject-icon other"></div>
+                <span>OTHER</span>
+            </button>
         </div>
 
-        <div class="timer-controls">
-            <button class="start-button" id="start-button" onclick="startTimer()">開始</button>
-            <button class="stop-button hidden" id="stop-button" onclick="stopTimer()">停止</button>
+        <div class="reward-box-mvp">
+            <p>勉強すると +10 EXP, +5 Coins/分</p>
         </div>
 
-        <div class="today-stats">
-            <p>今日の勉強時間: <span id="today-time">0</span>分</p>
+        <div class="timer-controls-mvp">
+            <button class="start-button-mvp" id="start-button" onclick="startTimer()">START</button>
+            <button class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">STOP</button>
+        </div>
+
+        <div class="today-stats-mvp">
+            <p class="stats-label">TODAY'S STUDY TIME:</p>
+            <p class="stats-value" id="today-stats-display">00H 00M</p>
         </div>
     </div>
 
     <!-- ガチャ画面 -->
     <div id="gacha-screen" class="screen">
         <div class="screen-header">
-            <button class="back-button" onclick="showScreen('home-screen')">← 戻る</button>
-            <h2>ガチャ</h2>
+            <button class="back-button-mvp" onclick="showScreen('home-screen')">
+                <span class="back-arrow">⬅️</span> 戻る
+            </button>
+            <h2 class="screen-title-mvp">GACHA</h2>
         </div>
 
-        <div class="gacha-container">
-            <div class="coin-balance">
-                <span class="coin-icon">💰</span>
-                <span id="gacha-coin-count">0</span> コイン
+        <div class="gacha-container-mvp">
+            <div class="coin-balance-mvp">
+                COINS: <span id="gacha-coin-count">0</span> <span class="coin-dot">🟡</span>
             </div>
 
-            <div class="chest-display">
-                <div class="chest-icon"><img src="assets/chest.jpg" alt="Treasure Chest"></div>
+            <div class="chest-box-mvp">
+                <div class="rarity-indicators">
+                    <div class="rarity-slot star-1">⭐1</div>
+                    <div class="rarity-slot star-2">⭐2</div>
+                    <div class="rarity-slot star-3">⭐3</div>
+                </div>
+                <div class="chest-display-mvp">
+                    <img src="assets/chest.jpg" alt="Chest" class="chest-image-mvp">
+                </div>
             </div>
 
-            <div class="gacha-info">
-                <p>★1 (60%) | ★2 (30%) | ★3 (10%)</p>
-            </div>
-
-            <button class="pull-button" onclick="pullGacha()">
-                引く (100コイン)
+            <button class="pull-btn-mvp" onclick="pullGacha()">
+                <div class="pull-top">PULL</div>
+                <div class="pull-bottom">(100 COINS)</div>
             </button>
 
-            <div id="gacha-result" class="gacha-result hidden">
-                <div class="result-content">
-                    <p class="result-text">獲得！</p>
-                    <div class="result-item">
-                        <span class="item-icon" id="result-icon">⚔️</span>
-                        <p class="item-name" id="result-name">アイテム名</p>
-                        <p class="item-rarity" id="result-rarity">★★★</p>
-                    </div>
-                    <button class="ok-button" onclick="closeGachaResult()">OK</button>
+            <div class="gacha-log-mvp" id="gacha-mini-log">
+                <p>You got: [item name]</p>
+                <p>You got: [item name]</p>
+            </div>
+
+            <button class="list-btn-mvp" onclick="showScreen('menu-screen')">LIST</button>
+        </div>
+
+        <div id="gacha-result" class="gacha-result hidden">
+            <div class="result-content-mvp">
+                <p class="result-text-mvp">獲得！</p>
+                <div class="result-item-mvp">
+                    <div class="item-icon-mvp" id="result-icon"></div>
+                    <p class="item-name-mvp" id="result-name">アイテム名</p>
+                    <p class="item-rarity-mvp" id="result-rarity">★★★</p>
                 </div>
+                <button class="ok-btn-mvp" onclick="closeGachaResult()">OK</button>
             </div>
         </div>
     </div>
@@ -127,38 +157,42 @@
     <!-- メニュー画面 -->
     <div id="menu-screen" class="screen">
         <div class="screen-header">
-            <button class="back-button" onclick="showScreen('home-screen')">← 戻る</button>
-            <h2>持っているアイテム</h2>
+            <button class="back-button-mvp" onclick="showScreen('home-screen')">
+                <span class="back-arrow">⬅️</span> 戻る
+            </button>
+            <h2 class="screen-title-mvp">ITEM LIST</h2>
         </div>
 
-        <div class="inventory-container" id="inventory-container">
+        <div class="inventory-container-mvp" id="inventory-container">
             <p class="empty-message">まだアイテムを持っていません</p>
         </div>
 
-        <div class="menu-footer">
-            <button class="reset-button" onclick="confirmReset()">データリセット</button>
+        <div class="menu-footer-mvp">
+            <button class="reset-button-mvp" onclick="confirmReset()">DATA RESET</button>
         </div>
     </div>
 
     <!-- ログ画面 -->
     <div id="log-screen" class="screen">
         <div class="screen-header">
-            <button class="back-button" onclick="showScreen('home-screen')">← 戻る</button>
-            <h2>勉強記録</h2>
+            <button class="back-button-mvp" onclick="showScreen('home-screen')">
+                <span class="back-arrow">⬅️</span> 戻る
+            </button>
+            <h2 class="screen-title-mvp">STUDY LOG</h2>
         </div>
 
-        <div class="log-stats">
-            <div class="stat-card">
-                <p class="stat-label">総勉強時間</p>
-                <p class="stat-value"><span id="total-time">0</span>分</p>
+        <div class="log-stats-mvp">
+            <div class="stat-card-mvp">
+                <p class="stat-label">TOTAL TIME</p>
+                <p class="stat-value"><span id="total-time">0</span> min</p>
             </div>
-            <div class="stat-card">
-                <p class="stat-label">総獲得EXP</p>
+            <div class="stat-card-mvp">
+                <p class="stat-label">TOTAL EXP</p>
                 <p class="stat-value"><span id="total-exp">0</span></p>
             </div>
         </div>
 
-        <div class="log-container" id="log-container">
+        <div class="log-container-mvp" id="log-container">
             <p class="empty-message">まだ勉強記録がありません</p>
         </div>
     </div>

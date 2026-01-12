@@ -253,18 +253,14 @@ function closeLevelUpModal() {
     document.getElementById('levelup-modal').classList.add('hidden');
 }
 
-function calculateTodayStats() {
-    const today = new Date().toDateString();
-    let todayMinutes = 0;
+const hours = Math.floor(todayMinutes / 60);
+const mins = todayMinutes % 60;
+const display = `${String(hours).padStart(2, '0')}H ${String(mins).padStart(2, '0')}M`;
 
-    gameData.studyLogs.forEach(log => {
-        const logDate = new Date(log.date).toDateString();
-        if (logDate === today) {
-            todayMinutes += log.minutes;
-        }
-    });
-
-    document.getElementById('today-time').textContent = todayMinutes;
+const displayElement = document.getElementById('today-stats-display');
+if (displayElement) {
+    displayElement.textContent = display;
+}
 }
 
 // ========================================
