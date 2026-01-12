@@ -134,11 +134,18 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background: linear-gradient(to bottom, #7df9ff 0%, #7df9ff 50%, #90ee90 50%, #90ee90 100%);
+    justify-content: flex-end;
+    /* Align character to bottom/ground */
+    padding-bottom: 40px;
+    /* Space from bottom */
+    background-image: url('assets/home_bg.png');
+    background-size: cover;
+    background-position: center;
     border: 6px solid #6b4400;
     margin-bottom: 20px;
     position: relative;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    /* Inner shadow for depth */
 }
 
 .character-sprite {
@@ -156,6 +163,8 @@ body {
     object-fit: contain;
     image-rendering: pixelated;
     background: transparent !important;
+    /* Try to hide checkerboard if it's light gray on transparent */
+    mix-blend-mode: multiply;
 }
 
 /* Modal styles */
@@ -429,29 +438,30 @@ body {
     width: 32px;
     height: 32px;
     margin-bottom: 4px;
-    background-size: 600% auto;
+    background-size: 600% 300%;
+    /* Better controlled size */
     image-rendering: pixelated;
 }
 
-/* Using items sheet for icons */
+/* Using items sheet for icons - Refined positions to prevent cropping */
 .subject-icon.math {
     background-image: url('assets/items_sheet.png');
-    background-position: 55% 45%;
+    background-position: 54% 48%;
 }
 
 .subject-icon.english {
     background-image: url('assets/items_sheet.png');
-    background-position: 85% 45%;
+    background-position: 84% 48%;
 }
 
 .subject-icon.science {
     background-image: url('assets/items_sheet.png');
-    background-position: 72% 0%;
+    background-position: 72% -2%;
 }
 
 .subject-icon.other {
     background-image: url('assets/items_sheet.png');
-    background-position: 90% 0%;
+    background-position: 90% -2%;
 }
 
 .reward-box-mvp {
