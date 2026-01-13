@@ -17,7 +17,18 @@ body {
     /* Sky Blue for field view */
     color: #2c1810;
     min-height: 100vh;
+    min-height: 100dvh;
+    /* Mobile fix */
     overflow-x: hidden;
+    /* Prevent bouncy scroll on iOS if needed, but allow valid scroll */
+    overscroll-behavior-y: none;
+}
+
+html {
+    height: 100%;
+    background: #000;
+    /* Fallback to black if user sees overscroll, but let's match body */
+    background: #7df9ff;
 }
 
 /* ========================================
@@ -26,6 +37,7 @@ body {
 .screen {
     display: none;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 32px;
     /* Increased padding for the border */
     animation: fadeIn 0.3s ease;
@@ -159,8 +171,8 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    width: 80px;
-    height: 80px;
+    width: 140px;
+    height: 140px;
     z-index: 10;
     /* Grounding shadow */
     filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
@@ -174,7 +186,31 @@ body {
     background: transparent !important;
     /* 透過PNGなのでブレンドモードは不要 */
     mix-blend-mode: normal !important;
+    animation: idleShake 0.5s steps(2) infinite;
 }
+
+@keyframes idleShake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-2px);
+    }
+
+    50% {
+        transform: translateX(2px);
+    }
+
+    75% {
+        transform: translateX(-2px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
 
 /* Modal styles */
 .modal {
