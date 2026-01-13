@@ -133,42 +133,46 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    /* Align character to bottom/ground */
-    padding-bottom: 40px;
-    /* Space from bottom */
-    background-image: url('assets/home_bg.png');
-    background-size: cover;
-    background-position: center;
-    border: 6px solid #6b4400;
     margin-bottom: 20px;
-    position: relative;
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-    /* Inner shadow for depth */
 }
 
-.character-sprite {
+.rpg-field-bg {
+    flex: 1;
+    position: relative;
+    border: 6px solid #6b4400;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    background: #000;
+    /* Fallback */
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+.rpg-bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.character-wrapper {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 80px;
     height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent !important;
-    margin-bottom: 20px;
-
-    /* ピクセルキャラに最適な輪郭シャドウ */
+    z-index: 10;
+    /* Grounding shadow */
     filter: drop-shadow(0 0 3px #000);
 }
 
-.character-sprite img {
+.player-sprite {
     width: 100%;
     height: 100%;
     object-fit: contain;
     image-rendering: pixelated;
     background: transparent !important;
-
-    /* 背景の箱を消すために一時的に乗算モードを使用します */
+    /* 背景の箱を消すために一時的に乗算モードを使用 */
     mix-blend-mode: multiply !important;
 }
 
