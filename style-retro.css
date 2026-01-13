@@ -163,7 +163,7 @@ body {
     height: 80px;
     z-index: 10;
     /* Grounding shadow */
-    filter: drop-shadow(0 0 3px #000);
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
 }
 
 .player-sprite {
@@ -172,7 +172,7 @@ body {
     object-fit: contain;
     image-rendering: pixelated;
     background: transparent !important;
-    /* 背景の箱を消すために一時的に乗算モードを使用 */
+    /* JPG画像の白/グレー背景を透過させるために乗算モードを使用 */
     mix-blend-mode: multiply !important;
 }
 
