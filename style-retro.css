@@ -157,15 +157,6 @@ body {
     background: transparent !important;
 }
 
-.character-sprite img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    image-rendering: pixelated;
-    background: transparent !important;
-    /* Try to hide checkerboard if it's light gray on transparent */
-    mix-blend-mode: multiply;
-}
 
 /* Modal styles */
 .modal {
@@ -371,14 +362,16 @@ body {
     font-family: "Press Start 2P", cursive;
 }
 
-.back-button-mvp {
-    background: none;
-    border: none;
-    color: #ddd;
-    font-size: 10px;
-    margin-bottom: 10px;
+.pixel-back-btn {
+    background: #222;
+    border: 3px solid #fff;
+    padding: 6px 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: #fff;
+    border-radius: 4px;
     cursor: pointer;
-    font-family: "Press Start 2P", cursive;
+    margin-bottom: 10px;
 }
 
 .timer-container-mvp {
@@ -616,6 +609,9 @@ body {
     image-rendering: pixelated;
     animation: bounce 2s ease-in-out infinite;
     background: transparent !important;
+    mix-blend-mode: normal !important;
+    /* 背景に馴染む影 */
+    filter: drop-shadow(0 0 2px #000);
 }
 
 .pull-btn-mvp {
@@ -803,12 +799,25 @@ body {
     color: #718096;
 }
 
-.empty-message {
-    text-align: center;
-    color: #868e96;
-    padding: 40px 20px;
-    grid-column: 1 / -1;
-    font-size: 12px;
+.log-item {
+    display: flex;
+    align-items: center;
+    width: 90%;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    /* Maintain card look */
+    background: #fdf6e3;
+    border: 3px solid #718096;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.log-text {
+    flex-grow: 1;
+    padding-left: 12px;
+    font-size: 14px;
+    overflow-wrap: break-word;
 }
 
 .menu-footer-mvp {
