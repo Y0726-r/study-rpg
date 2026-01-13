@@ -1024,9 +1024,15 @@ html {
         font-size: 32px;
     }
 
-    .character-sprite {
+    .character-wrapper {
         width: 100px;
         height: 100px;
+        bottom: 10px;
+    }
+
+    .screen {
+        padding: 24px;
+        border-width: 16px;
     }
 
     .nav-icon {
