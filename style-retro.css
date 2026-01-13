@@ -149,8 +149,8 @@ body {
 }
 
 .character-sprite {
-    width: 64px;
-    height: 64px;
+    width: 80px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,8 +168,8 @@ body {
     image-rendering: pixelated;
     background: transparent !important;
 
-    /* ←これが主人公が背景と混ざる原因！削除！ */
-    mix-blend-mode: normal !important;
+    /* 背景の箱を消すために一時的に乗算モードを使用します */
+    mix-blend-mode: multiply !important;
 }
 
 /* Modal styles */
