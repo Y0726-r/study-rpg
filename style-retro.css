@@ -172,8 +172,8 @@ body {
     object-fit: contain;
     image-rendering: pixelated;
     background: transparent !important;
-    /* JPG画像の白/グレー背景を透過させるために乗算モードを使用 */
-    mix-blend-mode: multiply !important;
+    /* 透過PNGなのでブレンドモードは不要 */
+    mix-blend-mode: normal !important;
 }
 
 /* Modal styles */
