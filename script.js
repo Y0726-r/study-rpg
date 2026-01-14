@@ -167,10 +167,20 @@ function startTimer() {
     }, 1000);
 }
 
+
+// Jump Animation & Transition
+let isStartingStudy = false;
+
 // Jump Animation & Transition
 function startStudyWithAnimation() {
+    if (isStartingStudy) return; // 二重防止
+    isStartingStudy = true;
+
     const char = document.querySelector('.character-motion');
-    if (!char) return;
+    if (!char) {
+        isStartingStudy = false;
+        return;
+    }
 
     char.classList.remove('jump-active');
     void char.offsetWidth;
@@ -178,11 +188,13 @@ function startStudyWithAnimation() {
 
     const onEnd = () => {
         char.removeEventListener('animationend', onEnd);
+        isStartingStudy = false;
         showScreen('study-screen');
     };
 
-    char.addEventListener('animationend', onEnd);
+    char.addEventListener('animationend', onEnd, { once: true });
 }
+
 
 function stopTimer() {
     if (!timerInterval) return;
