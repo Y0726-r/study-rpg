@@ -21,6 +21,7 @@ let startTime = null;
 let elapsedBeforePause = 0;
 
 function startTimer() {
+    console.log("🔥 startTimer 呼ばれた");
     if (timerInterval) return;
 
     startTime = Date.now();
@@ -47,7 +48,10 @@ function renderTimer(totalSeconds) {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
-    document.getElementById("timer-text").textContent =
+    const timerElement = document.getElementById("timer-text");
+    if (!timerElement) return; // Prevent crash if element is missing
+
+    timerElement.textContent =
         String(minutes).padStart(2, "0") +
         ":" +
         String(seconds).padStart(2, "0");
