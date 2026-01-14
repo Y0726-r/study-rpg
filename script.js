@@ -47,14 +47,28 @@ function pauseTimer() {
 function renderTimer(totalSeconds) {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / 3600);
+    const displayMinutes = Math.floor((totalSeconds % 3600) / 60);
 
-    const timerElement = document.getElementById("timer-text");
-    if (!timerElement) return; // Prevent crash if element is missing
-
-    timerElement.textContent =
+    const formattedTime =
         String(minutes).padStart(2, "0") +
         ":" +
         String(seconds).padStart(2, "0");
+
+    const formattedLCD =
+        String(hours).padStart(2, "0") + ':' +
+        String(displayMinutes).padStart(2, "0") + ':' +
+        String(seconds).padStart(2, "0");
+
+    const timerText = document.getElementById("timer-text");
+    if (timerText) {
+        timerText.textContent = formattedTime;
+    }
+
+    const timerDisplay = document.getElementById("timer-display");
+    if (timerDisplay) {
+        timerDisplay.textContent = formattedLCD;
+    }
 }
 
 
