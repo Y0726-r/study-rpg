@@ -182,9 +182,8 @@ body {
     object-fit: contain;
     image-rendering: pixelated;
     background: transparent !important;
-    /* 透過PNGなのでブレンドモードは不要 */
     mix-blend-mode: normal !important;
-    animation: idleShake 0.5s steps(2) infinite;
+    /* animation: idleShake 0.5s steps(2) infinite; ← コメントアウト */
 }
 
 @keyframes idleShake {
@@ -336,6 +335,8 @@ body {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-top: auto;
+    position: relative;
+    z-index: 20;
 }
 
 .nav-button {
