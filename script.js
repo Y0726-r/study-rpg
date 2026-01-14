@@ -136,6 +136,16 @@ function saveGameData() {
 // ========================================
 
 function showScreen(screenId) {
+    // If leaving study screen, pause timer (as per requirement)
+    // We check if we are currently active in study-screen before switching?
+    // Simply calling pauseTimer() is safe even if not running, except it sets elapsed.
+    // User said "BACK / 画面離脱時には pauseTimer() を必ず呼ぶこと".
+    // If we are moving AWAY from study-screen:
+    const studyScreen = document.getElementById('study-screen');
+    if (studyScreen.classList.contains('active') && screenId !== 'study-screen') {
+        pauseTimer();
+    }
+
     // 全ての画面を非表示
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
@@ -155,6 +165,14 @@ function showScreen(screenId) {
         updateLogScreen();
     } else if (screenId === 'study-screen') {
         calculateTodayStats();
+        // Reset UI buttons based on timer state
+        if (timerInterval) {
+            document.getElementById('start-button').classList.add('hidden');
+            document.getElementById('stop-button').classList.remove('hidden');
+        } else {
+            document.getElementById('start-button').classList.remove('hidden');
+            document.getElementById('stop-button').classList.add('hidden');
+        }
     }
 }
 
