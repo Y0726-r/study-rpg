@@ -161,6 +161,14 @@ function startTimer() {
     document.getElementById('start-button').classList.add('hidden');
     document.getElementById('stop-button').classList.remove('hidden');
 
+    // Jump Animation
+    const charWrapper = document.querySelector('.character-wrapper');
+    if (charWrapper) {
+        charWrapper.classList.remove('jump');
+        void charWrapper.offsetWidth; // Trigger reflow
+        charWrapper.classList.add('jump');
+    }
+
     timerInterval = setInterval(() => {
         elapsedSeconds++;
         updateTimerDisplay();

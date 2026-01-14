@@ -168,10 +168,9 @@ body {
     left: 50%;
     transform: translateX(-50%);
     width: 96px;
-    /* 基準サイズ */
-    max-width: 30vw;
-    /* 画面が狭い時の保険 */
     margin: 0 auto;
+    /* 基準サイズ */
+    /* 画面が狭い時の保険 */
     z-index: 10;
     /* Grounding shadow */
     filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
@@ -207,6 +206,24 @@ body {
 
     100% {
         transform: translateX(0);
+    }
+}
+
+.character-wrapper.jump {
+    animation: jump 0.5s ease-out;
+}
+
+@keyframes jump {
+    0% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-20px);
+    }
+
+    100% {
+        transform: translateX(-50%) translateY(0);
     }
 }
 
