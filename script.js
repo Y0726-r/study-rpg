@@ -259,14 +259,12 @@ function startStudyWithAnimation() {
     const onEnd = () => {
         char.removeEventListener('animationend', onEnd);
         showScreen('study-screen');
-        // Ensure UI is updated and constraints checked
-        if (!currentSubject) {
-            // Fallback default if null (or handle error) - but usually subject is set by default? 
-            // Global var currentSubject = "数学" is default.
-        }
-        document.getElementById('start-button').classList.add('hidden');
-        document.getElementById('stop-button').classList.remove('hidden');
-        startTimer();
+        isStartingStudy = false; // Restore flag reset
+
+        // Manual Start: Do NOT start timer here.
+        // UI is reset by showScreen -> initializeStudyScreen logic if needed,
+        // or effectively handled by the fact that showScreen handles basic visibility.
+        // We rely on user clicking START.
     };
 
     char.addEventListener('animationend', onEnd, { once: true });
