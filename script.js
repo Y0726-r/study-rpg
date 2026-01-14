@@ -169,17 +169,19 @@ function startTimer() {
 
 // Jump Animation & Transition
 function startStudyWithAnimation() {
-    const charMotion = document.querySelector('.character-motion');
-    if (charMotion) {
-        charMotion.classList.remove('jump-active');
-        void charMotion.offsetWidth; // Trigger reflow
-        charMotion.classList.add('jump-active');
-    }
+    const char = document.querySelector('.character-motion');
+    if (!char) return;
 
-    // Wait for animation (almost) to finish before transition
-    setTimeout(() => {
+    char.classList.remove('jump-active');
+    void char.offsetWidth;
+    char.classList.add('jump-active');
+
+    const onEnd = () => {
+        char.removeEventListener('animationend', onEnd);
         showScreen('study-screen');
-    }, 600);
+    };
+
+    char.addEventListener('animationend', onEnd);
 }
 
 function stopTimer() {
