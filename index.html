@@ -33,14 +33,16 @@
             <div class="rpg-field-bg">
                 <img class="rpg-bg-img" src="assets/bg_field.png" alt="">
                 <div class="character-wrapper">
-                    <img class="player-sprite" src="assets/player.png" alt="Player">
+                    <div class="character-motion">
+                        <img class="player-sprite" src="assets/player.png" alt="Player">
+                    </div>
                 </div>
             </div>
             <p class="character-message">勉強してレベルアップしよう！</p>
         </div>
 
         <nav class="bottom-nav">
-            <button class="nav-button" onclick="showScreen('study-screen')">
+            <button class="nav-button" onclick="startStudyWithAnimation()">
                 <span class="nav-icon image-nav study"></span>
                 <span class="nav-label">勉強</span>
             </button>
