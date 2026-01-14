@@ -60,11 +60,6 @@ function renderTimer(totalSeconds) {
         String(displayMinutes).padStart(2, "0") + ':' +
         String(seconds).padStart(2, "0");
 
-    const timerText = document.getElementById("timer-text");
-    if (timerText) {
-        timerText.textContent = formattedTime;
-    }
-
     const timerDisplay = document.getElementById("timer-display");
     if (timerDisplay) {
         timerDisplay.textContent = formattedLCD;
