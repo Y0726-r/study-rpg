@@ -17,6 +17,43 @@ let timerInterval = null;
 let elapsedSeconds = 0;
 let currentSubject = "数学";
 
+let startTime = null;
+let elapsedBeforePause = 0;
+
+function startTimer() {
+    if (timerInterval) return;
+
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+    const now = Date.now();
+    const elapsedMs = elapsedBeforePause + (now - startTime);
+    elapsedSeconds = Math.floor(elapsedMs / 1000);
+
+    renderTimer(elapsedSeconds);
+}
+
+function pauseTimer() {
+    if (!timerInterval) return;
+
+    clearInterval(timerInterval);
+    timerInterval = null;
+    elapsedBeforePause += Date.now() - startTime;
+}
+
+function renderTimer(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    document.getElementById("timer-text").textContent =
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(seconds).padStart(2, "0");
+}
+
+
 // レベルテーブル（レベルアップに必要な累積EXP）
 const LEVEL_TABLE = {
     1: 0,
@@ -151,20 +188,17 @@ function selectSubject(button) {
     currentSubject = button.dataset.subject;
 }
 
-function startTimer() {
+// Old startTimer removed. New startTimer is defined at top.
+// Function to handle UI toggle when starting timer (if not handled in new startTimer)
+function activateTimerUI() {
     if (!currentSubject) {
         alert("勉強する科目を選択してください！");
-        return;
+        return false;
     }
-    if (timerInterval) return; // 既に動いている場合は何もしない
-
     document.getElementById('start-button').classList.add('hidden');
     document.getElementById('stop-button').classList.remove('hidden');
-
-    timerInterval = setInterval(() => {
-        elapsedSeconds++;
-        updateTimerDisplay();
-    }, 1000);
+    startTimer(); // Call the new startTimer
+    return true;
 }
 
 
@@ -188,8 +222,15 @@ function startStudyWithAnimation() {
 
     const onEnd = () => {
         char.removeEventListener('animationend', onEnd);
-        isStartingStudy = false;
         showScreen('study-screen');
+        // Ensure UI is updated and constraints checked
+        if (!currentSubject) {
+            // Fallback default if null (or handle error) - but usually subject is set by default? 
+            // Global var currentSubject = "数学" is default.
+        }
+        document.getElementById('start-button').classList.add('hidden');
+        document.getElementById('stop-button').classList.remove('hidden');
+        startTimer();
     };
 
     char.addEventListener('animationend', onEnd, { once: true });
