@@ -209,21 +209,52 @@ body {
     }
 }
 
-.character-wrapper.jump {
-    animation: jump 0.5s ease-out;
+.character-motion {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    /* 底面合わせ */
+    transform-origin: bottom center;
 }
 
-@keyframes jump {
+.character-motion.jump-active {
+    animation: bouncyJump 0.6s cubic-bezier(0.28, 0.84, 0.42, 1);
+}
+
+@keyframes bouncyJump {
     0% {
-        transform: translateX(-50%) translateY(0);
+        transform: scale(1, 1) translateY(0);
     }
 
+    10% {
+        transform: scale(1.1, 0.9) translateY(0);
+    }
+
+    /* 溜め */
+    30% {
+        transform: scale(0.9, 1.1) translateY(-30px);
+    }
+
+    /* ジャンプ上昇（伸び） */
     50% {
-        transform: translateX(-50%) translateY(-20px);
+        transform: scale(1, 1) translateY(0);
     }
 
+    /* 着地 */
+    60% {
+        transform: scale(1.15, 0.85) translateY(0);
+    }
+
+    /* 潰れる（バウンド） */
+    80% {
+        transform: scale(0.95, 1.05) translateY(0);
+    }
+
+    /* リバウンド */
     100% {
-        transform: translateX(-50%) translateY(0);
+        transform: scale(1, 1) translateY(0);
     }
 }
 

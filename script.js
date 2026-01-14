@@ -161,18 +161,25 @@ function startTimer() {
     document.getElementById('start-button').classList.add('hidden');
     document.getElementById('stop-button').classList.remove('hidden');
 
-    // Jump Animation
-    const charWrapper = document.querySelector('.character-wrapper');
-    if (charWrapper) {
-        charWrapper.classList.remove('jump');
-        void charWrapper.offsetWidth; // Trigger reflow
-        charWrapper.classList.add('jump');
-    }
-
     timerInterval = setInterval(() => {
         elapsedSeconds++;
         updateTimerDisplay();
     }, 1000);
+}
+
+// Jump Animation & Transition
+function startStudyWithAnimation() {
+    const charMotion = document.querySelector('.character-motion');
+    if (charMotion) {
+        charMotion.classList.remove('jump-active');
+        void charMotion.offsetWidth; // Trigger reflow
+        charMotion.classList.add('jump-active');
+    }
+
+    // Wait for animation (almost) to finish before transition
+    setTimeout(() => {
+        showScreen('study-screen');
+    }, 600);
 }
 
 function stopTimer() {
