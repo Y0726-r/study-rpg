@@ -9,13 +9,14 @@ let gameData = {
         coins: 0
     },
     studyLogs: [],
-    inventory: []
+    inventory: [],
+    currentSubject: null
 };
 
 // タイマー関連
 let timerInterval = null;
 let elapsedSeconds = 0;
-let currentSubject = "数学";
+// currentSubject is now handled via gameData.currentSubject
 
 let startTime = null;
 let elapsedBeforePause = 0;
@@ -160,6 +161,16 @@ function showScreen(screenId) {
         updateLogScreen();
     } else if (screenId === 'study-screen') {
         calculateTodayStats();
+
+        // Restore active subject button from gameData
+        document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
+            if (btn.dataset.subject === gameData.currentSubject) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
         // Reset UI buttons based on timer state
         if (timerInterval) {
             document.getElementById('start-button').classList.add('hidden');
@@ -206,7 +217,8 @@ function selectSubject(button) {
     // If the button is already active, deselect it
     if (button.classList.contains('active')) {
         button.classList.remove('active');
-        currentSubject = null;
+        gameData.currentSubject = null;
+        saveGameData();
         return;
     }
 
@@ -216,16 +228,25 @@ function selectSubject(button) {
     });
 
     button.classList.add('active');
-    currentSubject = button.dataset.subject;
+    gameData.currentSubject = button.dataset.subject;
+    saveGameData();
 }
 
 // Old startTimer removed. New startTimer is defined at top.
 // Function to handle UI toggle when starting timer (if not handled in new startTimer)
 function activateTimerUI() {
-    if (!currentSubject) {
+    // Subject selection check
+    if (!gameData.currentSubject) {
         alert("勉強する科目を選択してください！");
         return false;
     }
+
+    // Double start guard
+    if (timerInterval) {
+        console.warn("Timer is already running.");
+        return false;
+    }
+
     document.getElementById('start-button').classList.add('hidden');
     document.getElementById('stop-button').classList.remove('hidden');
     startTimer(); // Call the new startTimer
@@ -311,7 +332,7 @@ function saveStudySession() {
     // 勉強ログに追加
     const log = {
         date: new Date().toISOString(),
-        subject: currentSubject,
+        subject: gameData.currentSubject,
         minutes: minutes,
         exp: earnedExp,
         coins: earnedCoins

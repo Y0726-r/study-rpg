@@ -357,36 +357,43 @@ body {
 }
 
 .nav-button {
-    background: #ffce20;
-    /* Gold/Yellow */
-    border: 3px solid #6b4400;
-    border-radius: 12px;
-    padding: 10px 4px;
-    color: #4a2c00;
-    font-weight: bold;
+    background: none;
+    border: none;
+    padding: 8px 0;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    transition: all 0.1s;
+    gap: 10px;
+    /* Slight gap between icon-box and label */
+    transition: transform 0.1s;
     font-family: inherit;
-    box-shadow: 0 4px 0 #6b4400;
     position: relative;
+    box-shadow: none;
 }
 
 .nav-button:active {
     transform: translateY(2px);
-    box-shadow: 0 2px 0 #6b4400;
 }
 
 .nav-icon {
-    width: 48px;
-    height: 48px;
-    display: block;
+    width: 90px;
+    height: 90px;
+    background: #5c3c10;
+    /* Icon box background */
+    border: 3px solid #8b5a00;
+    /* Icon box border */
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
 }
 
 .image-nav {
+    width: 48px;
+    /* Sprite size inside the box */
+    height: 48px;
     background-image: url('assets/nav_icons.jpg');
     background-size: 200% 200%;
     image-rendering: pixelated;
@@ -410,8 +417,19 @@ body {
 }
 
 .nav-label {
-    font-size: 10px;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    font-family: "Press Start 2P", cursive;
+    font-size: 8px;
+    color: white;
+    /* High contrast outline */
+    text-shadow:
+        1px 1px 0 #000,
+        -1px 1px 0 #000,
+        1px -1px 0 #000,
+        -1px -1px 0 #000,
+        0 1px 0 #000,
+        1px 0 0 #000,
+        0 -1px 0 #000,
+        -1px 0 0 #000;
 }
 
 /* ========================================
