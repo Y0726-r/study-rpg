@@ -18,13 +18,13 @@
                 <span class="shield-text">Lv.<span id="player-level">1</span></span>
             </div>
             <div class="exp-bar-group">
+                <span class="exp-label-prefix">EXP</span>
                 <div class="exp-bar-container">
                     <div class="exp-bar" id="exp-bar"></div>
-                    <span class="exp-text">EXP <span id="current-exp">0</span>/<span id="max-exp">100</span></span>
                 </div>
+                <span class="exp-text"><span id="current-exp">0</span>/<span id="max-exp">100</span></span>
             </div>
             <div class="coin-display-mvp">
-                <span class="coin-icon">💰</span>
                 <span id="coin-count">0</span>
             </div>
         </div>
@@ -73,15 +73,15 @@
         </div>
 
         <div class="subject-selector-mvp">
-            <button class="subject-btn-mvp" data-subject="数学" onclick="selectSubject(this)">
+            <button class="subject-btn-mvp" data-subject="資格" onclick="selectSubject(this)">
                 <div class="subject-icon math"></div>
                 <span>資格</span>
             </button>
-            <button class="subject-btn-mvp" data-subject="英語" onclick="selectSubject(this)">
+            <button class="subject-btn-mvp" data-subject="言語" onclick="selectSubject(this)">
                 <div class="subject-icon english"></div>
                 <span>語学</span>
             </button>
-            <button class="subject-btn-mvp" data-subject="理科" onclick="selectSubject(this)">
+            <button class="subject-btn-mvp" data-subject="ビジネス" onclick="selectSubject(this)">
                 <div class="subject-icon science"></div>
                 <span>ビジネス</span>
             </button>
@@ -197,8 +197,8 @@
     <!-- レベルアップモーダル -->
     <div id="levelup-modal" class="modal hidden">
         <div class="modal-content">
-            <h2 class="levelup-title">🎉 レベルアップ！</h2>
-            <div class="character-sprite large"><img src="assets/player.jpg" alt="Player"></div>
+            <h2 class="levelup-title">🎉 LEVEL UP！</h2>
+            <div class="character-sprite large"><img src="assets/player.png" alt="Player"></div>
             <p class="levelup-text">
                 Lv.<span id="old-level">1</span> → Lv.<span id="new-level">2</span>
             </p>
@@ -214,10 +214,10 @@
                 <div class="form-group">
                     <label>SUBJECT:</label>
                     <select id="edit-log-subject">
-                        <option value="数学">MATH</option>
-                        <option value="英語">ENGLISH</option>
-                        <option value="理科">SCIENCE</option>
-                        <option value="その他">OTHER</option>
+                        <option value="資格">資格</option>
+                        <option value="言語">言語</option>
+                        <option value="ビジネス">ビジネス</option>
+                        <option value="その他">その他</option>
                     </select>
                 </div>
                 <div class="form-group">
