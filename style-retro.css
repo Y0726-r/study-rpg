@@ -601,20 +601,24 @@ body {
 }
 
 .subject-btn-mvp {
-    background: #3e3e3c;
+    background: #5b5b58;
     border: 3px solid #2a2a29;
-    border-radius: 6px;
-    padding: 8px 4px;
+    border-radius: 8px;
+    padding: 4px 2px;
+    /* Tighter padding */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 0;
     cursor: pointer;
     color: #eee;
-    font-size: 8px;
-    font-family: "Press Start 2P", cursive;
+    font-size: 12px;
+    font-family: 'DotGothic16', sans-serif;
+    /* Readable retro font */
     transition: 0.1s;
     box-shadow: 0 4px #222;
+    overflow: visible;
+    /* Allow icon to pop out */
 }
 
 .subject-btn-mvp.active {
@@ -625,33 +629,33 @@ body {
 }
 
 .subject-icon {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 2px;
-    background-size: 600% 300%;
-    /* Better controlled size */
+    width: 84px;
+    height: 84px;
+    margin-top: -15px;
+    margin-bottom: -5px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
     image-rendering: pixelated;
+    border-radius: 4px;
+    z-index: 1;
 }
 
 /* Using items sheet for icons - Refined positions to prevent cropping */
 .subject-icon.math {
-    background-image: url('assets/items_sheet.png');
-    background-position: 54% 48%;
+    background-image: url('assets/icon_math.png');
 }
 
 .subject-icon.english {
-    background-image: url('assets/items_sheet.png');
-    background-position: 84% 48%;
+    background-image: url('assets/icon_english.png');
 }
 
 .subject-icon.science {
-    background-image: url('assets/items_sheet.png');
-    background-position: 72% -2%;
+    background-image: url('assets/icon_science.png');
 }
 
 .subject-icon.other {
-    background-image: url('assets/items_sheet.png');
-    background-position: 90% -2%;
+    background-image: url('assets/icon_other.png');
 }
 
 .reward-box-mvp {
