@@ -601,24 +601,33 @@ body {
 }
 
 .subject-btn-mvp {
-    background: #5b5b58;
+    background: #3e3e3c;
     border: 3px solid #2a2a29;
     border-radius: 8px;
-    padding: 4px 2px;
-    /* Tighter padding */
+    padding: 0;
+    /* Fully tight */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
+    justify-content: center;
     cursor: pointer;
     color: #eee;
-    font-size: 12px;
-    font-family: 'DotGothic16', sans-serif;
-    /* Readable retro font */
     transition: 0.1s;
     box-shadow: 0 4px #222;
     overflow: visible;
-    /* Allow icon to pop out */
+    /* Crucial for pop-out */
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    /* Make it a square base */
+}
+
+/* New Label Style (Outside button) */
+.subject-label-mvp {
+    display: block;
+    margin-top: 5px;
+    font-size: 14px;
+    font-family: 'DotGothic16', sans-serif;
+    color: #eee;
 }
 
 .subject-btn-mvp.active {
@@ -631,14 +640,15 @@ body {
 .subject-icon {
     width: 84px;
     height: 84px;
-    margin-top: -15px;
-    margin-bottom: -5px;
+    margin-top: -30px;
+    /* Stronger pop out */
+    background-color: transparent !important;
+    /* Kill the white box */
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
     image-rendering: pixelated;
-    border-radius: 4px;
-    z-index: 1;
+    z-index: 10;
 }
 
 /* Using items sheet for icons - Refined positions to prevent cropping */
