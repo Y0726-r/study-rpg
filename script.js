@@ -1,4 +1,25 @@
 // ========================================
+// ランダムキャラクターメッセージ
+// ========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    const messages = [
+        "きょうも すこしずつ いこう！",
+        "5分 できたら だいせいこう！",
+        "疲れたら いったん やすも？",
+        "きょうの ぼうけん は ここから！",
+        "つづけてるの えらいぞ！",
+        "あせらなくて だいじょうぶ"
+    ];
+
+    const messageEl = document.getElementById("characterMessage");
+    if (!messageEl) return;
+
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    messageEl.textContent = messages[randomIndex];
+});
+
+// ========================================
 // グローバル変数とゲームデータ
 // ========================================
 
@@ -84,22 +105,82 @@ const LEVEL_TABLE = {
 
 // ガチャアイテムデータ
 const GACHA_ITEMS = [
-    // ★1 (60%) - 6種類
-    { id: 1, name: "木の剣", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "0% 0%" },
-    { id: 2, name: "布の服", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "18% 0%" },
-    { id: 3, name: "革の靴", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "36% 0%" },
-    { id: 4, name: "小さな盾", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "54% 0%" },
-    { id: 5, name: "ポーション", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "72% 0%" },
-    { id: 6, name: "パン", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "90% 0%" },
-    // ★2 (30%) - 4種類
-    { id: 7, name: "鋼の剣", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "0% 45%" },
-    { id: 8, name: "鎖の鎧", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "25% 45%" },
-    { id: 9, name: "魔法の杖", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "55% 45%" },
-    { id: 10, name: "魔法の本", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "85% 45%" },
+    // ★1 (60%) - 6種類 (スプライトシート統合済み)
+    { id: 1, name: "木の剣", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "0% 0%", backgroundSize: "600% auto" },
+    { id: 2, name: "布の服", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "20% 0%", backgroundSize: "600% auto" },
+    { id: 3, name: "革の靴", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "40% 0%", backgroundSize: "600% auto" },
+    { id: 4, name: "小さな盾", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "60% 0%", backgroundSize: "600% auto" },
+    { id: 5, name: "ポーション", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "80% 0%", backgroundSize: "600% auto" },
+    { id: 6, name: "薬草袋", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "100% 0%", backgroundSize: "600% auto" },
+    // ★2 (30%) - 4種類 (従来のスプライトシートを使用)
+    { id: 7, name: "鋼の剣", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "0% 45%", backgroundSize: "600% auto" },
+    { id: 8, name: "鎖の鎧", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "25% 45%", backgroundSize: "600% auto" },
+    { id: 9, name: "魔法の杖", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "55% 45%", backgroundSize: "600% auto" },
+    { id: 10, name: "魔法の本", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "85% 45%", backgroundSize: "600% auto" },
     // ★3 (10%) - 2種類
-    { id: 11, name: "伝説の剣", icon: "assets/items_sheet.png", rarity: 3, type: "image", position: "35% 90%" },
-    { id: 12, name: "ドラゴンの盾", icon: "assets/items_sheet.png", rarity: 3, type: "image", position: "65% 90%" }
+    { id: 11, name: "伝説の剣", icon: "assets/items_sheet.png", rarity: 3, type: "image", position: "35% 90%", backgroundSize: "600% auto" },
+    { id: 12, name: "ドラゴンの盾", icon: "assets/items_sheet.png", rarity: 3, type: "image", position: "65% 90%", backgroundSize: "600% auto" }
 ];
+
+/**
+ * デバッグ用：コインを消費せずにガチャを引く
+ * ブラウザのコンソールで debugGacha() と入力して実行
+ */
+window.debugGacha = function () {
+    console.log("🛠 Debug Gacha Pulled!");
+    if (typeof drawGachaItem !== 'function') {
+        console.error("drawGachaItem is not defined!");
+        return;
+    }
+    const item = drawGachaItem();
+    addItemToInventory(item);
+    saveGameData();
+    showGachaResult(item);
+    updateGachaScreen();
+    updateHomeScreen();
+};
+
+/**
+ * デバッグ用：コインを増やす
+ * ブラウザのコンソールで addCoins(1000) と入力して実行
+ */
+window.addCoins = function (amount = 1000) {
+    if (typeof gameData === 'undefined') {
+        console.error("gameData is not defined!");
+        return;
+    }
+    gameData.player.coins += amount;
+    saveGameData();
+    updateHomeScreen();
+    updateGachaScreen();
+    console.log(`💰 Added ${amount} coins!`);
+};
+
+/**
+ * デバッグ用：コインを消費せずにガチャを引く
+ * ブラウザのコンソールで debugGacha() と入力して実行
+ */
+window.debugGacha = function () {
+    console.log("🛠 Debug Gacha Pulled!");
+    const item = drawGachaItem();
+    addItemToInventory(item);
+    saveGameData();
+    showGachaResult(item);
+    updateGachaScreen();
+    updateHomeScreen();
+};
+
+/**
+ * デバッグ用：コインを増やす
+ * ブラウザのコンソールで addCoins(1000) と入力して実行
+ */
+window.addCoins = function (amount = 1000) {
+    gameData.player.coins += amount;
+    saveGameData();
+    updateHomeScreen();
+    updateGachaScreen();
+    console.log(`💰 Added ${amount} coins!`);
+};
 
 // ========================================
 // 初期化とデータ読み込み
@@ -151,10 +232,36 @@ function showScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 
     // 画面ごとの初期化処理
+    // 画面ごとの初期化処理
+
+    // 背景切り替え (Gacha Mode)
+    if (screenId === 'gacha-screen') {
+        document.body.classList.add('gacha-mode');
+    } else {
+        document.body.classList.remove('gacha-mode');
+    }
+
     if (screenId === 'home-screen') {
         updateHomeScreen();
     } else if (screenId === 'gacha-screen') {
         updateGachaScreen();
+        // Randomize initial flavor text
+        const flavorTexts = [
+            "へえ、いいもの持ってるじゃん。",
+            "運試しの時間だね。",
+            "何が出るかな？",
+            "今日はいいことあるかも？",
+            "さあ、引いてみなよ。",
+            "光ってる……！",
+            "君の運命やいかに！",
+            "..."
+        ];
+        const randomText = flavorTexts[Math.floor(Math.random() * flavorTexts.length)];
+        const logContainer = document.getElementById('gacha-mini-log');
+        if (logContainer) {
+            // Clear previous or set specific P
+            logContainer.innerHTML = `<p>${randomText}</p>`;
+        }
     } else if (screenId === 'menu-screen') {
         updateInventoryScreen();
     } else if (screenId === 'log-screen') {
@@ -421,6 +528,10 @@ function pullGacha() {
         return;
     }
 
+    // Lock Button
+    const btn = document.getElementById('pull-button');
+    if (btn) btn.disabled = true;
+
     // コイン消費
     gameData.player.coins -= 100;
 
@@ -433,13 +544,49 @@ function pullGacha() {
     // データ保存
     saveGameData();
 
-    // 結果表示
-    showGachaResult(item);
+    // 結果表示（アニメーション付き）
+    // showGachaResult(item); -> Removed direct call
 
     // コイン表示更新
     updateGachaScreen();
     updateHomeScreen();
+
+    // アニメーションシーケンス
+    playGachaAnimation(item);
 }
+
+function playGachaAnimation(item) {
+    const chestContainer = document.querySelector('.chest-centered');
+    const chestImage = document.getElementById('chest-display');
+    const flashOverlay = document.getElementById('flash-overlay');
+
+    // 1. Shake (0ms - 500ms)
+    chestContainer.classList.add('chest-shaking');
+
+    // 2. Open & Flash (after 500ms)
+    setTimeout(() => {
+        chestContainer.classList.remove('chest-shaking');
+
+        // Change to Open Chest
+        chestImage.src = 'assets/chest_open.png';
+
+        // Flash Effect
+        flashOverlay.classList.add('flash-active');
+
+        // 3. Show Result (after flash peaks - e.g. 200ms more)
+        setTimeout(() => {
+            showGachaResult(item);
+
+            // Fade out flash
+            setTimeout(() => {
+                flashOverlay.classList.remove('flash-active');
+            }, 500);
+
+        }, 200);
+
+    }, 500);
+}
+
 
 function drawGachaItem() {
     const rand = Math.random() * 100;
@@ -471,6 +618,8 @@ function addItemToInventory(item) {
             name: item.name,
             icon: item.icon,
             rarity: item.rarity,
+            position: item.position || "center",
+            backgroundSize: item.backgroundSize || "contain",
             count: 1
         });
     }
@@ -478,19 +627,45 @@ function addItemToInventory(item) {
 
 function showGachaResult(item) {
     const iconElement = document.getElementById('result-icon');
+    const textIconElement = document.getElementById('result-text-icon');
+
+    // Reset display
+    iconElement.style.display = 'none';
+    if (textIconElement) textIconElement.style.display = 'none';
+
+    // Icon Handling
     if (item.type === 'image') {
+        iconElement.style.display = 'block';
         iconElement.innerHTML = '';
         iconElement.style.backgroundImage = `url('${item.icon}')`;
-        iconElement.style.backgroundPosition = item.position;
+        // Handle Sprite Sheet positions
+        if (item.icon.includes('sheet')) {
+            iconElement.style.backgroundPosition = item.position || "center";
+            iconElement.style.backgroundSize = item.backgroundSize || "contain";
+        } else {
+            iconElement.style.backgroundPosition = item.position || "center";
+            iconElement.style.backgroundSize = item.backgroundSize || "contain";
+        }
         iconElement.classList.add('image-sprite');
     } else {
-        iconElement.textContent = item.icon;
-        iconElement.style.backgroundImage = 'none';
-        iconElement.classList.remove('image-sprite');
+        // Text Icon fallback
+        if (textIconElement) {
+            textIconElement.style.display = 'block';
+            textIconElement.textContent = item.icon;
+        } else {
+            // Fallback to original if element missing
+            iconElement.style.display = 'block';
+            iconElement.textContent = item.icon;
+            iconElement.style.backgroundImage = 'none';
+        }
     }
+
     document.getElementById('result-name').textContent = item.name;
     document.getElementById('result-rarity').textContent = '★'.repeat(item.rarity);
-    document.getElementById('gacha-result').classList.remove('hidden');
+
+    // Switch to use "show" class
+    document.getElementById('gacha-result').classList.remove('hidden'); // Ensure hidden is removed if present
+    document.getElementById('gacha-result').classList.add('show');
 
     // Update mini log in gacha screen
     updateGachaMiniLog(item);
@@ -511,7 +686,23 @@ function updateGachaMiniLog(item) {
 }
 
 function closeGachaResult() {
-    document.getElementById('gacha-result').classList.add('hidden');
+    const modal = document.getElementById('gacha-result');
+    modal.classList.remove('show');
+    modal.classList.add('hidden');
+
+    // Reset Chest to Closed State
+    const chestImage = document.getElementById('chest-display');
+    if (chestImage) {
+        chestImage.src = 'assets/chest.png';
+        chestImage.style.animation = 'chestIdle 3s ease-in-out infinite';
+    }
+
+    // Re-enable Pull Button
+    const btn = document.getElementById('pull-button');
+    if (btn) btn.disabled = false;
+
+    // New flavor text
+    updateGachaScreen();
 }
 
 // ========================================
@@ -534,7 +725,9 @@ function updateInventoryScreen() {
 
         let iconHtml = '';
         if (item.icon && (item.icon.includes('assets/') || item.icon.startsWith('http'))) {
-            iconHtml = `<div class="card-icon-box image-sprite" style="background-image: url('${item.icon}'); background-position: ${item.position || 'center'}; background-size: 600% auto;"></div>`;
+            const pos = item.position || 'center';
+            const size = item.backgroundSize || 'contain';
+            iconHtml = `<div class="card-icon-box image-sprite" style="background-image: url('${item.icon}'); background-position: ${pos}; background-size: ${size};"></div>`;
         } else {
             iconHtml = `<div class="card-icon-box" style="font-size: 24px;">${item.icon || '📦'}</div>`;
         }

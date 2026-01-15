@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "npx serve ."
+  },
   "dependencies": {
     "jimp": "^1.6.0"
   }

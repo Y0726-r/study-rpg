@@ -11,6 +11,9 @@
 </head>
 
 <body>
+    <!-- Flash Effect Overlay -->
+    <div id="flash-overlay" class="flash-overlay"></div>
+
     <!-- ホーム画面 -->
     <div id="home-screen" class="screen active">
         <div class="header-mvp">
@@ -31,14 +34,13 @@
 
         <div class="field-container">
             <div class="rpg-field-bg">
-                <img class="rpg-bg-img" src="assets/bg_field.png" alt="">
                 <div class="character-wrapper">
                     <div class="character-motion">
                         <img class="player-sprite" src="assets/player.png" alt="Player">
                     </div>
                 </div>
             </div>
-            <p class="character-message">勉強してレベルアップしよう！</p>
+            <p class="character-message" id="characterMessage">勉強してレベルアップしよう！</p>
         </div>
 
         <nav class="bottom-nav">
@@ -108,47 +110,55 @@
 
     <!-- ガチャ画面 -->
     <div id="gacha-screen" class="screen">
-        <div class="screen-header">
-            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
-            <h2 class="screen-title-mvp">GACHA</h2>
+        <!-- World Layer: Chest Object -->
+        <div class="gacha-world-layer">
+            <div class="chest-centered">
+                <img src="assets/chest.png" alt="Chest" class="chest-image-large" id="chest-display">
+            </div>
         </div>
 
-        <div class="gacha-container-mvp">
-            <div class="coin-balance-mvp">
-                COINS: <span id="gacha-coin-count">0</span> <span class="coin-dot">🟡</span>
+        <!-- UI Layer: Interface Elements -->
+        <div class="gacha-ui-layer">
+            <div class="screen-header">
+                <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
+                <h2 class="screen-title-mvp">GACHA</h2>
             </div>
 
-            <div class="chest-box-mvp">
-                <div class="rarity-indicators">
-                    <div class="rarity-slot star-1">⭐1</div>
-                    <div class="rarity-slot star-2">⭐2</div>
-                    <div class="rarity-slot star-3">⭐3</div>
+            <div class="gacha-main-layout">
+                <!-- Top: Coin Pill -->
+                <div class="coin-pill-wrapper">
+                    COINS: <span id="gacha-coin-count">0</span> <span class="coin-icon">🟡</span>
                 </div>
-                <div class="chest-display-mvp">
-                    <img src="assets/chest.png" alt="Chest" class="chest-image-mvp">
+
+                <!-- Middle: Chest Stage (Chest in World Layer) -->
+                <!-- Rarity Badges removed for immersion -->
+
+                <!-- Bottom: Controls & Log -->
+                <div class="gacha-controls-area">
+                    <div class="gacha-log-minimal" id="gacha-mini-log">
+                        <p>へえ、いいもの持ってるじゃん。</p>
+                    </div>
+
+                    <button class="pull-btn-large" id="pull-button" onclick="pullGacha()">
+                        <span class="btn-text-main">PULL</span>
+                        <span class="btn-text-sub">(100 COINS)</span>
+                    </button>
+                    <!-- List button removed -->
                 </div>
             </div>
-
-            <button class="pull-btn-mvp" onclick="pullGacha()">
-                <div class="pull-top">PULL</div>
-                <div class="pull-bottom">(100 COINS)</div>
-            </button>
-
-            <div class="gacha-log-mvp" id="gacha-mini-log">
-                <p>You got: [item name]</p>
-                <p>You got: [item name]</p>
-            </div>
-
-            <button class="list-btn-mvp" onclick="showScreen('menu-screen')">LIST</button>
         </div>
 
+        <!-- Result Modal (Fixed) -->
         <div id="gacha-result" class="gacha-result hidden">
             <div class="result-content-mvp">
                 <p class="result-text-mvp">獲得！</p>
                 <div class="result-item-mvp">
+                    <div class="item-icon-mvp" id="result-text-icon"></div> <!-- Added text icon container -->
                     <div class="item-icon-mvp" id="result-icon"></div>
-                    <p class="item-name-mvp" id="result-name">アイテム名</p>
-                    <p class="item-rarity-mvp" id="result-rarity">★★★</p>
+                    <div>
+                        <p class="item-name-mvp" id="result-name">アイテム名</p>
+                        <p class="item-rarity-mvp" id="result-rarity">★★★</p>
+                    </div>
                 </div>
                 <button class="ok-btn-mvp" onclick="closeGachaResult()">OK</button>
             </div>
