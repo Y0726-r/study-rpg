@@ -34,7 +34,13 @@ body {
 .screen {
     display: none;
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    /* Standard mobile portrait width for stable ratio */
+    height: 100%;
     padding: 32px;
     /* Increased padding for the border */
     animation: fadeIn 0.3s ease;
@@ -43,6 +49,8 @@ body {
     background-color: transparent;
     /* Make screen transparent to show body background */
     overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    /* Separate game area from backdrop */
 }
 
 .screen.active {
@@ -185,7 +193,8 @@ textarea {
 
 .shield-text {
     font-family: "Press Start 2P", cursive;
-    font-size: 3.5vw;
+    font-size: 16px;
+    /* Stable size within the centered container */
     font-weight: bold;
     color: white;
     text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
@@ -228,14 +237,14 @@ textarea {
 
 .exp-label-prefix {
     font-family: "Press Start 2P", cursive;
-    font-size: 1.8vw;
+    font-size: 9px;
     color: #ffd700;
     text-shadow: 1px 1px 2px black;
 }
 
 .exp-text {
     font-family: "Press Start 2P", cursive;
-    font-size: 1.5vw;
+    font-size: 8px;
     color: white;
     text-shadow: 1px 1px 2px black;
     position: absolute;
@@ -258,7 +267,7 @@ textarea {
 
 #coin-count {
     font-family: "Press Start 2P", cursive;
-    font-size: 2vw;
+    font-size: 10px;
     color: white;
     text-shadow: 2px 2px 0 #000;
     transform: translateY(4%);
@@ -677,8 +686,8 @@ textarea {
     width: auto;
 
     color: #b6ff7a;
-    /* Responsive font size: scales between 28px and 72px based on screen width */
-    font-size: clamp(28px, 12vw, 72px);
+    /* Stable size within the centered container */
+    font-size: 56px;
     letter-spacing: 3px;
     font-family: 'VT323', monospace;
     text-align: center;
