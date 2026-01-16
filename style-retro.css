@@ -312,7 +312,7 @@ textarea {
 
 .character-wrapper {
     position: absolute;
-    bottom: 55px;
+    bottom: 10px;
     /* Adjusting for the new stone pavement */
     left: 50%;
     transform: translateX(-50%);
@@ -324,6 +324,62 @@ textarea {
     /* Grounding shadow */
     filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
 }
+
+.character-message {
+    position: absolute;
+    bottom: 100%;
+    /* ← キャラの真上に固定 */
+    margin-bottom: 24px;
+    /* ← 距離はここで作る */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border: 3px solid #2c1810;
+    border-radius: 12px;
+    padding: 10px 14px;
+    width: max-content;
+    max-width: 200px;
+    min-width: 120px;
+    text-align: center;
+    font-size: 10px;
+    color: #2c1810;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    z-index: 200;
+    pointer-events: none;
+    line-height: 1.4;
+}
+
+@media (max-width: 420px) {
+    .character-message {
+        margin-bottom: 44px;
+        /* ← スマホは余裕を作る */
+    }
+}
+
+
+/* Speech bubble tail pointing down to character */
+.character-message::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #fff;
+}
+
+.character-message::before {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 12px solid #2c1810;
+}
+
 
 .player-sprite {
     width: 100%;
@@ -486,6 +542,8 @@ textarea {
     margin-top: auto;
     position: relative;
     z-index: 20;
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+    /* Prevent overlap with iPhone home bar */
 }
 
 .nav-button {
@@ -509,8 +567,8 @@ textarea {
 }
 
 .nav-icon {
-    width: 170px;
-    height: 170px;
+    width: 64px;
+    height: 64px;
     background: #5c3c10;
     /* Icon box background */
     border: 3px solid #8b5a00;
@@ -520,12 +578,13 @@ textarea {
     justify-content: center;
     align-items: center;
     position: relative;
+    box-shadow: 0 4px 0 #3d280a;
 }
 
 .image-nav {
-    width: 65px;
+    width: 48px;
     /* Sprite size inside the box */
-    height: 65px;
+    height: 48px;
     background-image: url('assets/nav_icons.jpg');
     background-size: 200% 200%;
     image-rendering: pixelated;
@@ -1352,84 +1411,107 @@ textarea {
    レスポンシブ対応
    ======================================== */
 @media (max-width: 480px) {
-    .timer-display {
-        font-size: 32px;
+    .screen {
+        padding: 12px;
+        padding-top: calc(env(safe-area-inset-top, 20px) + 12px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 12px);
+        box-sizing: border-box;
     }
 
+    .header-mvp {
+        background-size: 95% auto;
+        aspect-ratio: 1024 / 520;
+        margin-top: 0;
+    }
 
+    .timer-frame {
+        max-height: 20vh;
+        padding: 4px;
+        margin-top: 2px;
+    }
 
-    .screen {
-        padding: 24px;
-        border-width: 16px;
+    .timer-display-lcd {
+        font-size: 40px;
+        padding: 10px 20px;
+    }
+
+    .nav-button {
+        gap: 0;
+    }
+
+    .nav-label {
+        display: none;
+        /* Hide redundant labels on mobile */
     }
 
     .nav-icon {
-        font-size: 24px;
+        width: 54px;
+        height: 54px;
+        border-width: 2px;
+        box-shadow: 0 3px 0 #3d280a;
     }
 
-    .inventory-container {
-        grid-template-columns: repeat(2, 1fr);
+    .image-nav {
+        width: 40px;
+        height: 40px;
+    }
+
+    .character-wrapper {
+        width: 100px;
+        bottom: 25px;
+        /* Pull down character slightly to give room for bubble */
+    }
+
+    .character-message {
+        font-size: 10px;
+        padding: 8px 12px;
+        min-width: 110px;
+        max-width: 160px;
+        /* Drastically increase offset to ensure clear gap on all mobile ratios */
+        bottom: calc(100% + 140px);
+        z-index: 40;
+    }
+
+    /* Shorten tail and ensure it doesn't touch character head */
+    .character-message::after {
+        bottom: -15px;
+        border-top-width: 15px;
+        border-left-width: 8px;
+        border-right-width: 8px;
+    }
+
+    .character-message::before {
+        bottom: -19px;
+        border-top-width: 19px;
+        border-left-width: 10px;
+        border-right-width: 10px;
+    }
+
+    .screen-header {
+        padding-top: 5px;
+        margin-bottom: 10px;
+    }
+
+    .pixel-back-btn {
+        top: 50%;
+        left: 10px;
     }
 }
 
-.screen {
+/* Global padding override removed to allow responsive padding */
+/* .screen {
     padding: 0 !important;
     margin: 0 !important;
-}
+} */
 
 #home-screen {
-    padding-top: 12px;
-    /* ← HUDとフィールドの間隔 */
+    padding-top: 5px;
+    /* Reduced HUD/Field gap for mobile vertical space */
 }
 
-/* Speech bubble for character message */
-.character-message {
-    position: absolute;
-    bottom: 400px;
-    /* Position higher above character */
-    left: 50%;
-    transform: translateX(-50%);
-    background: white;
-    border: 3px solid #2c1810;
-    border-radius: 12px;
-    padding: 12px 16px;
-    max-width: 70%;
-    text-align: center;
-    font-family: "Press Start 2P", cursive;
-    font-size: 10px;
-    color: #2c1810;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
-    line-height: 1.6;
-    z-index: 15;
-}
+/* Character message styles removed from here, integrated into wrapper above */
 
-/* Speech bubble tail pointing down to character */
-.character-message::after {
-    content: '';
-    position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 15px solid white;
-}
-
-/* Border for the tail */
-.character-message::before {
-    content: '';
-    position: absolute;
-    bottom: -18px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 18px solid transparent;
-    border-right: 18px solid transparent;
-    border-top: 18px solid #2c1810;
-}
+/* Character message tail styles removed from here, integrated above */
 
 /* ========================================
    Gacha Screen Layer Structure
