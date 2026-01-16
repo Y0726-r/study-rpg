@@ -122,8 +122,9 @@
     <div id="gacha-screen" class="screen">
         <!-- World Layer: Chest Object -->
         <div class="gacha-world-layer">
+            <div class="ground-anchor"></div>
             <div class="chest-centered">
-                <img src="assets/chest.png" alt="Chest" class="chest-image-large" id="chest-display">
+                <img src="assets/item/chest/chest_wood.png" alt="Chest" class="chest-image-large" id="chest-display">
             </div>
         </div>
 
@@ -143,12 +144,14 @@
                 <!-- Middle: Chest Stage (Chest in World Layer) -->
                 <!-- Rarity Badges removed for immersion -->
 
+                <!-- Middle: Log Box (Visual Order: Top > Chest > Button) -->
+                <!-- Positioned via CSS to be above chest -->
+                <div class="gacha-log-minimal" id="gacha-mini-log">
+                    <p>へえ、いいもの持ってるじゃん。</p>
+                </div>
+
                 <!-- Bottom: Controls & Log -->
                 <div class="gacha-controls-area">
-                    <div class="gacha-log-minimal" id="gacha-mini-log">
-                        <p>へえ、いいもの持ってるじゃん。</p>
-                    </div>
-
                     <button class="pull-btn-large" id="pull-button" onclick="pullGacha()">
                         <span class="btn-text-main">PULL</span>
                         <span class="btn-text-sub">(100 COINS)</span>
