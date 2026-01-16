@@ -54,7 +54,7 @@
             </button>
             <button class="nav-button" onclick="showScreen('menu-screen')">
                 <span class="nav-icon image-nav menu"></span>
-                <span class="nav-label"></span>
+                <span class="nav-label">ITEM</span>
             </button>
             <button class="nav-button" onclick="showScreen('log-screen')">
                 <span class="nav-icon image-nav log"></span>
@@ -71,7 +71,9 @@
         </div>
 
         <div class="timer-container-mvp">
-            <div class="timer-display-lcd" id="timer-display">00:00:00</div>
+            <div class="timer-frame">
+                <div class="timer-display-lcd" id="timer-display">00:00:00</div>
+            </div>
         </div>
 
         <div class="subject-selector-mvp">
@@ -82,7 +84,7 @@
                 <span class="subject-label-mvp">資格</span>
             </div>
             <div class="subject-item-wrapper">
-                <button class="subject-btn-mvp" data-subject="言語" onclick="selectSubject(this)">
+                <button class="subject-btn-mvp" data-subject="語学" onclick="selectSubject(this)">
                     <div class="subject-icon english"></div>
                 </button>
                 <span class="subject-label-mvp">語学</span>

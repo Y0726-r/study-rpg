@@ -23,6 +23,9 @@ body {
     background-position: bottom center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    font-family: 'DotGothic16', sans-serif;
+    /* Base font for Japanese/General text */
+    color: #2c1810;
 }
 
 /* ========================================
@@ -62,6 +65,57 @@ body {
 }
 
 /* ========================================
+   画面共通ヘッダー
+   ======================================== */
+.screen-header {
+    position: relative;
+    height: 60px;
+    /* ヘッダーの高さを決める */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* タイトルを中央に */
+}
+
+.pixel-back-btn {
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%) translateY(-6px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 2px 0 #212529,
+        0 3px 4px rgba(0, 0, 0, 0.3);
+}
+
+
+.screen-title-mvp {
+    margin: 0;
+    pointer-events: none;
+    /* ボタンと干渉しない */
+}
+
+.pixel-back-btn:active {
+    transform: translateY(-50%) translateY(0.5px);
+    filter: brightness(0.95);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 0 #212529,
+        0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.pixel-back-btn.pressed {
+    transform: translateY(-50%) translateY(1px);
+    filter: brightness(0.95);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 1px 0 #212529,
+        0 2px 3px rgba(0, 0, 0, 0.25);
+}
+
+
+
+/* ========================================
    ホーム画面
    ======================================== */
 /* ========================================
@@ -83,6 +137,15 @@ body {
 
 body {
     margin: 0;
+    font-family: 'DotGothic16', sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: 'DotGothic16', sans-serif;
+    /* Use pixelated JP font as safe default for inputs */
 }
 
 
@@ -427,7 +490,7 @@ body {
     gap: 10px;
     /* Slight gap between icon-box and label */
     transition: transform 0.1s;
-    font-family: inherit;
+    font-family: 'Press Start 2P', cursive;
     position: relative;
     box-shadow: none;
 }
@@ -437,8 +500,8 @@ body {
 }
 
 .nav-icon {
-    width: 120px;
-    height: 120px;
+    width: 170px;
+    height: 170px;
     background: #5c3c10;
     /* Icon box background */
     border: 3px solid #8b5a00;
@@ -451,9 +514,9 @@ body {
 }
 
 .image-nav {
-    width: 60px;
+    width: 65px;
     /* Sprite size inside the box */
-    height: 60px;
+    height: 65px;
     background-image: url('assets/nav_icons.jpg');
     background-size: 200% 200%;
     image-rendering: pixelated;
@@ -498,7 +561,8 @@ body {
 .screen-header {
     display: flex;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 5px;
+    /* Minimized for content visibility */
     position: relative;
 }
 
@@ -510,8 +574,8 @@ body {
     color: white;
     font-weight: bold;
     cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
     margin-right: 12px;
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.3),
@@ -551,7 +615,7 @@ body {
    勉強タイマー画面 (MVP Style)
    ======================================== */
 .screen-title-mvp {
-    font-size: 20px;
+    font-size: 18px;
     text-align: center;
     margin-bottom: 20px;
     letter-spacing: 2px;
@@ -560,11 +624,11 @@ body {
 }
 
 .pixel-back-btn {
-    background: #222;
+    background: #040303;
     border: 3px solid #fff;
-    padding: 6px 14px;
+    padding: 5px 12px;
     font-family: 'Press Start 2P', monospace;
-    font-size: 12px;
+    font-size: 11px;
     color: #fff;
     border-radius: 4px;
     cursor: pointer;
@@ -575,42 +639,82 @@ body {
     text-align: center;
 }
 
-.timer-display-lcd {
-    background: #0a0f08;
-    border: 4px solid #4a6b50;
-    border-radius: 6px;
-    padding: 24px 10px;
-    margin: 20px auto;
-    width: 90%;
-    text-align: center;
-    color: #a8ff60;
-    /* 黄緑液晶色 */
-    font-size: 32px;
-    letter-spacing: 4px;
-    font-family: 'VT323', monospace;
-    /* LCD Style */
-    text-shadow: 0 0 10px #70ff3c;
-    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+.timer-frame {
+    width: 100%;
+    max-width: 1200px;
+    margin: 16px auto 0;
+
+    background-image: url("assets/ui_frame.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+    /* Stretch to fill the rectangular area */
+
+    height: auto;
+    aspect-ratio: 1024 / 450;
+    /* Horizontal box look */
+    max-height: 25vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    image-rendering: pixelated;
+    padding: 20px;
 }
+
+
+
+
+.timer-display-lcd {
+    background: rgba(52, 58, 51, 0.85);
+    /* Dark brown background for the timer window */
+    padding: 25px 60px;
+    border-radius: 4px;
+    border: none;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    /* Subtle inner shadow for depth */
+    margin: 0;
+    width: auto;
+
+    color: #b6ff7a;
+    /* Responsive font size: scales between 28px and 72px based on screen width */
+    font-size: clamp(28px, 12vw, 72px);
+    letter-spacing: 3px;
+    font-family: 'VT323', monospace;
+    text-align: center;
+    line-height: 1;
+
+    text-shadow: 0 0 4px rgba(182, 255, 122, 0.5);
+    transform: translateY(-2%);
+    /* Subtle vertical center adjustment */
+}
+
+
+
+
+
 
 .subject-selector-mvp {
     margin-top: 20px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    padding: 10px;
+    gap: 8px;
+    padding: 5px;
 }
 
 .subject-item-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 6px;
 }
 
 .subject-btn-mvp {
-    background: #3e3e3c;
+    background: #a88463;
     /* Blackish/Dark base only */
-    border: 3px solid #2a2a29;
+    border: 3px solid #381a02;
+    width: 200px;
+    height: 200px;
     border-radius: 8px;
     padding: 0;
     display: flex;
@@ -624,29 +728,27 @@ body {
     overflow: visible;
     /* Allow icon to pop out */
     width: 70px;
-    /* Specific smaller width */
     height: 70px;
-    /* Specific smaller height */
     margin: 0 auto;
 }
 
 .subject-label-mvp {
     display: block;
-    margin-top: 8px;
+    margin-top: 4px;
     font-size: 14px;
     font-family: 'DotGothic16', sans-serif;
     color: #ffffff;
     /* White text */
     /* Strong black outline */
     text-shadow:
-        2px 2px 0 #000,
-        -2px -2px 0 #000,
-        2px -2px 0 #000,
-        -2px 2px 0 #000,
-        0px 2px 0 #000,
-        0px -2px 0 #000,
-        2px 0px 0 #000,
-        -2px 0px 0 #000;
+        1px 1px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        0px 1px 0 #000,
+        0px -1px 0 #000,
+        1px 0px 0 #000,
+        -1px 0px 0 #000;
     text-align: center;
 }
 
@@ -666,17 +768,17 @@ body {
 }
 
 .subject-icon {
-    width: 84px;
-    height: 84px;
-    margin-top: -45px;
-    /* Deepen pop out since button is smaller */
+    width: 170px;
+    height: 170px;
+    margin: 0;
+    /* Center in button - removed negative margin that caused pop-out */
     /* Force transparency to kill the phantom white box */
     background-color: transparent !important;
     background-image: none;
     /* Reset inherited if any */
     background-repeat: no-repeat;
     background-position: center;
-    background-size: contain;
+    background-size: 67%;
     image-rendering: pixelated;
     z-index: 10;
 }
@@ -702,7 +804,7 @@ body {
     margin: 20px auto;
     width: 90%;
     padding: 12px;
-    background: #1d1d1b;
+    background: #653d1e;
     border: 3px solid #525252;
     color: #ccc;
     font-size: 10px;
@@ -744,6 +846,16 @@ body {
     box-shadow: 0 4px #4b1919;
 }
 
+.start-button-mvp:active,
+.stop-button-mvp:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px #1b441b;
+}
+
+.stop-button-mvp:active {
+    box-shadow: 0 2px #4b1919;
+}
+
 .stop-button-mvp.hidden {
     display: none;
 }
@@ -768,8 +880,9 @@ body {
 }
 
 .today-stats-mvp .stats-value {
-    font-family: "Courier New", monospace;
-    font-size: 24px;
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    /* Slightly larger for better readability with VT323 */
 }
 
 /* ========================================
@@ -1158,10 +1271,10 @@ body {
 }
 
 .stat-card-mvp .stat-value {
-    font-size: 20px;
+    font-size: 28px;
     font-weight: bold;
     color: #39FF14;
-    font-family: 'Courier New', monospace;
+    font-family: 'VT323', monospace;
 }
 
 .log-container-mvp {

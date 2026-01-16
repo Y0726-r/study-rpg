@@ -208,6 +208,24 @@ function saveGameData() {
     console.log("Game data saved");
 }
 
+/**
+ * ボタンを押した見た目を強制的に出す
+ * @param {HTMLElement} btn - 押したボタン
+ */
+
+function goBack(btn) {
+    // 押した見た目を付与
+    btn.classList.add("pressed");
+
+    // ★ 1フレーム描画させる
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            showScreen('home-screen');
+            btn.classList.remove("pressed");
+        }, 150);
+    });
+}
+
 // ========================================
 // 画面切り替え
 // ========================================
@@ -321,7 +339,19 @@ function updateHomeScreen() {
 // ========================================
 
 function selectSubject(button) {
-    // If the button is already active, deselect it
+    // If the timer is running, we only allow stopping/resetting by clicking the active subject
+    if (timerInterval) {
+        if (button.classList.contains('active')) {
+            // [Final Specification] Toggle off while running = Stop and Reset
+            stopTimer();
+        } else {
+            // Ignore click on other subjects while running
+            console.log("Subject change blocked while timer is running.");
+        }
+        return;
+    }
+
+    // If the button is already active, deselect it (Timer is NOT running here)
     if (button.classList.contains('active')) {
         button.classList.remove('active');
         gameData.currentSubject = null;
@@ -329,7 +359,7 @@ function selectSubject(button) {
         return;
     }
 
-    // Otherwise, deselect all and select this one
+    // Otherwise, deselect all and select this one (Timer is NOT running here)
     document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -407,6 +437,13 @@ function stopTimer() {
     if (elapsedSeconds >= 60) {
         saveStudySession();
     }
+
+    // Reset selection state (Fixed: Clear selection on stop)
+    gameData.currentSubject = null;
+    document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    saveGameData();
 
     // タイマーだけリセット
     elapsedSeconds = 0;
