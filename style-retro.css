@@ -281,6 +281,147 @@ textarea {
     transform: translateY(4%);
 }
 
+/* ステータス画面（専用背景画像リメイク） */
+.status-scroll-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 100px);
+    padding: 10px;
+}
+
+.scroll-window {
+    width: 98%;
+    max-width: 550px;
+    /* 横幅を少し増やす */
+    height: 90vh;
+    /* 画面全体の約80%強に収める */
+    max-height: 580px;
+
+    background-image: url('./assets/STATUS.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    position: relative;
+    padding: 75px 55px;
+    /* 画像の枠内にコンテンツを収めるための余白 */
+    border: none;
+    box-shadow: none;
+    overflow: hidden;
+    background-color: transparent;
+}
+
+/* 不要な巻物装飾を削除 */
+.scroll-window::before,
+.scroll-window::after {
+    display: none;
+}
+
+.scroll-body {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 35px;
+    /* 画像のヘッダーロゴなどを避ける位置 */
+}
+
+.status-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.status-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-icon-large {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+}
+
+.status-label-large {
+    font-size: 15px;
+    font-weight: bold;
+    color: #4a3728;
+    /* ブラウン系（インク色）に変更 */
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.5px;
+    font-family: 'DotGothic16', sans-serif;
+}
+
+.status-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.status-bar-frame-large {
+    width: 100%;
+    height: 14px;
+    background: rgba(0, 0, 0, 0.2);
+    /* 羊皮紙に馴染むよう少し薄く */
+    border: 1px solid rgba(74, 55, 40, 0.3);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.status-bar-fill-large {
+    height: 100%;
+    width: 0%;
+    transition: width 1s ease-out;
+}
+
+.status-bar-fill-large.focus {
+    background: linear-gradient(90deg, #2b5876, #4e4376);
+}
+
+.status-bar-fill-large.intellect {
+    background: linear-gradient(90deg, #7028e4, #e5b2ca);
+}
+
+.status-bar-fill-large.strength {
+    background: linear-gradient(90deg, #ff0844, #ffb199);
+}
+
+.status-val-large {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: #5d4037;
+    /* ブラウン系（インク色）に変更 */
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+    text-align: right;
+    font-weight: bold;
+}
+
+.status-hint {
+    position: absolute;
+    bottom: 65px;
+    left: 0;
+    right: 0;
+    font-size: 11px;
+    color: #8d6e63;
+    /* ブラウン系（インク色）に変更 */
+    text-align: center;
+    font-family: 'DotGothic16', sans-serif;
+    padding: 0 50px;
+    font-style: italic;
+}
+
+.character-wrapper:hover {
+    filter: brightness(1.1);
+    transform: translateX(-50%) scale(1.02);
+}
+
+.character-wrapper:active {
+    transform: translateX(-50%) scale(0.98);
+}
+
 .field-container {
     flex: 1;
     display: flex;
@@ -297,8 +438,10 @@ textarea {
 }
 
 .rpg-window {
-    background: #e6dac3;
-    /* Parchment color */
+    background: rgba(230, 218, 195, 0.85);
+    /* Transparent background */
+    backdrop-filter: blur(8px);
+    /* Modern blur effect */
     border: 4px solid #6b4400;
     box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(107, 68, 0, 0.2);
     border-radius: 4px;
@@ -320,18 +463,24 @@ textarea {
 
 .character-wrapper {
     position: absolute;
-    bottom: 10px;
+    bottom: 0px;
     /* Adjusting for the new stone pavement */
     left: 50%;
     transform: translateX(-50%);
-    width: 140px;
+    width: 160px;
+    /* Slightly wider to accommodate panels */
     margin: 0 auto;
     /* 基準サイズ */
     /* 画面が狭い時の保険 */
     z-index: 10;
     /* Grounding shadow */
     filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
+
+
 
 .character-message {
     position: absolute;
@@ -680,8 +829,9 @@ textarea {
    RPG風ウィンドウ
    ======================================== */
 .rpg-window {
-    background: white;
-    border: 3px solid #495057;
+    background: rgba(230, 218, 195, 0.8) !important;
+    backdrop-filter: blur(8px);
+    border: 3px solid #6b4400;
     border-radius: 8px;
     padding: 16px;
     box-shadow:
@@ -1110,11 +1260,12 @@ textarea {
 }
 
 .chest-image-large {
-    width: 600px !important;
+    width: 180px !important;
+    /* 初期サイズを少し小さく */
     height: auto !important;
     object-fit: contain;
-    transform: scale(1.5);
-    /* 数値を変えずに見た目だけ1.5倍にする */
+    transform: scale(1.2);
+    /* 拡大率を1.5から1.2へ抑える */
     image-rendering: pixelated;
     /* Remove white background */
     filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
@@ -1222,13 +1373,18 @@ textarea {
 }
 
 .item-icon-mvp {
-    width: 128px;
-    height: 128px;
-    margin: 0 auto 16px;
-    background-size: contain;
+    width: 280px;
+    /* サイズを大きく */
+    height: 280px;
+    margin: -20px auto 10px;
+    /* 上に少し食い込ませて配置を安定させる */
+    background-size: 150%;
     background-repeat: no-repeat;
     background-position: center;
     image-rendering: pixelated;
+    max-width: 90vw;
+    /* スマホの横幅の9割まで許容 */
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
 }
 
 .item-name-mvp {
@@ -1282,18 +1438,21 @@ textarea {
 }
 
 .card-icon-box {
-    width: 40px;
-    height: 40px;
+    width: 64px;
+    /* サイズを大きく */
+    height: 64px;
     background: #e2e8f0;
     border: 2px solid #718096;
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-size: contain;
+    background-size: 140%;
+    /* 枠いっぱいに広げる */
     background-repeat: no-repeat;
     background-position: center;
     image-rendering: pixelated;
+    flex-shrink: 0;
 }
 
 .card-main {
@@ -1994,8 +2153,9 @@ body.gacha-mode {
 
 .chest-image-large {
     /* Immersive Gacha Chest */
-    width: 160px;
-    height: 160px;
+    width: 120px;
+    /* 160pxから120pxへサイズダウン */
+    height: 120px;
     object-position: bottom center;
     animation: chestIdle 3s ease-in-out infinite;
     /* Mix-blend-mode is inherited from base declaration at line 1085 */
@@ -2629,22 +2789,34 @@ body.gacha-mode {
 /* Clickable Chest Container */
 .chest-centered {
     position: absolute;
-    bottom: -120px !important;
-    /* Force grounding with negative value */
+    bottom: 1px !important;
+    /* 大きくしたので少し浮かせて配置 */
     left: 50%;
     transform: translateX(-50%);
-    width: 140px;
-    height: 100px;
-    /* Reduced height to lower center of gravity */
+
+    /* 枠自体は200pxに維持 */
+    width: 390px;
+    height: 390px;
+
     display: flex;
     justify-content: center;
-    align-items: flex-end;
+    align-items: center;
+
     z-index: 50;
     transition: transform 0.2s ease, filter 0.2s;
     cursor: pointer;
     pointer-events: auto;
-    filter: drop-shadow(0 20px 10px rgba(0, 0, 0, 0.5));
-    /* Grounding shadow */
+    filter: drop-shadow(0 15px 15px rgba(0, 0, 0, 0.6));
+}
+
+/* 宝箱の画像自体のサイズをここで強制する */
+.chest-centered img {
+    width: 130% !important;
+    /* コンテナをはみ出すサイズに拡大 */
+    max-width: none !important;
+    height: auto !important;
+    image-rendering: pixelated;
+    /* ドット絵をクッキリさせる */
 }
 
 /* Hover Effect: Brightness only (No Scale/Shake) */
@@ -2673,8 +2845,8 @@ body.gacha-mode {
 /* Tooltip (Bubble) */
 .pull-tooltip {
     position: absolute;
-    top: -95px;
-    /* Adjust distance */
+    bottom: 0px;
+    /* 宝箱の下に配置 */
     left: 50%;
     transform: translateX(-50%);
     background: #fff;
@@ -2697,12 +2869,15 @@ body.gacha-mode {
 .pull-tooltip::after {
     content: '';
     position: absolute;
-    bottom: -10px;
+    top: -10px;
+    /* 上側に尻尾を出す */
     left: 50%;
     transform: translateX(-50%);
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
-    border-top: 10px solid #2c1810;
+    border-bottom: 10px solid #2c1810;
+    /* 上向きの三角形 */
+    border-top: none;
 }
 
 /* Show Tooltip on Hover */

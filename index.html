@@ -36,6 +36,9 @@
                 </div>
                 <span class="exp-text"><span id="current-exp">0</span>/<span id="max-exp">100</span></span>
             </div>
+            <!-- パラメーター表示を独立画面へ移動させたため、ここを削除 -->
+
+
             <div class="coin-display-mvp">
                 <span id="coin-count">0</span>
             </div>
@@ -43,11 +46,12 @@
 
         <div class="field-container">
             <div class="rpg-field-bg">
-                <div class="character-wrapper">
+                <div class="character-wrapper" onclick="showScreen('status-screen')" style="cursor: pointer;">
                     <p class="character-message" id="characterMessage">勉強してレベルアップしよう！</p>
                     <div class="character-motion">
                         <img class="player-sprite" src="./assets/player.png" alt="Player">
                     </div>
+
                 </div>
             </div>
         </div>
@@ -186,6 +190,70 @@
                     </div>
                 </div>
                 <button class="ok-btn-mvp" onclick="closeGachaResult()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ステータス画面 -->
+    <div id="status-screen" class="screen">
+        <div class="screen-header">
+            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
+            <h2 class="screen-title-mvp">STATUS</h2>
+        </div>
+
+        <div class="status-scroll-container">
+            <div class="scroll-window status-detail-scroll">
+                <div class="scroll-body">
+                    <!-- FOCUS -->
+                    <div class="status-detail-item">
+                        <div class="status-header-row">
+                            <img src="./assets/focus.png" alt="" class="status-icon-large">
+                            <span class="status-label-large">FOCUS (集中力)</span>
+                        </div>
+                        <div class="status-bar-wrapper">
+                            <div class="status-bar-frame-large">
+                                <div class="status-bar-fill-large focus" id="status-fill-focus"></div>
+                            </div>
+                            <div class="status-val-large">
+                                <span id="status-val-focus">0</span> / <span id="status-cap-focus">100</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INT -->
+                    <div class="status-detail-item">
+                        <div class="status-header-row">
+                            <img src="./assets/intelligence.png" alt="" class="status-icon-large">
+                            <span class="status-label-large">INTELLECT (知力)</span>
+                        </div>
+                        <div class="status-bar-wrapper">
+                            <div class="status-bar-frame-large">
+                                <div class="status-bar-fill-large intellect" id="status-fill-intellect"></div>
+                            </div>
+                            <div class="status-val-large">
+                                <span id="status-val-intellect">0</span> / <span id="status-cap-intellect">100</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STR -->
+                    <div class="status-detail-item">
+                        <div class="status-header-row">
+                            <img src="./assets/strength.png" alt="" class="status-icon-large">
+                            <span class="status-label-large">STRENGTH (筋力)</span>
+                        </div>
+                        <div class="status-bar-wrapper">
+                            <div class="status-bar-frame-large">
+                                <div class="status-bar-fill-large strength" id="status-fill-strength"></div>
+                            </div>
+                            <div class="status-val-large">
+                                <span id="status-val-strength">0</span> / <span id="status-cap-strength">100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="status-hint">～ 努力の証がここに記されている ～</p>
             </div>
         </div>
     </div>

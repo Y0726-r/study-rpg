@@ -192,9 +192,7 @@ const LEVEL_TABLE = {
 // ========================================
 
 const ITEM_CONFIG = {
-    columns: 5,
-    rows: 10,
-    sheetPath: "./assets/items_sheet.png",
+    folder: "./assets/item/gacha_items/",
     maxCapacity: 50
 };
 
@@ -204,59 +202,53 @@ const ITEM_CONFIG = {
  */
 const ITEM_MASTER = [
     // ★1 (Rarity 1)
-    { id: 1, name: "木の剣", rarity: 1, spriteIndex: 0, type: "weapon", description: "冒険の始まりといえばこれ。" },
-    { id: 2, name: "布の服", rarity: 1, spriteIndex: 1, type: "armor", description: "軽くて動きやすい。" },
-    { id: 3, name: "革の靴", rarity: 1, spriteIndex: 2, type: "accessory", description: "長時間の勉強（冒険）でも疲れない。" },
-    { id: 4, name: "小さな盾", rarity: 1, spriteIndex: 3, type: "shield", description: "誘惑を跳ね返すための盾。" },
-    { id: 5, name: "ポーション", rarity: 1, spriteIndex: 4, type: "consumable", description: "疲れが少し取れる魔法の薬。" },
-    { id: 6, name: "パン", rarity: 1, spriteIndex: 5, type: "consumable", description: "腹が減っては勉強ができぬ。" },
-    { id: 7, name: "集中キャンディ", rarity: 1, spriteIndex: 12, type: "consumable", description: "レモン味でリフレッシュ！" },
-    { id: 8, name: "ひとくちチョコ", rarity: 1, spriteIndex: 13, type: "consumable", description: "疲れた脳には糖分が一番。" },
-    { id: 9, name: "サクサクビスケット", rarity: 1, spriteIndex: 14, type: "consumable", description: "お茶が欲しくなる素朴な味。" },
-    { id: 10, name: "三色団子", rarity: 1, spriteIndex: 15, type: "consumable", description: "彩りが可愛い、和みのスイーツ。" },
-    { id: 11, name: "消しゴムのカス", rarity: 1, spriteIndex: 16, type: "trash", description: "頑張った証だけど、捨ててもいいかも。" },
-    { id: 12, name: "使い古したノート", rarity: 1, spriteIndex: 17, type: "consumable", description: "読み返すとやる気が湧いてくる。" },
+    { id: 0, name: "木の剣", rarity: 1, file: "小さな剣.png", type: "weapon", effects: { focus: 2 }, description: "冒険の始まりといえばこれ。", equipMessage: "木の剣を構えた！少し攻撃的な気分になった！" },
+    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。" },
+    { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "accessory", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。" },
+    { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。" },
+    { id: 4, name: "ポーション", rarity: 1, file: "ポーション.png", type: "consumable", useMessage: "ポーションを飲んだ！疲れが少し取れた気がする。", description: "疲れが少し取れる魔法の薬。" },
+    { id: 5, name: "パン", rarity: 1, file: "薬草袋.png", type: "consumable", useMessage: "パンを食べた！お腹が満たされ、やる気が湧いた！", description: "腹が減っては勉強ができぬ。" },
+    { id: 12, name: "集中キャンディ", rarity: 1, file: "集中キャンディ.png", type: "consumable", useMessage: "レモン味のキャンディで、集中力が研ぎ澄まされた！", description: "レモン味でリフレッシュ！" },
+    { id: 13, name: "ひとくちチョコ", rarity: 1, file: "一口チョコ.png", type: "consumable", useMessage: "チョコの甘みが脳に染み渡る...！知力が一時的に高まった気がする！", description: "疲れた脳には糖分が一番。" },
+    { id: 14, name: "サクサクビスケット", rarity: 1, file: "サクサクビスケット.png", type: "consumable", useMessage: "サクサクの食感に心が和む。精神力(STRENGTH)が回復した！", description: "お茶が欲しくなる素朴な味。" },
+    { id: 15, name: "三色団子", rarity: 1, file: "３色団子.png", type: "consumable", useMessage: "団子を食べて気分転換。穏やかな気持ちになった。", description: "彩りが可愛い、和みのスイーツ。" },
+    { id: 16, name: "消しゴムのカス", rarity: 1, file: "消しゴムのカス.png", type: "trash", description: "頑張った証だけど、捨ててもいいかも。" },
+    { id: 17, name: "使い古したノート", rarity: 1, file: "使い古したノート.png", type: "consumable", useMessage: "過去の努力に勇気をもらった！やる気が大幅に上がった！", description: "読み返すとやる気が湧いてくる。" },
 
     // ★2 (Rarity 2)
-    { id: 13, name: "鋼の剣", rarity: 2, spriteIndex: 6, type: "weapon", description: "鋭い切れ味で課題を切り裂く。" },
-    { id: 14, name: "鎖の鎧", rarity: 2, spriteIndex: 7, type: "armor", description: "集中力を守るための頑丈な鎧。" },
-    { id: 15, name: "魔法の杖", rarity: 2, spriteIndex: 8, type: "weapon", description: "閃きを呼び起こす不思議な杖。" },
-    { id: 16, name: "魔法の本", rarity: 2, spriteIndex: 9, type: "accessory", description: "難しい知識が詰まっている。" },
-    { id: 17, name: "癒やしのマカロン", rarity: 2, spriteIndex: 18, type: "consumable", description: "食べるのがもったいない可愛さ。" },
-    { id: 18, name: "星屑のコンペイトウ", rarity: 2, spriteIndex: 19, type: "consumable", description: "噛むとキラキラした音がする。" },
-    { id: 19, name: "情熱のドーナツ", rarity: 2, spriteIndex: 20, type: "consumable", description: "燃えるようなやる気が湧く（気がする）。" },
-    { id: 20, name: "銀のヘアピン", rarity: 2, spriteIndex: 21, type: "accessory", description: "前髪を留めるのにちょうどいい。" },
-    { id: 21, name: "赤いリボン", rarity: 2, spriteIndex: 22, type: "accessory", description: "装備すると気分が華やぐ。" },
-    { id: 22, name: "賢者の羽ペン", rarity: 2, spriteIndex: 23, type: "accessory", description: "スラスラと答えが書ける不思議なペン。" },
-    { id: 23, name: "静寂の耳栓", rarity: 2, spriteIndex: 24, type: "accessory", description: "周りの音が聞こえなくなる魔法の耳栓。" },
-    { id: 24, name: "幸運のコイン", rarity: 2, spriteIndex: 25, type: "consumable", description: "ガチャ運が上がるという噂がある。" },
+    { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！" },
+    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。" },
+    { id: 8, name: "魔法の杖", rarity: 2, file: "魔法の杖.png", type: "weapon", effects: { intellect: 10 }, description: "閃きを呼び起こす不思議な杖。", equipMessage: "魔法の杖を握った。知恵が溢れ出してくる...！" },
+    { id: 9, name: "魔法の本", rarity: 2, file: "魔法の本.png", type: "accessory", effects: { intellect: 5 }, description: "難しい知識が詰まっている。", equipMessage: "魔法の本を開いた！未知の知識が頭に流れ込む。" },
+    { id: 18, name: "癒やしのマカロン", rarity: 2, file: "癒しのマカロン.png", type: "consumable", useMessage: "高級な甘さにうっとり...。心も体も満たされた！", description: "食べるのがもったいない可愛さ。" },
+    { id: 19, name: "星屑のコンペイトウ", rarity: 2, file: "星屑のコンペイトウ.png", type: "consumable", useMessage: "カリッと噛むと、頭がシャキッとする！", description: "噛むとキラキラした音がする。" },
+    { id: 20, name: "情熱のドーナツ", rarity: 2, file: "情熱のドーナツ.png", type: "consumable", useMessage: "燃え上がるような情熱が腹の底から湧いてくる！", description: "燃えるようなやる気が湧く（気がする）。" },
+    { id: 21, name: "銀のヘアピン", rarity: 2, file: "銀のヘアピン.png", type: "accessory", effects: { intellect: 3, strength: 3 }, description: "前髪を留めるのにちょうどいい。", equipMessage: "銀のヘアピンで髪を留めた。清潔感がアップした！" },
+    { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！" },
+    { id: 23, name: "賢者の羽ペン", rarity: 2, file: "賢者の羽ペン.png", type: "accessory", effects: { intellect: 15 }, description: "スラスラと答えが書ける不思議なペン。", equipMessage: "賢者の羽ペンを構えた。思考の速度が加速する！" },
+    { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "accessory", effects: { focus: 15 }, description: "周りの音が聞こえなくなる魔法の耳栓。", equipMessage: "静寂の耳栓を装着。深い没入状態に入った...。" },
+    { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "コインを弾くと、不思議な幸運に包まれた気がする！", description: "ガチャ運が上がるという噂がある。" },
 
     // ★3 (Rarity 3)
-    { id: 25, name: "伝説の剣", rarity: 3, spriteIndex: 10, type: "weapon", description: "選ばれし勉強家だけが持てる黄金の剣。" },
-    { id: 26, name: "ドラゴンの盾", rarity: 3, spriteIndex: 11, type: "shield", description: "あらゆる雑念を無効化する。" },
-    { id: 27, name: "王家のショートケーキ", rarity: 3, spriteIndex: 26, type: "consumable", description: "今日一番頑張った自分へのご褒美！" },
-    { id: 28, name: "聖なる宝冠", rarity: 3, spriteIndex: 27, type: "accessory", description: "高貴な輝きを放つティアラ。" },
-    { id: 29, name: "精霊のドレス", rarity: 3, spriteIndex: 28, type: "armor", description: "まるで光を纏っているような服。" },
-    { id: 30, name: "全知の眼鏡", rarity: 3, spriteIndex: 29, type: "accessory", description: "世界のすべてが見通せる伝説の眼鏡。" }
+    { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！" },
+    { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！" },
+    { id: 26, name: "王家のショートケーキ", rarity: 3, file: "王家のショートケーキ.png", type: "consumable", useMessage: "究極の美味！今この瞬間、全能力が極限まで解放された！", description: "今日一番頑張った自分へのご褒美！" },
+    { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。" },
+    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "armor", effects: { strength: 100 }, description: "まるで光を纏っているような服。", equipMessage: "精霊のドレスに袖を通した。全身が神秘的な光に包まれる。" },
+    { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。" }
 ];
 
 /**
- * スプライトのスタイル設定を取得するヘルパー
+ * 個別画像へのパスを取得するヘルパー
  */
-function getItemSpriteStyle(itemIndex) {
-    const col = itemIndex % ITEM_CONFIG.columns;
-    const row = Math.floor(itemIndex / ITEM_CONFIG.columns);
+function getItemSpriteStyle(item) {
+    // ITEM_MASTER またはインベントリのアイテムオブジェクト
+    const fileName = item.file || `${item.name}.png`;
+    const fullPath = `${ITEM_CONFIG.folder}${fileName}`;
 
-    // 5x10マスの時の % 位置計算
-    // col 0 -> 0%, col 4 -> 100% (4つの間隔があるため 100/4 = 25%刻み)
-    const x = (col / (ITEM_CONFIG.columns - 1)) * 100;
-    // row 0 -> 0%, row 9 -> 100% 
-    const y = (row / (ITEM_CONFIG.rows - 1)) * 100;
-
+    // CSS側で背景サイズを細かく調整できるように、URLのみを返す形にシンプル化
     return {
-        backgroundImage: `url('${ITEM_CONFIG.sheetPath}')`,
-        backgroundPosition: `${x}% ${y}%`,
-        backgroundSize: `${ITEM_CONFIG.columns * 100}% auto`
+        backgroundImage: `url('${fullPath}')`
     };
 }
 
@@ -367,8 +359,27 @@ function loadGameData() {
             gameData.timer = { isRunning: false, startTime: null, elapsedBeforePause: 0 };
         }
         // Ensure player and equipment exist
-        if (!gameData.player) gameData.player = { level: 1, exp: 0, coins: 0, stats: { hp: 100, maxHp: 100, atk: 10, def: 5 }, equipment: {} };
-        if (!gameData.player.equipment) gameData.player.equipment = { weapon: null, armor: null, accessory: null };
+        if (!gameData.player) {
+            gameData.player = {
+                level: 1,
+                exp: 0,
+                coins: 0,
+                stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 },
+                equipment: { weapon: null, armor: null, accessory: null, shield: null }
+            };
+        }
+        if (!gameData.player.stats) {
+            gameData.player.stats = { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 };
+        } else {
+            // Migration for focus, intellect, strength (formerly spirit)
+            if (gameData.player.stats.focus === undefined) gameData.player.stats.focus = 10;
+            if (gameData.player.stats.intellect === undefined) gameData.player.stats.intellect = 10;
+            if (gameData.player.stats.strength === undefined) {
+                gameData.player.stats.strength = gameData.player.stats.spirit || 10;
+                delete gameData.player.stats.spirit;
+            }
+        }
+        if (!gameData.player.equipment) gameData.player.equipment = { weapon: null, armor: null, accessory: null, shield: null };
         if (!gameData.inventory) gameData.inventory = [];
         if (!gameData.studyLogs) gameData.studyLogs = [];
 
@@ -458,6 +469,8 @@ function showScreen(screenId) {
             // Clear previous or set specific P
             logContainer.innerHTML = `<p>${randomText}</p>`;
         }
+    } else if (screenId === 'status-screen') {
+        updateStatusScreen();
     } else if (screenId === 'menu-screen') {
         updateInventoryScreen();
     } else if (screenId === 'log-screen') {
@@ -499,6 +512,29 @@ function updateHomeScreen() {
 
     // コイン表示
     document.getElementById('coin-count').textContent = player.coins;
+}
+
+function updateStatusScreen() {
+    const player = gameData.player;
+    const stats = getCurrentStats();
+    const statCap = 50 + (player.level * 10);
+
+    const updateStatusItem = (valId, capId, fillId, val) => {
+        const valEl = document.getElementById(valId);
+        const capEl = document.getElementById(capId);
+        const fillEl = document.getElementById(fillId);
+
+        if (valEl) valEl.textContent = Math.floor(val);
+        if (capEl) capEl.textContent = statCap;
+        if (fillEl) {
+            const percentage = Math.min(100, (val / statCap) * 100);
+            fillEl.style.width = percentage + '%';
+        }
+    };
+
+    updateStatusItem('status-val-focus', 'status-cap-focus', 'status-fill-focus', stats.focus);
+    updateStatusItem('status-val-intellect', 'status-cap-intellect', 'status-fill-intellect', stats.intellect);
+    updateStatusItem('status-val-strength', 'status-cap-strength', 'status-fill-strength', stats.strength);
 }
 
 // ========================================
@@ -642,13 +678,32 @@ function saveStudySession() {
     const earnedExp = minutes * 10;
     const earnedCoins = minutes * 5;
 
+    // パラメーターの上昇量 (1分 = 0.5ポイント)
+    const statIncrease = minutes * 0.5;
+    const statCap = 50 + (gameData.player.level * 10);
+
+    // 科目に応じて上昇するステータスを決定
+    // 資格/語学 -> intellect, ビジネス -> focus, その他 -> strength
+    let statKey = 'strength';
+    if (gameData.currentSubject === '資格' || gameData.currentSubject === '語学') {
+        statKey = 'intellect';
+    } else if (gameData.currentSubject === 'ビジネス') {
+        statKey = 'focus';
+    }
+
+    // ステータス加算と上限チェック
+    if (gameData.player.stats[statKey] !== undefined) {
+        gameData.player.stats[statKey] = Math.min(statCap, gameData.player.stats[statKey] + statIncrease);
+    }
+
     // 勉強ログに追加
     const log = {
         date: new Date().toISOString(),
         subject: gameData.currentSubject,
         minutes: minutes,
         exp: earnedExp,
-        coins: earnedCoins
+        coins: earnedCoins,
+        statGrown: { key: statKey, amount: statIncrease }
     };
     gameData.studyLogs.push(log);
 
@@ -668,7 +723,8 @@ function saveStudySession() {
     calculateTodayStats();
 
     // 確認メッセージ
-    alert(`勉強お疲れ様！\n${minutes}分勉強しました\n\n+${earnedExp} EXP\n+${earnedCoins} コイン`);
+    const statNameMap = { focus: '集中力', intellect: '知力', strength: '筋力(STRENGTH)' };
+    alert(`勉強お疲れ様！\n${minutes}分勉強しました\n\n+${earnedExp} EXP\n+${earnedCoins} コイン\n+${statIncrease} ${statNameMap[statKey]} (上限: ${statCap})`);
 }
 
 function checkLevelUp(oldLevel) {
@@ -858,7 +914,7 @@ function addItemToInventory(item) {
             id: item.id,
             name: item.name,
             rarity: item.rarity,
-            spriteIndex: item.spriteIndex,
+            file: item.file || (item.name + ".png"),
             count: 1
         });
     }
@@ -873,8 +929,8 @@ function showGachaResult(item) {
     iconElement.style.display = 'none';
     if (textIconElement) textIconElement.style.display = 'none';
 
-    // Icon Handling (Master Data Version)
-    const style = getItemSpriteStyle(item.spriteIndex);
+    // Icon Handling (Individual PNG Version)
+    const style = getItemSpriteStyle(item);
     iconElement.style.display = 'block';
     iconElement.innerHTML = '';
     iconElement.style.backgroundImage = style.backgroundImage;
@@ -954,23 +1010,25 @@ function updateInventoryScreen() {
     gameData.inventory.forEach(item => {
         const card = document.createElement('div');
 
-        const equipment = gameData.player.equipment || {};
-        const isEquipped = Object.values(equipment).some(eq => eq && eq.id === item.id);
+        // Always refer to masterItem for canonical display properties
+        const masterItem = ITEM_MASTER.find(mi => mi.id === Number(item.id));
+        const displayItem = masterItem || item; // Fallback to inventory record
 
-        card.className = `item-list-card rarity-${item.rarity} ${isEquipped ? 'equipped' : ''}`;
+        const equipment = gameData.player.equipment || {};
+        const isEquipped = Object.values(equipment).some(eq => eq && Number(eq.id) === Number(item.id));
+
+        card.className = `item-list-card rarity-${displayItem.rarity} ${isEquipped ? 'equipped' : ''}`;
 
         // Add click listener to show description
         card.onclick = (e) => {
-            // Don't trigger if a button was clicked
             if (e.target.tagName === 'BUTTON') return;
             showItemDescription(item.id);
         };
 
-        const style = getItemSpriteStyle(item.spriteIndex);
+        const style = getItemSpriteStyle(displayItem);
         const iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${style.backgroundImage} !important; background-position: ${style.backgroundPosition} !important; background-size: ${style.backgroundSize} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
 
         let actionBtn = '';
-        const masterItem = ITEM_MASTER.find(mi => mi.id === item.id);
         if (masterItem) {
             if (['weapon', 'armor', 'shield', 'accessory'].includes(masterItem.type)) {
                 actionBtn = `<button class="item-action-btn" onclick="toggleEquip(${item.id})">${isEquipped ? 'REMOVE' : 'EQUIP'}</button>`;
@@ -985,8 +1043,8 @@ function updateInventoryScreen() {
         card.innerHTML = `
             ${iconHtml}
             <div class="card-main">
-                <div class="card-title">${item.name} ${isEquipped ? '<span class="eq-tag">(E)</span>' : ''}</div>
-                <div class="card-subtitle">${'★'.repeat(item.rarity)}</div>
+                <div class="card-title">${displayItem.name} ${isEquipped ? '<span class="eq-tag">(E)</span>' : ''}</div>
+                <div class="card-subtitle">${'★'.repeat(displayItem.rarity)}</div>
             </div>
             <div class="card-right">
                 <div class="card-badge">×${item.count}</div>
@@ -1001,18 +1059,22 @@ function updateInventoryScreen() {
 }
 
 function toggleEquip(itemId) {
-    const item = GACHA_ITEMS.find(gi => gi.id === itemId);
+    const item = ITEM_MASTER.find(mi => Number(mi.id) === Number(itemId));
     if (!item) return;
 
     let slot = 'accessory';
-    if (item.name.includes('剣') || item.name.includes('杖')) slot = 'weapon';
-    else if (item.name.includes('服') || item.name.includes('鎧')) slot = 'armor';
-    else if (item.name.includes('盾')) slot = 'shield'; // Adding shield slot conceptually or using accessory
+    if (item.type === 'weapon') slot = 'weapon';
+    else if (item.type === 'armor') slot = 'armor';
+    else if (item.type === 'shield') slot = 'shield';
+    else if (item.type === 'accessory') slot = 'accessory';
 
-    if (gameData.player.equipment[slot] && gameData.player.equipment[slot].id === itemId) {
+    if (gameData.player.equipment[slot] && Number(gameData.player.equipment[slot].id) === Number(itemId)) {
         gameData.player.equipment[slot] = null;
+        showMessageModal("EQUIPMENT", `${item.name}を外しました。`);
     } else {
         gameData.player.equipment[slot] = { id: item.id, name: item.name };
+        const message = item.equipMessage || `${item.name}を装備した！`;
+        showMessageModal("EQUIPMENT", message);
     }
 
     saveGameData();
@@ -1020,13 +1082,44 @@ function toggleEquip(itemId) {
     updateHomeScreen();
 }
 
+function getCurrentStats() {
+    const baseStats = gameData.player.stats;
+    const currentStats = { ...baseStats };
+
+    const equipment = gameData.player.equipment || {};
+    Object.values(equipment).forEach(eq => {
+        if (eq) {
+            const masterItem = ITEM_MASTER.find(mi => mi.id === eq.id);
+            if (masterItem && masterItem.effects) {
+                Object.keys(masterItem.effects).forEach(stat => {
+                    if (currentStats[stat] !== undefined) {
+                        currentStats[stat] += masterItem.effects[stat];
+                    }
+                });
+            }
+        }
+    });
+
+    return currentStats;
+}
+
 function useItem(itemId) {
-    const inventoryItem = gameData.inventory.find(i => i.id === itemId);
+    const inventoryItem = gameData.inventory.find(i => Number(i.id) === Number(itemId));
     if (!inventoryItem || inventoryItem.count <= 0) return;
 
-    const masterItem = ITEM_MASTER.find(mi => mi.id === itemId);
+    const masterItem = ITEM_MASTER.find(mi => Number(mi.id) === Number(itemId));
     if (masterItem && masterItem.type === 'consumable') {
-        showMessageModal("ITEM USED", `${masterItem.name}を使用しました！<br>体力が回復した気がする...。`);
+        const message = masterItem.useMessage || `${masterItem.name}を使用した！`;
+        showMessageModal("ITEM USED", message);
+
+        // Apply effects if any (consumables can have effects too)
+        if (masterItem.effects) {
+            Object.keys(masterItem.effects).forEach(stat => {
+                if (gameData.player.stats[stat] !== undefined) {
+                    gameData.player.stats[stat] += masterItem.effects[stat];
+                }
+            });
+        }
 
         inventoryItem.count--;
         if (inventoryItem.count === 0) {
@@ -1036,6 +1129,7 @@ function useItem(itemId) {
 
     saveGameData();
     updateInventoryScreen();
+    updateHomeScreen();
 }
 
 function confirmReset() {
