@@ -187,24 +187,62 @@ const LEVEL_TABLE = {
     10: 2700
 };
 
-// ガチャアイテムデータ
-const GACHA_ITEMS = [
-    // ★1 (60%) - 6種類 (スプライトシート統合済み)
-    { id: 1, name: "木の剣", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "0% 0%", backgroundSize: "600% auto" },
-    { id: 2, name: "布の服", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "20% 0%", backgroundSize: "600% auto" },
-    { id: 3, name: "革の靴", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "40% 0%", backgroundSize: "600% auto" },
-    { id: 4, name: "小さな盾", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "60% 0%", backgroundSize: "600% auto" },
-    { id: 5, name: "ポーション", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "80% 0%", backgroundSize: "600% auto" },
-    { id: 6, name: "薬草袋", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "100% 0%", backgroundSize: "600% auto" },
-    // ★2 (30%) - 4種類 (従来のスプライトシートを使用)
-    { id: 7, name: "鋼の剣", icon: "./assets/items_sheet.png", rarity: 2, type: "image", position: "0% 45%", backgroundSize: "600% auto" },
-    { id: 8, name: "鎖の鎧", icon: "./assets/items_sheet.png", rarity: 2, type: "image", position: "25% 45%", backgroundSize: "600% auto" },
-    { id: 9, name: "魔法の杖", icon: "./assets/items_sheet.png", rarity: 2, type: "image", position: "55% 45%", backgroundSize: "600% auto" },
-    { id: 10, name: "魔法の本", icon: "./assets/items_sheet.png", rarity: 2, type: "image", position: "85% 45%", backgroundSize: "600% auto" },
-    // ★3 (10%) - 2種類
-    { id: 11, name: "伝説の剣", icon: "./assets/items_sheet.png", rarity: 3, type: "image", position: "35% 90%", backgroundSize: "600% auto" },
-    { id: 12, name: "ドラゴンの盾", icon: "./assets/items_sheet.png", rarity: 3, type: "image", position: "65% 90%", backgroundSize: "600% auto" }
+// ========================================
+// アイテム・マスターデータ (5x10マス対応)
+// ========================================
+
+const ITEM_CONFIG = {
+    columns: 5,
+    rows: 10,
+    sheetPath: "./assets/items_sheet.png"
+};
+
+/**
+ * アイテム・マスターデータ
+ * spriteIndex: 0〜49 (5x10のグリッド位置)
+ */
+const ITEM_MASTER = [
+    // ★1 (Rarity 1)
+    { id: 1, name: "木の剣", rarity: 1, spriteIndex: 0, type: "weapon", description: "木の枝を削って作った剣。" },
+    { id: 2, name: "布の服", rarity: 1, spriteIndex: 1, type: "armor", description: "丈夫な布でできた服。" },
+    { id: 3, name: "革の靴", rarity: 1, spriteIndex: 2, type: "accessory", description: "歩きやすい革の靴。" },
+    { id: 4, name: "小さな盾", rarity: 1, spriteIndex: 3, type: "shield", description: "持ち運びやすい小さな盾。" },
+    { id: 5, name: "ポーション", rarity: 1, spriteIndex: 4, type: "consumable", description: "体力を少し回復する。" },
+    { id: 6, name: "薬草袋", rarity: 1, spriteIndex: 5, type: "consumable", description: "傷を癒やす薬草が入った袋。" },
+
+    // ★2 (Rarity 2)
+    { id: 7, name: "鋼の剣", rarity: 2, spriteIndex: 10, type: "weapon", description: "鋭く研がれた鋼鉄の剣。" },
+    { id: 8, name: "鎖の鎧", rarity: 2, spriteIndex: 11, type: "armor", description: "鎖を編み込んで作られた鎧。" },
+    { id: 9, name: "魔法の杖", rarity: 2, spriteIndex: 12, type: "weapon", description: "微かに魔力を帯びた杖。" },
+    { id: 10, name: "魔法の本", rarity: 2, spriteIndex: 13, type: "accessory", description: "呪文が記された古びた本。" },
+
+    // ★3 (Rarity 3)
+    { id: 11, name: "伝説の剣", rarity: 3, spriteIndex: 20, type: "weapon", description: "かつての英雄が使ったとされる剣。" },
+    { id: 12, name: "ドラゴンの盾", rarity: 3, spriteIndex: 21, type: "shield", description: "竜の鱗を加工して作られた盾。" }
 ];
+
+/**
+ * スプライトのスタイル設定を取得するヘルパー
+ */
+function getItemSpriteStyle(itemIndex) {
+    const col = itemIndex % ITEM_CONFIG.columns;
+    const row = Math.floor(itemIndex / ITEM_CONFIG.columns);
+
+    // 5x10マスの時の % 位置計算
+    // col 0 -> 0%, col 4 -> 100% (4つの間隔があるため 100/4 = 25%刻み)
+    const x = (col / (ITEM_CONFIG.columns - 1)) * 100;
+    // row 0 -> 0%, row 9 -> 100% 
+    const y = (row / (ITEM_CONFIG.rows - 1)) * 100;
+
+    return {
+        backgroundImage: `url('${ITEM_CONFIG.sheetPath}')`,
+        backgroundPosition: `${x}% ${y}%`,
+        backgroundSize: `${ITEM_CONFIG.columns * 100}% auto`
+    };
+}
+
+// ガチャの抽選用リスト (ITEM_MASTERから生成)
+const GACHA_ITEMS = ITEM_MASTER;
 
 /**
  * デバッグ用：コインを消費せずにガチャを引く
@@ -790,10 +828,8 @@ function addItemToInventory(item) {
         gameData.inventory.push({
             id: item.id,
             name: item.name,
-            icon: item.icon,
             rarity: item.rarity,
-            position: item.position || "center",
-            backgroundSize: item.backgroundSize || "contain",
+            spriteIndex: item.spriteIndex,
             count: 1
         });
     }
@@ -807,32 +843,14 @@ function showGachaResult(item) {
     iconElement.style.display = 'none';
     if (textIconElement) textIconElement.style.display = 'none';
 
-    // Icon Handling
-    if (item.type === 'image') {
-        iconElement.style.display = 'block';
-        iconElement.innerHTML = '';
-        iconElement.style.backgroundImage = `url('${item.icon}')`;
-        // Handle Sprite Sheet positions
-        if (item.icon.includes('sheet')) {
-            iconElement.style.backgroundPosition = item.position || "center";
-            iconElement.style.backgroundSize = item.backgroundSize || "contain";
-        } else {
-            iconElement.style.backgroundPosition = item.position || "center";
-            iconElement.style.backgroundSize = item.backgroundSize || "contain";
-        }
-        iconElement.classList.add('image-sprite');
-    } else {
-        // Text Icon fallback
-        if (textIconElement) {
-            textIconElement.style.display = 'block';
-            textIconElement.textContent = item.icon;
-        } else {
-            // Fallback to original if element missing
-            iconElement.style.display = 'block';
-            iconElement.textContent = item.icon;
-            iconElement.style.backgroundImage = 'none';
-        }
-    }
+    // Icon Handling (Master Data Version)
+    const style = getItemSpriteStyle(item.spriteIndex);
+    iconElement.style.display = 'block';
+    iconElement.innerHTML = '';
+    iconElement.style.backgroundImage = style.backgroundImage;
+    iconElement.style.backgroundPosition = style.backgroundPosition;
+    iconElement.style.backgroundSize = style.backgroundSize;
+    iconElement.classList.add('image-sprite');
 
     document.getElementById('result-name').textContent = item.name;
     document.getElementById('result-rarity').textContent = '★'.repeat(item.rarity);
@@ -906,25 +924,16 @@ function updateInventoryScreen() {
         card.className = `item-list-card rarity-${item.rarity} ${isEquipped ? 'equipped' : ''}`;
 
         let iconHtml = '';
-        const iconPath = item.icon.startsWith('assets/') ? './' + item.icon : item.icon;
-
-        if (item.icon && (item.icon.includes('assets/') || item.icon.startsWith('http') || item.icon.startsWith('./'))) {
-            const pos = item.position || 'center';
-            const size = item.backgroundSize || 'contain';
-            // Force inline styles for background to override CSS
-            iconHtml = `<div class="card-icon-box image-sprite" style="background-image: url('${iconPath}') !important; background-position: ${pos} !important; background-size: ${size} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
-        } else {
-            iconHtml = `<div class="card-icon-box" style="font-size: 24px;">${item.icon || '📦'}</div>`;
-        }
+        const style = getItemSpriteStyle(item.spriteIndex);
+        iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${style.backgroundImage} !important; background-position: ${style.backgroundPosition} !important; background-size: ${style.backgroundSize} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
 
         // Determine Action Button
         let actionBtn = '';
-        const gachaItem = GACHA_ITEMS.find(gi => gi.id === item.id);
-        if (gachaItem) {
-            const itemName = gachaItem.name;
-            if (['剣', '服', '靴', '盾', '杖', '本', '鎧'].some(k => itemName.includes(k))) {
+        const masterItem = ITEM_MASTER.find(mi => mi.id === item.id);
+        if (masterItem) {
+            if (['weapon', 'armor', 'shield', 'accessory'].includes(masterItem.type)) {
                 actionBtn = `<button class="item-action-btn" onclick="toggleEquip(${item.id})">${isEquipped ? 'REMOVE' : 'EQUIP'}</button>`;
-            } else if (itemName.includes('ポーション') || itemName.includes('薬草')) {
+            } else if (masterItem.type === 'consumable') {
                 actionBtn = `<button class="item-action-btn" onclick="useItem(${item.id})">USE</button>`;
             }
         }
@@ -968,9 +977,10 @@ function useItem(itemId) {
     const inventoryItem = gameData.inventory.find(i => i.id === itemId);
     if (!inventoryItem || inventoryItem.count <= 0) return;
 
-    const gachaItem = GACHA_ITEMS.find(gi => gi.id === itemId);
-    if (gachaItem.name.includes('ポーション') || gachaItem.name.includes('薬草')) {
-        alert(`${gachaItem.name}を使用しました！体力が回復した気がする...。`);
+    const masterItem = ITEM_MASTER.find(mi => mi.id === itemId);
+    if (masterItem && masterItem.type === 'consumable') {
+        showMessageModal("ITEM USED", `${masterItem.name}を使用しました！<br>体力が回復した気がする...。`);
+
         inventoryItem.count--;
         if (inventoryItem.count === 0) {
             gameData.inventory = gameData.inventory.filter(i => i.id !== itemId);
@@ -1178,6 +1188,31 @@ function showCoinShortageModal() {
 
 function closeCoinShortageModal() {
     document.getElementById('coin-shortage-modal').classList.add('hidden');
+}
+
+/* ========================================
+   汎用メッセージモーダル制御
+   ======================================== */
+function showMessageModal(title, content) {
+    const modal = document.getElementById('message-modal');
+    const titleEl = document.getElementById('message-modal-title');
+    const contentEl = document.getElementById('message-modal-content');
+
+    if (modal && titleEl && contentEl) {
+        titleEl.textContent = title;
+        contentEl.innerHTML = content;
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '20000';
+    }
+}
+
+function closeMessageModal() {
+    const modal = document.getElementById('message-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
 }
 
 /* ========================================
