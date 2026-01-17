@@ -18,7 +18,7 @@ body {
     width: 100%;
     height: 100%;
     margin: 0;
-    background-image: url("assets/bg_field.png");
+    background-image: url("./assets/bg_field.png");
     background-size: cover;
     background-position: bottom center;
     background-repeat: no-repeat;
@@ -26,6 +26,12 @@ body {
     font-family: 'DotGothic16', sans-serif;
     /* Base font for Japanese/General text */
     color: #2c1810;
+}
+
+.image-sprite {
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 /* ========================================
@@ -46,7 +52,7 @@ body {
     /* Increased padding for the border */
     animation: fadeIn 0.3s ease;
     border: 24px solid transparent;
-    border-image: url('assets/ui_frame.png') 30 30 round;
+    border-image: url('./assets/ui_frame.png') 30 30 round;
     background-color: transparent;
     /* Make screen transparent to show body background */
     overflow-y: auto;
@@ -135,7 +141,7 @@ body {
     width: 100%;
     /* Final asset size: 1024 x 488 */
     aspect-ratio: 1024 / 488;
-    background-image: url("assets/hud_final.png");
+    background-image: url("./assets/hud_final.png");
     background-repeat: no-repeat;
     background-size: 80% auto;
     /* 横は中央(50%)、縦は上から -20px の位置 */
@@ -590,7 +596,7 @@ textarea {
     width: 48px;
     /* Sprite size inside the box */
     height: 48px;
-    background-image: url('assets/nav_icons.jpg');
+    background-image: url('./assets/nav_icons.jpg');
     background-size: 200% 200%;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
@@ -724,11 +730,13 @@ textarea {
 }
 
 .timer-frame {
+    position: relative;
+    /* 基準点にする */
     width: 100%;
     max-width: 1200px;
     margin: 16px auto 0;
 
-    background-image: url("assets/ui_frame.png");
+    background-image: url("./assets/ui_frame.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: 100% 100%;
@@ -751,29 +759,36 @@ textarea {
 
 
 .timer-display-lcd {
+    position: absolute;
+    /* 基準点を中央にし、自分のサイズの半分だけ戻す（これで完全中央固定） */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    /* サイズ指定：width: auto を消して、固定または％で指定 */
+    width: 72%;
+    height: 60%;
+
     background: rgba(52, 58, 51, 0.85);
-    /* Dark brown background for the timer window */
-    padding: 25px 60px;
     border-radius: 4px;
     border: none;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-    /* Subtle inner shadow for depth */
-    margin: 0;
-    width: auto;
 
+    /* レイアウト：paddingとmarginをリセットして中央寄せを優先 */
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 文字装飾 */
     color: #b6ff7a;
-    /* Stable size within the centered container */
     font-size: 56px;
     letter-spacing: 3px;
     font-family: 'VT323', monospace;
     text-align: center;
     line-height: 1;
-
     text-shadow: 0 0 4px rgba(182, 255, 122, 0.5);
-    transform: translateY(-2%);
-    /* Subtle vertical center adjustment */
 }
-
 
 
 
@@ -876,19 +891,19 @@ textarea {
 
 /* Using items sheet for icons - Refined positions to prevent cropping */
 .subject-icon.math {
-    background-image: url('assets/icon_math.png');
+    background-image: url('./assets/icon_math.png');
 }
 
 .subject-icon.english {
-    background-image: url('assets/icon_english.png');
+    background-image: url('./assets/icon_english.png');
 }
 
 .subject-icon.science {
-    background-image: url('assets/icon_science.png');
+    background-image: url('./assets/icon_science.png');
 }
 
 .subject-icon.other {
-    background-image: url('assets/icon_other.png');
+    background-image: url('./assets/icon_other.png');
 }
 
 .reward-box-mvp {
@@ -1943,7 +1958,7 @@ textarea {
 
 /* 1. Background Variation (Gacha Mode) */
 body.gacha-mode {
-    background-image: url("assets/bg_gacha.png");
+    background-image: url("./assets/bg_gacha.png");
     /* Keep other properties same as default body */
     transition: background-image 0.5s ease;
 }
@@ -2408,12 +2423,12 @@ body.gacha-mode {
 @keyframes timerPulse {
     from {
         text-shadow: 0 0 4px rgba(182, 255, 122, 0.5);
-        transform: scale(1) translateY(-2%);
+        transform: translate(-50%, -50%) scale(1);
     }
 
     to {
         text-shadow: 0 0 15px rgba(182, 255, 122, 0.9);
-        transform: scale(1.05) translateY(-2%);
+        transform: translate(-50%, -50%) scale(1.05);
     }
 }
 
@@ -2547,8 +2562,8 @@ body.gacha-mode {
     /* Force grounding with negative value */
     left: 50%;
     transform: translateX(-50%);
-    width: 200px;
-    height: 120px;
+    width: 140px;
+    height: 100px;
     /* Reduced height to lower center of gravity */
     display: flex;
     justify-content: center;
@@ -2587,7 +2602,7 @@ body.gacha-mode {
 /* Tooltip (Bubble) */
 .pull-tooltip {
     position: absolute;
-    top: -75px;
+    top: -95px;
     /* Adjust distance */
     left: 50%;
     transform: translateX(-50%);
@@ -2687,4 +2702,16 @@ body.gacha-mode {
 .screen.active .gacha-ui-layer button,
 .screen.active .chest-centered {
     pointer-events: auto !important;
+}
+
+/* 科目未選択モーダルを最前面に */
+#subject-warning-modal {
+    position: fixed !important;
+    display: none;
+    /* 初期状態 */
+    z-index: 20000 !important;
+}
+
+#subject-warning-modal:not(.hidden) {
+    display: flex !important;
 }

@@ -46,7 +46,7 @@
                 <div class="character-wrapper">
                     <p class="character-message" id="characterMessage">勉強してレベルアップしよう！</p>
                     <div class="character-motion">
-                        <img class="player-sprite" src="assets/player.png" alt="Player">
+                        <img class="player-sprite" src="./assets/player.png" alt="Player">
                     </div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
                     <span class="finger-pointer">👆</span>
                     <span class="tooltip-text">PULL?</span>
                 </div>
-                <img src="assets/item/chest/chest_wood.png" alt="Chest" class="chest-image-large" id="chest-display">
+                <img src="./assets/item/chest/chest_wood.png" alt="Chest" class="chest-image-large" id="chest-display">
             </div>
         </div>
 
@@ -164,20 +164,6 @@
                 <!-- Positioned via CSS to be above chest -->
                 <div class="gacha-log-minimal" id="gacha-mini-log">
                     <p>へえ、いいもの持ってるじゃん。</p>
-                </div>
-                <!-- 科目未選択モーダル -->
-                <div id="subject-warning-modal" class="modal hidden">
-                    <div class="modal-content rpg-window" style="text-align: center;">
-                        <h2 class="screen-title-mvp" style="color: #ecc94b; font-size: 16px; margin-bottom: 10px;">
-                            WARNING</h2>
-                        <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
-                            科目を選択してください！<br>
-                            勉強する科目を選ばないと<br>
-                            タイマーを開始できません。
-                        </p>
-                        <button class="ok-button" onclick="closeSubjectWarningModal()"
-                            style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
-                    </div>
                 </div>
                 <!-- Bottom: Controls & Log -->
                 <div class="gacha-controls-area">
@@ -247,7 +233,7 @@
     <div id="levelup-modal" class="modal hidden">
         <div class="modal-content">
             <h2 class="levelup-title">🎉 LEVEL UP！</h2>
-            <div class="character-sprite large"><img src="assets/player.png" alt="Player"></div>
+            <div class="character-sprite large"><img src="./assets/player.png" alt="Player"></div>
             <p class="levelup-text">
                 Lv.<span id="old-level">1</span> → Lv.<span id="new-level">2</span>
             </p>
@@ -292,6 +278,21 @@
                 (1回 100コイン必要です)
             </p>
             <button class="ok-button" onclick="closeCoinShortageModal()"
+                style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
+        </div>
+    </div>
+
+    <!-- 科目未選択モーダル -->
+    <div id="subject-warning-modal" class="modal hidden">
+        <div class="modal-content rpg-window" style="text-align: center;">
+            <h2 class="screen-title-mvp" style="color: #ecc94b; font-size: 16px; margin-bottom: 10px;">
+                WARNING</h2>
+            <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
+                科目を選択してください！<br>
+                勉強する科目を選ばないと<br>
+                タイマーを開始できません。
+            </p>
+            <button class="ok-button" onclick="closeSubjectWarningModal()"
                 style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
         </div>
     </div>

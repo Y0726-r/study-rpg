@@ -190,20 +190,20 @@ const LEVEL_TABLE = {
 // ガチャアイテムデータ
 const GACHA_ITEMS = [
     // ★1 (60%) - 6種類 (スプライトシート統合済み)
-    { id: 1, name: "木の剣", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "0% 0%", backgroundSize: "600% auto" },
-    { id: 2, name: "布の服", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "20% 0%", backgroundSize: "600% auto" },
-    { id: 3, name: "革の靴", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "40% 0%", backgroundSize: "600% auto" },
-    { id: 4, name: "小さな盾", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "60% 0%", backgroundSize: "600% auto" },
-    { id: 5, name: "ポーション", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "80% 0%", backgroundSize: "600% auto" },
-    { id: 6, name: "薬草袋", icon: "assets/items_sheet.png", rarity: 1, type: "image", position: "100% 0%", backgroundSize: "600% auto" },
+    { id: 1, name: "木の剣", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "0% 0%", backgroundSize: "600% auto" },
+    { id: 2, name: "布の服", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "20% 0%", backgroundSize: "600% auto" },
+    { id: 3, name: "革の靴", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "40% 0%", backgroundSize: "600% auto" },
+    { id: 4, name: "小さな盾", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "60% 0%", backgroundSize: "600% auto" },
+    { id: 5, name: "ポーション", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "80% 0%", backgroundSize: "600% auto" },
+    { id: 6, name: "薬草袋", icon: "./assets/items_sheet.png", rarity: 1, type: "image", position: "100% 0%", backgroundSize: "600% auto" },
     // ★2 (30%) - 4種類 (従来のスプライトシートを使用)
-    { id: 7, name: "鋼の剣", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "0% 45%", backgroundSize: "600% auto" },
-    { id: 8, name: "鎖の鎧", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "25% 45%", backgroundSize: "600% auto" },
-    { id: 9, name: "魔法の杖", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "55% 45%", backgroundSize: "600% auto" },
-    { id: 10, name: "魔法の本", icon: "assets/items_sheet.png", rarity: 2, type: "image", position: "85% 45%", backgroundSize: "600% auto" },
+    { id: 7, name: "鋼の剣", icon: "./assets/items_sheet.png", rarity: 2, type: "image", position: "0% 45%", backgroundSize: "600% auto" },
+    { id: 8, name: "鎖の鎧", icon: "./assets/items_sheet.png", rarity: 2, type: "image", position: "25% 45%", backgroundSize: "600% auto" },
+    { id: 9, name: "魔法の杖", icon: "./assets/items_sheet.png", rarity: 2, type: "image", position: "55% 45%", backgroundSize: "600% auto" },
+    { id: 10, name: "魔法の本", icon: "./assets/items_sheet.png", rarity: 2, type: "image", position: "85% 45%", backgroundSize: "600% auto" },
     // ★3 (10%) - 2種類
-    { id: 11, name: "伝説の剣", icon: "assets/items_sheet.png", rarity: 3, type: "image", position: "35% 90%", backgroundSize: "600% auto" },
-    { id: 12, name: "ドラゴンの盾", icon: "assets/items_sheet.png", rarity: 3, type: "image", position: "65% 90%", backgroundSize: "600% auto" }
+    { id: 11, name: "伝説の剣", icon: "./assets/items_sheet.png", rarity: 3, type: "image", position: "35% 90%", backgroundSize: "600% auto" },
+    { id: 12, name: "ドラゴンの盾", icon: "./assets/items_sheet.png", rarity: 3, type: "image", position: "65% 90%", backgroundSize: "600% auto" }
 ];
 
 /**
@@ -309,10 +309,19 @@ function loadGameData() {
         if (!gameData.timer) {
             gameData.timer = { isRunning: false, startTime: null, elapsedBeforePause: 0 };
         }
+        // Ensure player and equipment exist
+        if (!gameData.player) gameData.player = { level: 1, exp: 0, coins: 0, stats: { hp: 100, maxHp: 100, atk: 10, def: 5 }, equipment: {} };
+        if (!gameData.player.equipment) gameData.player.equipment = { weapon: null, armor: null, accessory: null };
+        if (!gameData.inventory) gameData.inventory = [];
+        if (!gameData.studyLogs) gameData.studyLogs = [];
+
         console.log("Game data loaded:", gameData);
     } else {
         console.log("No saved data, using default");
     }
+
+    // [Cleanup] Always start with no subject selected to enforce the "Select Subject first" rule.
+    gameData.currentSubject = null;
 }
 
 function saveGameData() {
@@ -477,6 +486,7 @@ function selectSubject(button) {
 function activateTimerUI() {
     // Subject selection check
     if (!gameData.currentSubject) {
+        console.log("警告モーダルを表示します");
         showSubjectWarningModal();
         return;
     }
@@ -673,7 +683,7 @@ function updateGachaScreen() {
         else if (player.level >= 10) chestType = 'silver';
         else if (player.level >= 5) chestType = 'bronze';
 
-        chestImage.src = `assets/item/chest/chest_${chestType}.png`;
+        chestImage.src = `./assets/item/chest/chest_${chestType}.png`;
     }
 }
 
@@ -875,9 +885,11 @@ function closeGachaResult() {
 // ========================================
 
 function updateInventoryScreen() {
+    console.log("Updating inventory screen...");
     const container = document.getElementById('inventory-container');
+    if (!container) return;
 
-    if (gameData.inventory.length === 0) {
+    if (!gameData.inventory || gameData.inventory.length === 0) {
         container.innerHTML = '<p class="empty-message">まだアイテムを持っていません</p>';
         return;
     }
@@ -886,14 +898,21 @@ function updateInventoryScreen() {
 
     gameData.inventory.forEach(item => {
         const card = document.createElement('div');
-        const isEquipped = Object.values(gameData.player.equipment).some(eq => eq && eq.id === item.id);
+
+        // Safety check for equipment
+        const equipment = gameData.player.equipment || {};
+        const isEquipped = Object.values(equipment).some(eq => eq && eq.id === item.id);
+
         card.className = `item-list-card rarity-${item.rarity} ${isEquipped ? 'equipped' : ''}`;
 
         let iconHtml = '';
-        if (item.icon && (item.icon.includes('assets/') || item.icon.startsWith('http'))) {
+        const iconPath = item.icon.startsWith('assets/') ? './' + item.icon : item.icon;
+
+        if (item.icon && (item.icon.includes('assets/') || item.icon.startsWith('http') || item.icon.startsWith('./'))) {
             const pos = item.position || 'center';
             const size = item.backgroundSize || 'contain';
-            iconHtml = `<div class="card-icon-box image-sprite" style="background-image: url('${item.icon}'); background-position: ${pos}; background-size: ${size};"></div>`;
+            // Force inline styles for background to override CSS
+            iconHtml = `<div class="card-icon-box image-sprite" style="background-image: url('${iconPath}') !important; background-position: ${pos} !important; background-size: ${size} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
         } else {
             iconHtml = `<div class="card-icon-box" style="font-size: 24px;">${item.icon || '📦'}</div>`;
         }
@@ -902,9 +921,10 @@ function updateInventoryScreen() {
         let actionBtn = '';
         const gachaItem = GACHA_ITEMS.find(gi => gi.id === item.id);
         if (gachaItem) {
-            if (['剣', '服', '靴', '盾', '杖', '本'].some(k => gachaItem.name.includes(k))) {
+            const itemName = gachaItem.name;
+            if (['剣', '服', '靴', '盾', '杖', '本', '鎧'].some(k => itemName.includes(k))) {
                 actionBtn = `<button class="item-action-btn" onclick="toggleEquip(${item.id})">${isEquipped ? 'REMOVE' : 'EQUIP'}</button>`;
-            } else if (gachaItem.name.includes('ポーション') || gachaItem.name.includes('薬草')) {
+            } else if (itemName.includes('ポーション') || itemName.includes('薬草')) {
                 actionBtn = `<button class="item-action-btn" onclick="useItem(${item.id})">USE</button>`;
             }
         }
@@ -1164,7 +1184,13 @@ function closeCoinShortageModal() {
    科目未選択モーダル制御 (Alert replacement)
    ======================================== */
 function showSubjectWarningModal() {
-    document.getElementById('subject-warning-modal').classList.remove('hidden');
+    const modal = document.getElementById('subject-warning-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex'; // 強制的に表示
+        modal.style.zIndex = '20000'; // 他の何よりも前面に出す
+        console.log("モーダルを表示しました。ID:", modal.id);
+    }
 }
 
 function closeSubjectWarningModal() {
@@ -1176,38 +1202,20 @@ function closeSubjectWarningModal() {
    ======================================== */
 function initTimerControls() {
     console.log("Initializing Timer Controls...");
-    const startBtn = document.getElementById('start-button');
-    const pauseBtn = document.getElementById('pause-button');
-    const stopBtn = document.getElementById('stop-button');
+    // Redundant listeners for Start/Pause/Stop removed because they are handled by onclick in HTML.
+    // This prevents the "Double Toggle" bug where a button click would Pause and immediately Resume.
 
-    if (startBtn) {
-        startBtn.addEventListener('click', (e) => {
-            console.log("Start button clicked (Listener)");
-            // e.preventDefault(); // Button type is 'button', so strictly not needed but safe
-            activateTimerUI();
-        });
-    }
-
-    if (pauseBtn) {
-        pauseBtn.addEventListener('click', (e) => {
-            console.log("Pause button clicked (Listener)");
-            handlePauseResume();
-        });
-    }
-
-    if (stopBtn) {
-        stopBtn.addEventListener('click', (e) => {
-            console.log("Stop button clicked (Listener)");
-            stopTimer();
-        });
-    }
-
-    // Also re-bind subject buttons just in case
+    // Subject buttons do not have onclick in HTML, so we keep these listeners.
     document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            selectSubject(btn);
-        });
+        // Remove existing to be safe if called multiple times
+        btn.removeEventListener('click', subjectBtnHandler);
+        btn.addEventListener('click', subjectBtnHandler);
     });
+}
+
+// Named handler to allow removal if needed
+function subjectBtnHandler(e) {
+    selectSubject(e.currentTarget);
 }
 
 
