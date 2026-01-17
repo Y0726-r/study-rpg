@@ -1,11 +1,11 @@
-const { Jimp } = require('jimp');
+const { Jimp, intToRGBA } = require('jimp');
 
 async function removeBackground(imagePath) {
     console.log(`Processing: ${imagePath}`);
     const image = await Jimp.read(imagePath);
 
     // Get the color of the top-left pixel
-    const cornerColor = Jimp.intToRGBA(image.getPixelColor(0, 0));
+    const cornerColor = intToRGBA(image.getPixelColor(0, 0));
 
     // Process every pixel
     image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
@@ -26,7 +26,12 @@ async function removeBackground(imagePath) {
         }
     });
 
-    await image.writeAsync(imagePath);
+    await new Promise((resolve, reject) => {
+        image.write(imagePath, (err) => {
+            if (err) reject(err);
+            else resolve();
+        });
+    });
     console.log(`Successfully processed: ${imagePath}`);
 }
 
@@ -35,7 +40,13 @@ async function run() {
         'assets/icon_english.png',
         'assets/icon_math.png',
         'assets/icon_other.png',
-        'assets/icon_science.png'
+        'assets/icon_science.png',
+        'assets/item/chest/chest_wood.png',
+        'assets/item/chest/chest_bronze.png',
+        'assets/item/chest/chest_silver.png',
+        'assets/item/chest/chest_gold.png',
+        'assets/item/chest/chest_lv50.png',
+        'assets/item/chest/chest_lv99.png'
     ];
     for (const f of files) {
         try {

@@ -14,8 +14,17 @@
     <!-- Flash Effect Overlay -->
     <div id="flash-overlay" class="flash-overlay"></div>
 
+    <!-- オープニング画面 -->
+    <div id="opening-screen" class="screen active" onclick="closeOpening()">
+        <div class="opening-content">
+            <h1 class="opening-logo">StudyQuest</h1>
+            <p class="opening-subtitle">勉強時間を冒険に変えよう</p>
+            <div class="touch-to-start">PRESS START</div>
+        </div>
+    </div>
+
     <!-- ホーム画面 -->
-    <div id="home-screen" class="screen active">
+    <div id="home-screen" class="screen">
         <div class="header-mvp">
             <div class="level-shield">
                 <span class="shield-text">Lv.<span id="player-level">1</span></span>
@@ -106,11 +115,12 @@
         <div class="reward-box-mvp">
             <p>勉強すると +10 EXP, +5 Coins/分</p>
         </div>
-
         <div class="timer-controls-mvp">
             <button class="start-button-mvp" id="start-button" onclick="activateTimerUI()">START</button>
+            <button id="pause-button" class="pause-button-mvp hidden" onclick="handlePauseResume()">PAUSE</button>
             <button class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">STOP</button>
         </div>
+
 
         <div class="today-stats-mvp">
             <p class="stats-label">TODAY'S STUDY TIME:</p>
@@ -123,7 +133,12 @@
         <!-- World Layer: Chest Object -->
         <div class="gacha-world-layer">
             <div class="ground-anchor"></div>
-            <div class="chest-centered">
+            <!-- Clickable Chest Container -->
+            <div class="chest-centered" onclick="pullGacha()" style="cursor: pointer; pointer-events: auto;">
+                <div class="pull-tooltip" id="pull-tooltip">
+                    <span class="finger-pointer">👆</span>
+                    <span class="tooltip-text">PULL?</span>
+                </div>
                 <img src="assets/item/chest/chest_wood.png" alt="Chest" class="chest-image-large" id="chest-display">
             </div>
         </div>
@@ -152,11 +167,8 @@
 
                 <!-- Bottom: Controls & Log -->
                 <div class="gacha-controls-area">
-                    <button class="pull-btn-large" id="pull-button" onclick="pullGacha()">
-                        <span class="btn-text-main">PULL</span>
-                        <span class="btn-text-sub">(100 COINS)</span>
-                    </button>
-                    <!-- List button removed -->
+                    <!-- Button removed, chest is now the trigger -->
+                    <!-- Cost hint removed -->
                 </div>
             </div>
         </div>
@@ -252,6 +264,21 @@
                     <button class="save-button" onclick="saveEditedLog()">SAVE</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- コイン不足モーダル -->
+    <div id="coin-shortage-modal" class="modal hidden">
+        <div class="modal-content rpg-window" style="text-align: center;">
+            <h2 class="screen-title-mvp" style="color: #e53e3e; font-size: 16px; margin-bottom: 10px;">NOT ENOUGH COINS
+            </h2>
+            <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
+                コインが足りません！<br>
+                勉強してコインを貯めよう。<br>
+                (1回 100コイン必要です)
+            </p>
+            <button class="ok-button" onclick="closeCoinShortageModal()"
+                style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
         </div>
     </div>
 

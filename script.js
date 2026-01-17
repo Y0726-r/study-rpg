@@ -27,18 +27,23 @@ let gameData = {
     player: {
         level: 1,
         exp: 0,
-        coins: 0
+        coins: 0,
+        stats: { hp: 100, maxHp: 100, atk: 10, def: 5 },
+        equipment: { weapon: null, armor: null, accessory: null }
     },
     studyLogs: [],
     inventory: [],
-    currentSubject: null
+    currentSubject: null,
+    timer: {
+        isRunning: false,
+        startTime: null,
+        elapsedBeforePause: 0
+    }
 };
 
-// タイマー関連
+// タイマー関連 (Session state, initialized from gameData at load)
 let timerInterval = null;
 let elapsedSeconds = 0;
-// currentSubject is now handled via gameData.currentSubject
-
 let startTime = null;
 let elapsedBeforePause = 0;
 
@@ -46,13 +51,25 @@ function startTimer() {
     console.log("🔥 startTimer 呼ばれた");
     if (timerInterval) return;
 
-    startTime = Date.now();
+    // 現在時刻から、過去の経過時間を引いた地点を「開始点」にする
+    startTime = Date.now() - elapsedBeforePause;
+
+    gameData.timer.isRunning = true;
+    gameData.timer.startTime = startTime; // 保存用
+    saveGameData();
+
     timerInterval = setInterval(updateTimer, 1000);
+    updateTimer(); // 即時実行して1秒のラグを消す
+
+    // Add pulsing class for visual feedback
+    const timerDisplay = document.getElementById('timer-display');
+    if (timerDisplay) timerDisplay.classList.add('timer-pulsing');
 }
 
 function updateTimer() {
+    if (!startTime) return;
     const now = Date.now();
-    const elapsedMs = elapsedBeforePause + (now - startTime);
+    const elapsedMs = now - startTime;
     elapsedSeconds = Math.floor(elapsedMs / 1000);
 
     renderTimer(elapsedSeconds);
@@ -63,7 +80,68 @@ function pauseTimer() {
 
     clearInterval(timerInterval);
     timerInterval = null;
-    elapsedBeforePause += Date.now() - startTime;
+
+    // 停止した瞬間の累積時間を保存
+    elapsedBeforePause = Date.now() - startTime;
+
+    gameData.timer.elapsedBeforePause = elapsedBeforePause;
+    gameData.timer.isRunning = false;
+    saveGameData();
+
+    // Remove pulsing class
+    const timerDisplay = document.getElementById('timer-display');
+    if (timerDisplay) timerDisplay.classList.remove('timer-pulsing');
+
+    // UI更新
+    updateStudyScreenUI();
+}
+
+function handlePauseResume() {
+    // 科目選択チェック（これがないとアラートが一瞬で消える原因になる）
+    if (!gameData.currentSubject) {
+        alert("勉強する科目を選択してください！");
+        return;
+    }
+
+    if (timerInterval) {
+        pauseTimer();
+    } else {
+        startTimer();
+    }
+    updateStudyScreenUI();
+}
+
+// UIの状態を一括管理する関数
+function updateStudyScreenUI() {
+    const startBtn = document.getElementById('start-button');
+    const stopBtn = document.getElementById('stop-button');
+    const pauseBtn = document.getElementById('pause-button');
+
+    if (timerInterval) {
+        // 実行中
+        if (startBtn) startBtn.classList.add('hidden');
+        if (pauseBtn) {
+            pauseBtn.classList.remove('hidden');
+            pauseBtn.textContent = 'PAUSE';
+        }
+        if (stopBtn) stopBtn.classList.remove('hidden');
+    } else {
+        // 停止中
+        if (startBtn) {
+            startBtn.classList.remove('hidden');
+            startBtn.textContent = elapsedBeforePause > 0 ? 'RESUME' : 'START';
+        }
+        if (pauseBtn) pauseBtn.classList.add('hidden');
+
+        // 1秒でも進んでいればSTOPボタンを見せる
+        if (stopBtn) {
+            if (elapsedBeforePause > 0) {
+                stopBtn.classList.remove('hidden');
+            } else {
+                stopBtn.classList.add('hidden');
+            }
+        }
+    }
 }
 
 function renderTimer(totalSeconds) {
@@ -190,6 +268,25 @@ function initGame() {
     loadGameData();
     updateHomeScreen();
     calculateTodayStats();
+
+    // Restore Timer State
+    if (gameData.timer) {
+        elapsedBeforePause = gameData.timer.elapsedBeforePause || 0;
+
+        if (gameData.timer.isRunning && gameData.timer.startTime) {
+            // Restore startTime from saved data
+            startTime = gameData.timer.startTime;
+
+            // Resume timer automatically
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer(); // Initial call
+        } else {
+            // Not running
+            elapsedSeconds = Math.floor(elapsedBeforePause / 1000);
+            renderTimer(elapsedSeconds);
+        }
+    }
+
     console.log("Game initialized!");
 }
 
@@ -286,24 +383,13 @@ function showScreen(screenId) {
         updateLogScreen();
     } else if (screenId === 'study-screen') {
         calculateTodayStats();
+        // ボタンの見た目を現在のタイマー状態に合わせる
+        updateStudyScreenUI();
 
         // Restore active subject button from gameData
         document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
-            if (btn.dataset.subject === gameData.currentSubject) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+            btn.classList.toggle('active', btn.dataset.subject === gameData.currentSubject);
         });
-
-        // Reset UI buttons based on timer state
-        if (timerInterval) {
-            document.getElementById('start-button').classList.add('hidden');
-            document.getElementById('stop-button').classList.remove('hidden');
-        } else {
-            document.getElementById('start-button').classList.remove('hidden');
-            document.getElementById('stop-button').classList.add('hidden');
-        }
     }
 }
 
@@ -337,6 +423,8 @@ function updateHomeScreen() {
 // ========================================
 // 勉強タイマー機能
 // ========================================
+
+
 
 function selectSubject(button) {
     // If the timer is running, we only allow stopping/resetting by clicking the active subject
@@ -375,19 +463,11 @@ function activateTimerUI() {
     // Subject selection check
     if (!gameData.currentSubject) {
         alert("勉強する科目を選択してください！");
-        return false;
+        return;
     }
 
-    // Double start guard
-    if (timerInterval) {
-        console.warn("Timer is already running.");
-        return false;
-    }
-
-    document.getElementById('start-button').classList.add('hidden');
-    document.getElementById('stop-button').classList.remove('hidden');
-    startTimer(); // Call the new startTimer
-    return true;
+    startTimer();
+    updateStudyScreenUI();
 }
 
 
@@ -425,32 +505,39 @@ function startStudyWithAnimation() {
 
 
 function stopTimer() {
-    if (!timerInterval) return;
+    if (!timerInterval && elapsedSeconds === 0) return;
 
-    clearInterval(timerInterval);
-    timerInterval = null;
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
 
-    const studyMinutes = Math.floor(elapsedSeconds / 60);
-
-    // 記録を消さない (Save log first)
-    // 1分以上なら保存 (Assuming existing logic requires 1 min, but specific user request says just save. I'll keep the 1 min check inside save function or here if cleaner, but user code implies direct save. I will respect my existing wrapper saveStudySession internal check or move it here. saveStudySession uses elapsedSeconds directly, so I should just call it before resetting.)
+    // 記録を保存 (Save log if elapsed time is significant)
     if (elapsedSeconds >= 60) {
         saveStudySession();
     }
 
-    // Reset selection state (Fixed: Clear selection on stop)
+    // Reset selection state
     gameData.currentSubject = null;
     document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
         btn.classList.remove('active');
     });
+
+    // Reset Persisted Timer State
+    gameData.timer = {
+        isRunning: false,
+        startTime: null,
+        elapsedBeforePause: 0
+    };
     saveGameData();
 
     // タイマーだけリセット
     elapsedSeconds = 0;
-    updateTimerDisplay();
+    elapsedBeforePause = 0;
+    renderTimer(0);
 
-    document.getElementById('start-button').classList.remove('hidden');
-    document.getElementById('stop-button').classList.add('hidden');
+    // UI更新
+    updateStudyScreenUI();
 }
 
 function updateTimerDisplay() {
@@ -556,18 +643,43 @@ function calculateTodayStats() {
 // ========================================
 
 function updateGachaScreen() {
-    document.getElementById('gacha-coin-count').textContent = gameData.player.coins;
+    const player = gameData.player;
+    document.getElementById('gacha-coin-count').textContent = player.coins;
+
+    // Evolving Chest Image
+    const chestImage = document.getElementById('chest-display');
+    if (chestImage) {
+        const player = gameData.player; // player変数が定義されていない場合はgameDataから参照
+        let chestType = 'wood';
+        //レベル判定ロジック
+        if (player.level >= 99) chestType = 'lv99';
+        else if (player.level >= 50) chestType = 'lv50';
+        else if (player.level >= 20) chestType = 'gold';
+        else if (player.level >= 10) chestType = 'silver';
+        else if (player.level >= 5) chestType = 'bronze';
+
+        chestImage.src = `assets/item/chest/chest_${chestType}.png`;
+    }
 }
 
 function pullGacha() {
     if (gameData.player.coins < 100) {
-        alert('コインが足りません！\n勉強してコインを集めましょう');
+        showCoinShortageModal();
         return;
     }
 
-    // Lock Button
-    const btn = document.getElementById('pull-button');
-    if (btn) btn.disabled = true;
+    // Lock Button (Removed as button is gone, handled by pointer-events or just ignored)
+    // const btn = document.getElementById('pull-button');
+    // if (btn) btn.disabled = true;
+
+    // Optional: Prevent double clicks on chest
+    const chest = document.querySelector('.chest-centered');
+    if (chest) {
+        chest.style.pointerEvents = 'none'; // Disable click
+        setTimeout(() => {
+            chest.style.pointerEvents = 'auto'; // Re-enable after animation
+        }, 2000);
+    }
 
     // コイン消費
     gameData.player.coins -= 100;
@@ -714,9 +826,10 @@ function updateGachaMiniLog(item) {
 
     const p = document.createElement('p');
     p.textContent = `You got: ${item.name}`;
+    p.className = 'gacha-log-entry'; // For floating animation
 
     // Keep only last 2-3 logs as shown in reference
-    if (logContainer.children.length >= 2) {
+    if (logContainer.children.length >= 3) {
         logContainer.removeChild(logContainer.firstChild);
     }
     logContainer.appendChild(p);
@@ -727,10 +840,10 @@ function closeGachaResult() {
     modal.classList.remove('show');
     modal.classList.add('hidden');
 
-    // Reset Chest to Closed State
+    // Reset Chest to Level-appropriate Closed State
     const chestImage = document.getElementById('chest-display');
     if (chestImage) {
-        chestImage.src = 'assets/chest.png';
+        updateGachaScreen(); // This will set the correct chest image based on level
         chestImage.style.animation = 'chestIdle 3s ease-in-out infinite';
     }
 
@@ -758,7 +871,8 @@ function updateInventoryScreen() {
 
     gameData.inventory.forEach(item => {
         const card = document.createElement('div');
-        card.className = `item-list-card rarity-${item.rarity}`;
+        const isEquipped = Object.values(gameData.player.equipment).some(eq => eq && eq.id === item.id);
+        card.className = `item-list-card rarity-${item.rarity} ${isEquipped ? 'equipped' : ''}`;
 
         let iconHtml = '';
         if (item.icon && (item.icon.includes('assets/') || item.icon.startsWith('http'))) {
@@ -769,16 +883,67 @@ function updateInventoryScreen() {
             iconHtml = `<div class="card-icon-box" style="font-size: 24px;">${item.icon || '📦'}</div>`;
         }
 
+        // Determine Action Button
+        let actionBtn = '';
+        const gachaItem = GACHA_ITEMS.find(gi => gi.id === item.id);
+        if (gachaItem) {
+            if (['剣', '服', '靴', '盾', '杖', '本'].some(k => gachaItem.name.includes(k))) {
+                actionBtn = `<button class="item-action-btn" onclick="toggleEquip(${item.id})">${isEquipped ? 'REMOVE' : 'EQUIP'}</button>`;
+            } else if (gachaItem.name.includes('ポーション') || gachaItem.name.includes('薬草')) {
+                actionBtn = `<button class="item-action-btn" onclick="useItem(${item.id})">USE</button>`;
+            }
+        }
+
         card.innerHTML = `
             ${iconHtml}
             <div class="card-main">
-                <div class="card-title">${item.name}</div>
+                <div class="card-title">${item.name} ${isEquipped ? '<span class="eq-tag">(E)</span>' : ''}</div>
                 <div class="card-subtitle">${'★'.repeat(item.rarity)}</div>
             </div>
-            <div class="card-badge">×${item.count}</div>
+            <div class="card-right">
+                <div class="card-badge">×${item.count}</div>
+                ${actionBtn}
+            </div>
         `;
         container.appendChild(card);
     });
+}
+
+function toggleEquip(itemId) {
+    const item = GACHA_ITEMS.find(gi => gi.id === itemId);
+    if (!item) return;
+
+    let slot = 'accessory';
+    if (item.name.includes('剣') || item.name.includes('杖')) slot = 'weapon';
+    else if (item.name.includes('服') || item.name.includes('鎧')) slot = 'armor';
+    else if (item.name.includes('盾')) slot = 'shield'; // Adding shield slot conceptually or using accessory
+
+    if (gameData.player.equipment[slot] && gameData.player.equipment[slot].id === itemId) {
+        gameData.player.equipment[slot] = null;
+    } else {
+        gameData.player.equipment[slot] = { id: item.id, name: item.name };
+    }
+
+    saveGameData();
+    updateInventoryScreen();
+    updateHomeScreen();
+}
+
+function useItem(itemId) {
+    const inventoryItem = gameData.inventory.find(i => i.id === itemId);
+    if (!inventoryItem || inventoryItem.count <= 0) return;
+
+    const gachaItem = GACHA_ITEMS.find(gi => gi.id === itemId);
+    if (gachaItem.name.includes('ポーション') || gachaItem.name.includes('薬草')) {
+        alert(`${gachaItem.name}を使用しました！体力が回復した気がする...。`);
+        inventoryItem.count--;
+        if (inventoryItem.count === 0) {
+            gameData.inventory = gameData.inventory.filter(i => i.id !== itemId);
+        }
+    }
+
+    saveGameData();
+    updateInventoryScreen();
 }
 
 function confirmReset() {
@@ -821,6 +986,32 @@ function updateLogScreen() {
     }
 
     container.innerHTML = '';
+
+    // Daily Summary Card Logic
+    const today = new Date().toDateString();
+    let todayMinutes = 0, todayExp = 0, todayCoins = 0;
+
+    gameData.studyLogs.forEach(log => {
+        if (new Date(log.date).toDateString() === today) {
+            todayMinutes += log.minutes;
+            todayExp += log.exp;
+            todayCoins += log.coins;
+        }
+    });
+
+    if (todayMinutes > 0) {
+        const summaryCard = document.createElement('div');
+        summaryCard.className = 'summary-card-today';
+        summaryCard.innerHTML = `
+            <div class="summary-label">TODAY'S ACHIEVEMENT</div>
+            <div class="summary-stats">
+                <div class="summary-stat-box"><span class="label">TIME</span><span class="value">${todayMinutes}m</span></div>
+                <div class="summary-stat-box"><span class="label">EXP</span><span class="value">+${todayExp}</span></div>
+                <div class="summary-stat-box"><span class="label">COINS</span><span class="value">+${todayCoins}</span></div>
+            </div>
+        `;
+        container.appendChild(summaryCard);
+    }
     // reverse to show newest first, but keep track of actual index
     const logsWithIndex = gameData.studyLogs.map((log, index) => ({ ...log, index }));
     const sortedLogs = logsWithIndex.reverse();
@@ -829,22 +1020,45 @@ function updateLogScreen() {
         const date = new Date(log.date);
         const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 
+        // Tier Determination
+        let tierClass = 'card-bronze';
+        let tierLabel = 'BRONZE';
+        if (log.minutes >= 45) {
+            tierClass = 'card-gold';
+            tierLabel = 'GOLD';
+        } else if (log.minutes >= 15) {
+            tierClass = 'card-silver';
+            tierLabel = 'SILVER';
+        }
+
+        // Subject to Icon Mapping
+        let subjectClass = 'other';
+        if (log.subject === '資格') subjectClass = 'math'; // Mapping to existing CSS classes
+        else if (log.subject === '語学') subjectClass = 'english';
+        else if (log.subject === 'ビジネス') subjectClass = 'science';
+        else if (log.subject === 'その他') subjectClass = 'other';
+
         const logItem = document.createElement('div');
-        // Usng 'log-item' as requested, keeping 'item-list-card' for fallback or just replacing it if CSS covers it.
-        // User explicitly asked for .log-item CSS which I added.
-        logItem.className = 'log-item';
+        logItem.className = `study-card ${tierClass}`;
         logItem.innerHTML = `
-            <div class="card-icon-box" style="font-size: 20px;">📜</div>
-            <div class="log-text">
-                <div class="card-title">${log.subject}</div>
-                <div class="card-subtitle" style="color: #666;">${dateStr}</div>
+            <div class="card-header">
+                <span class="card-tier">${tierLabel} RECORD</span>
+                <span class="card-date">${dateStr}</span>
             </div>
-            <div class="card-badge" style="text-align: right; position: relative;">
-                <div style="font-size: 11px;">${log.minutes}m / +${log.exp}E</div>
-                <div class="log-actions" style="margin-top: 4px;">
-                    <button class="log-btn edit" onclick="openEditLogModal(${log.index})">📝</button>
-                    <button class="log-btn delete" onclick="deleteLog(${log.index})">🗑️</button>
+            <div class="card-body">
+                <div class="card-icon-box subject-icon ${subjectClass}" style="width: 48px; height: 48px; background-size: 80%; border: 2px solid #6b4400;"></div>
+                <div class="card-content">
+                    <div class="card-title">${log.subject}</div>
+                    <div class="card-stats">
+                        <span class="stat-item">⏱️ ${log.minutes}m</span>
+                        <span class="stat-item">⭐ ${log.exp} EXP</span>
+                        <span class="stat-item">🪙 ${log.coins}</span>
+                    </div>
                 </div>
+            </div>
+            <div class="card-footer">
+                <button class="log-btn edit" onclick="openEditLogModal(${log.index})">EDIT</button>
+                <button class="log-btn delete" onclick="deleteLog(${log.index})">DEL</button>
             </div>
         `;
         container.appendChild(logItem);
@@ -905,4 +1119,28 @@ function saveEditedLog() {
 // ページ読み込み時に初期化
 // ========================================
 
+
+function closeOpening() {
+    const opening = document.getElementById('opening-screen');
+    if (!opening || !opening.classList.contains('active')) return;
+
+    opening.classList.add('screen-fade-out');
+
+    // アニメーションが終わった後にホームへ
+    setTimeout(() => {
+        showScreen('home-screen');
+    }, 800);
+}
+
 window.addEventListener('DOMContentLoaded', initGame);
+
+/* ========================================
+   コイン不足モーダル制御
+   ======================================== */
+function showCoinShortageModal() {
+    document.getElementById('coin-shortage-modal').classList.remove('hidden');
+}
+
+function closeCoinShortageModal() {
+    document.getElementById('coin-shortage-modal').classList.add('hidden');
+}

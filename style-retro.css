@@ -706,6 +706,17 @@ textarea {
     border-radius: 4px;
     cursor: pointer;
     margin-bottom: 10px;
+    z-index: 100;
+    /* Ensure it stays above title */
+}
+
+/* Adjust title to not overlap with BACK button */
+#log-screen .screen-title-mvp,
+#menu-screen .screen-title-mvp {
+    flex: 1;
+    text-align: right;
+    padding-right: 10px;
+    margin-bottom: 0;
 }
 
 .timer-container-mvp {
@@ -733,6 +744,7 @@ textarea {
     justify-content: center;
     image-rendering: pixelated;
     padding: 20px;
+    margin-top: 10px !important;
 }
 
 
@@ -768,7 +780,7 @@ textarea {
 
 
 .subject-selector-mvp {
-    margin-top: 20px;
+    margin-top: 10px !important;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
@@ -880,7 +892,7 @@ textarea {
 }
 
 .reward-box-mvp {
-    margin: 20px auto;
+    margin: 10px auto !important;
     width: 90%;
     padding: 12px;
     background: #653d1e;
@@ -895,13 +907,21 @@ textarea {
 }
 
 .timer-controls-mvp {
-    display: flex;
+    /*display: flex;
     gap: 12px;
     justify-content: center;
+    margin-bottom: 24px;*/
+    display: flex;
+    gap: 8px;
+    /* ボタン同士の隙間 */
+    justify-content: center;
+    padding: 0 16px;
     margin-bottom: 24px;
+    position: relative;
+    z-index: 50;
 }
 
-.start-button-mvp,
+/*.start-button-mvp,
 .stop-button-mvp {
     flex: 1;
     padding: 12px;
@@ -909,6 +929,19 @@ textarea {
     border-radius: 6px;
     cursor: pointer;
     font-family: "Press Start 2P", cursive;
+}*/
+/* 共通スタイル：START, PAUSE, STOPすべてに適用 */
+.start-button-mvp,
+.pause-button-mvp,
+.stop-button-mvp {
+    flex: 1;
+    /* 同じ幅で分け合う */
+    padding: 12px 0;
+    font-family: "Press Start 2P", cursive;
+    font-size: 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s;
 }
 
 .start-button-mvp {
@@ -916,6 +949,29 @@ textarea {
     border: 4px solid #1e4d1e;
     color: #d9ffd9;
     box-shadow: 0 4px #1b441b;
+}
+
+/* PAUSEボタン固有の見た目 */
+.pause-button-mvp {
+    background: #e67e22;
+    /* キャンプファイヤーのオレンジ */
+    border: 4px solid #a04a1b;
+    color: #fff;
+    box-shadow: 0 4px #873d16;
+}
+
+.pause-button-mvp:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px #873d16;
+}
+
+/* クラス名が正しく当たっているか確認 */
+.timer-controls-mvp .pause-button-mvp {
+    display: inline-block;
+    /* hiddenが外れた時に確実に見せる */
+    background: #e67e22 !important;
+    /* オレンジを強制 */
+    color: white !important;
 }
 
 .stop-button-mvp {
@@ -1035,6 +1091,17 @@ textarea {
 .rarity-slot.star-3 {
     border-color: #e53e3e;
     color: #e53e3e;
+}
+
+.chest-image-large {
+    width: 600px !important;
+    height: auto !important;
+    object-fit: contain;
+    transform: scale(1.5);
+    /* 数値を変えずに見た目だけ1.5倍にする */
+    image-rendering: pixelated;
+    /* Remove white background */
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
 }
 
 .chest-image-mvp {
@@ -1333,29 +1400,34 @@ textarea {
 .log-stats-mvp {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 4px;
 }
 
 .stat-card-mvp {
-    background: #1a1a1a;
-    border: 3px solid #4a5568;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d1810 100%);
+    border: 3px solid #ffd700;
     border-radius: 8px;
-    padding: 12px;
+    padding: 16px;
     text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 0 5px rgba(255, 215, 0, 0.2);
 }
 
 .stat-card-mvp .stat-label {
     font-size: 9px;
-    color: #a0aec0;
-    margin-bottom: 6px;
+    color: #ffd700;
+    font-family: 'Press Start 2P', cursive;
+    margin-bottom: 8px;
+    text-transform: uppercase;
 }
 
 .stat-card-mvp .stat-value {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: bold;
     color: #39FF14;
     font-family: 'VT323', monospace;
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
 }
 
 .log-container-mvp {
@@ -1382,16 +1454,33 @@ textarea {
 }
 
 .modal-content {
-    background: white;
+    background: #fdf6e3;
     border: 4px solid #fcc419;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 30px;
     text-align: center;
     max-width: 320px;
     box-shadow:
-        0 0 0 4px white,
-        0 0 0 8px #fcc419,
+        0 0 0 4px #2c1810,
         0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.ok-button {
+    background: #fbbf24;
+    border: 3px solid #6b4400;
+    color: #2c1810;
+    padding: 10px 20px;
+    font-family: "Press Start 2P", cursive;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #6b4400;
+    margin-top: 20px;
+}
+
+.ok-button:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #6b4400;
 }
 
 .levelup-title {
@@ -1567,29 +1656,17 @@ textarea {
 }
 
 /* Chest Positioning - Grounded */
-.chest-centered {
-    z-index: 5;
-    position: absolute;
-    bottom: 25px;
-    /* 10% (Controls Bottom) + 80px (Button Height) + 10px (Gap) */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    height: 200px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    pointer-events: auto;
-}
+/* Chest Positioning - Grounded */
+/* Removed duplicate rule to consolidate at the end of the file */
 
 
 
 
-.chest-image-large {
-    width: 100%;
-    height: auto;
-    image-rendering: pixelated;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+/* Chest Style Consolidated (Base settings above) */
+.chest-box-mvp .chest-image-large {
+    /* Specific overrides if needed for results box */
+    width: 150px;
+    height: 150px;
 }
 
 
@@ -1797,7 +1874,7 @@ textarea {
 /* Minimalist Log - Now positioned ABOVE chest */
 .gacha-log-minimal {
     position: absolute;
-    bottom: 280px;
+    bottom: 330px;
     /* Chest Top = 10% + 90px + 200px (Height) = 10% + 290px. Gap 20px -> 310px */
     left: 50%;
     transform: translateX(-50%);
@@ -1881,12 +1958,12 @@ body.gacha-mode {
 /* Removed duplicate .chest-centered rules to avoid conflict with Line 1586 */
 
 .chest-image-large {
-    /* Existing styles + ensuring it sits well */
-    width: 200px;
-    height: 200px;
+    /* Immersive Gacha Chest */
+    width: 160px;
+    height: 160px;
     object-position: bottom center;
-    /* Remove hover animation during idle if needed, or keep it gentle */
     animation: chestIdle 3s ease-in-out infinite;
+    /* Mix-blend-mode is inherited from base declaration at line 1085 */
 }
 
 /*@keyframes chestIdle {
@@ -2044,3 +2121,541 @@ body.gacha-mode {
     transform: translateY(4px);
     box-shadow: 0 0 0 #b45309;
 }
+
+/* ========================================
+   オープニング画面
+   ======================================== */
+#opening-screen {
+    background: #000;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    border: none;
+    max-width: none;
+    padding: 0;
+}
+
+.opening-content {
+    text-align: center;
+    color: #fff;
+    animation: openingFadeIn 2s ease-out;
+}
+
+.opening-logo {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 40px;
+    color: #ffd700;
+    text-shadow: 4px 4px 0 #b38f00;
+    margin-bottom: 20px;
+}
+
+.opening-subtitle {
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 18px;
+    color: #ccc;
+    margin-bottom: 60px;
+}
+
+.touch-to-start {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    color: #fff;
+    animation: blink 1s step-end infinite;
+    cursor: pointer;
+}
+
+@keyframes openingFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* 画面遷移アニメーション */
+.screen-fade-out {
+    animation: screenFadeOut 0.8s forwards !important;
+}
+
+@keyframes screenFadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+
+/* ========================================
+   Study Record Cards
+   ======================================== */
+.study-card {
+    background: #fdf6e3;
+    border: 3px solid #6b4400;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    min-height: 80px;
+    /* Ensure cards have a minimum height */
+    animation: cardAppear 0.5s ease-out forwards;
+}
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-header {
+    background: #6b4400;
+    color: #fff;
+    padding: 4px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+}
+
+.card-tier {
+    font-family: 'Press Start 2P', cursive;
+    font-weight: bold;
+}
+
+.card-date {
+    font-family: 'DotGothic16', sans-serif;
+}
+
+.card-body {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-body .card-icon-box {
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.05);
+    border: 2px dashed #6b4400;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+}
+
+.card-content {
+    flex: 1;
+}
+
+.card-title {
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c1810;
+    margin-bottom: 4px;
+}
+
+.card-stats {
+    display: flex;
+    gap: 12px;
+}
+
+.stat-item {
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 12px;
+    color: #555;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.card-footer {
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Tier Colors */
+.card-bronze {
+    border-color: #8c7853;
+}
+
+.card-bronze .card-header {
+    background: #8c7853;
+}
+
+.card-bronze .card-tier {
+    color: #ffd700;
+}
+
+.card-silver {
+    border-color: #a8a8a8;
+}
+
+.card-silver .card-header {
+    background: #a8a8a8;
+}
+
+.card-silver .card-tier {
+    color: #fff;
+}
+
+.card-gold {
+    border-color: #ffd700;
+}
+
+.card-gold .card-header {
+    background: #ffd700;
+}
+
+.card-gold .card-header {
+    color: #6b4400;
+}
+
+.card-gold .card-tier {
+    color: #6b4400;
+}
+
+
+/* ========================================
+   Daily Summary Card
+   ======================================== */
+.summary-card-today {
+    background: linear-gradient(135deg, #2c1810, #4a2c00);
+    border: 3px solid #ffd700;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    animation: summaryGlow 2s infinite alternate;
+}
+
+@keyframes summaryGlow {
+    from {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+
+    to {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    }
+}
+
+.summary-label {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    color: #ffd700;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.summary-stats {
+    display: flex;
+    justify-content: space-around;
+}
+
+.summary-stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.summary-stat-box .label {
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 10px;
+    color: #ccc;
+}
+
+.summary-stat-box .value {
+    font-family: 'VT323', monospace;
+    font-size: 24px;
+    color: #fff;
+}
+
+/* ========================================
+   Timer Polish
+   ======================================== */
+.timer-pulsing {
+    animation: timerPulse 1s infinite alternate;
+}
+
+@keyframes timerPulse {
+    from {
+        text-shadow: 0 0 4px rgba(182, 255, 122, 0.5);
+        transform: scale(1) translateY(-2%);
+    }
+
+    to {
+        text-shadow: 0 0 15px rgba(182, 255, 122, 0.9);
+        transform: scale(1.05) translateY(-2%);
+    }
+}
+
+
+/* ========================================
+   Gacha Enhancements
+   ======================================== */
+.gacha-log-entry {
+    animation: gachaLogFloat 4s ease-out forwards;
+    opacity: 0;
+    margin-bottom: 8px;
+    font-family: 'DotGothic16', sans-serif;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+}
+
+@keyframes gachaLogFloat {
+    0% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    10% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    80% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
+.chest-shaking {
+    animation: chestShake 0.5s infinite;
+}
+
+@keyframes chestShake {
+    0% {
+        transform: translate(0, 0) rotate(0);
+    }
+
+    20% {
+        transform: translate(-2px, 0) rotate(-2deg);
+    }
+
+    40% {
+        transform: translate(2px, 0) rotate(2deg);
+    }
+
+    60% {
+        transform: translate(-2px, 0) rotate(-2deg);
+    }
+
+    80% {
+        transform: translate(2px, 0) rotate(2deg);
+    }
+
+    100% {
+        transform: translate(0, 0) rotate(0);
+    }
+}
+
+
+/* ========================================
+   Item Action Buttons & Equipment
+   ======================================== */
+.item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.item-action-btn {
+    background: #4a2c00;
+    color: #ffd700;
+    border: 2px solid #6b4400;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #2c1810;
+}
+
+.item-action-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 #2c1810;
+}
+
+.item-list-card.equipped {
+    background: #fff9e6;
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.eq-tag {
+    color: #b38f00;
+    font-weight: bold;
+    font-size: 10px;
+    margin-left: 4px;
+}
+
+.card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 60px;
+}
+
+/* ========================================
+   Interactive Chest & Tooltip
+   ======================================== */
+
+
+/* ========================================
+   Interactive Chest & Tooltip
+   ======================================== */
+
+/* Clickable Chest Container */
+.chest-centered {
+    position: absolute;
+    bottom: -120px !important;
+    /* Force grounding with negative value */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 120px;
+    /* Reduced height to lower center of gravity */
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 50;
+    transition: transform 0.2s ease, filter 0.2s;
+    cursor: pointer;
+    pointer-events: auto;
+    filter: drop-shadow(0 20px 10px rgba(0, 0, 0, 0.5));
+    /* Grounding shadow */
+}
+
+/* Hover Effect: Brightness only (No Scale/Shake) */
+.chest-centered:hover .chest-image-large {
+    filter: brightness(1.1);
+}
+
+/*@keyframes chestHoverShake {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-2deg);
+    }
+
+    75% {
+        transform: rotate(2deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}*/
+
+/* Tooltip (Bubble) */
+.pull-tooltip {
+    position: absolute;
+    top: -75px;
+    /* Adjust distance */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border: 3px solid #2c1810;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    z-index: 60;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Tooltip Tail */
+.pull-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid #2c1810;
+}
+
+/* Show Tooltip on Hover */
+.chest-centered:hover .pull-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-10px);
+    animation: tooltipBounce 1s infinite alternate;
+}
+
+.finger-pointer {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.tooltip-text {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    color: #2c1810;
+    font-weight: bold;
+}
+
+@keyframes tooltipBounce {
+    from {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    to {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}
+
+/* Cost Hint Text */
+.gacha-cost-hint {
+    font-family: 'DotGothic16', sans-serif;
+    color: #ffd700;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px #000;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+/* すべ/* すべての上書きを禁止して地面に固定 */
