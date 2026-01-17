@@ -49,6 +49,12 @@ let elapsedBeforePause = 0;
 
 function startTimer() {
     console.log("🔥 startTimer 呼ばれた");
+
+    // Guard: Ensure gameData.timer exists to prevent crashes
+    if (!gameData.timer) {
+        gameData.timer = { isRunning: false, startTime: null, elapsedBeforePause: 0 };
+    }
+
     if (timerInterval) return;
 
     // 現在時刻から、過去の経過時間を引いた地点を「開始点」にする
@@ -299,6 +305,10 @@ function loadGameData() {
     const savedData = localStorage.getItem('studyQuestData');
     if (savedData) {
         gameData = JSON.parse(savedData);
+        // Ensure timer object exists (migration for old saves)
+        if (!gameData.timer) {
+            gameData.timer = { isRunning: false, startTime: null, elapsedBeforePause: 0 };
+        }
         console.log("Game data loaded:", gameData);
     } else {
         console.log("No saved data, using default");
