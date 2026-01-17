@@ -918,7 +918,8 @@ textarea {
     padding: 0 16px;
     margin-bottom: 24px;
     position: relative;
-    z-index: 50;
+    z-index: 2100;
+    /* Ensure timer controls are above layers */
 }
 
 /*.start-button-mvp,
@@ -2185,6 +2186,7 @@ body.gacha-mode {
 /* 画面遷移アニメーション */
 .screen-fade-out {
     animation: screenFadeOut 0.8s forwards !important;
+    pointer-events: none !important;
 }
 
 @keyframes screenFadeOut {
@@ -2658,4 +2660,31 @@ body.gacha-mode {
     border-radius: 12px;
 }
 
-/* すべ/* すべての上書きを禁止して地面に固定 */
+/* すべての上書きを禁止して地面に固定 */
+
+/* タイマー画面の操作ボタンをあらゆるレイヤーより前面に出す */
+.timer-controls-mvp {
+    position: relative !important;
+    z-index: 9999 !important;
+    /* 最強の優先順位 */
+    pointer-events: auto !important;
+    /* 確実にクリックを通す */
+}
+
+/* ボタンそのものへのクリックを最優先する */
+.timer-controls-mvp button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* ガチャ演出用のレイヤーが表示中以外はクリックを一切邪魔しないようにする */
+.gacha-world-layer,
+.gacha-ui-layer {
+    pointer-events: none !important;
+}
+
+/* ガチャ画面のアクティブ時のみ、中のボタンなどのクリックを許可する */
+.screen.active .gacha-ui-layer button,
+.screen.active .chest-centered {
+    pointer-events: auto !important;
+}

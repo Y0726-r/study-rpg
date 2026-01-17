@@ -99,7 +99,7 @@ function pauseTimer() {
 function handlePauseResume() {
     // 科目選択チェック（これがないとアラートが一瞬で消える原因になる）
     if (!gameData.currentSubject) {
-        alert("勉強する科目を選択してください！");
+        showSubjectWarningModal();
         return;
     }
 
@@ -286,6 +286,11 @@ function initGame() {
             renderTimer(elapsedSeconds);
         }
     }
+    // 勉強ログの更新
+    updateLogScreen();
+
+    // Timer Controlsの初期化を念押し
+    initTimerControls();
 
     console.log("Game initialized!");
 }
@@ -462,7 +467,7 @@ function selectSubject(button) {
 function activateTimerUI() {
     // Subject selection check
     if (!gameData.currentSubject) {
-        alert("勉強する科目を選択してください！");
+        showSubjectWarningModal();
         return;
     }
 
@@ -1144,3 +1149,55 @@ function showCoinShortageModal() {
 function closeCoinShortageModal() {
     document.getElementById('coin-shortage-modal').classList.add('hidden');
 }
+
+/* ========================================
+   科目未選択モーダル制御 (Alert replacement)
+   ======================================== */
+function showSubjectWarningModal() {
+    document.getElementById('subject-warning-modal').classList.remove('hidden');
+}
+
+function closeSubjectWarningModal() {
+    document.getElementById('subject-warning-modal').classList.add('hidden');
+}
+
+/* ========================================
+   Timer Control Initialization (Event Listeners)
+   ======================================== */
+function initTimerControls() {
+    console.log("Initializing Timer Controls...");
+    const startBtn = document.getElementById('start-button');
+    const pauseBtn = document.getElementById('pause-button');
+    const stopBtn = document.getElementById('stop-button');
+
+    if (startBtn) {
+        startBtn.addEventListener('click', (e) => {
+            console.log("Start button clicked (Listener)");
+            // e.preventDefault(); // Button type is 'button', so strictly not needed but safe
+            activateTimerUI();
+        });
+    }
+
+    if (pauseBtn) {
+        pauseBtn.addEventListener('click', (e) => {
+            console.log("Pause button clicked (Listener)");
+            handlePauseResume();
+        });
+    }
+
+    if (stopBtn) {
+        stopBtn.addEventListener('click', (e) => {
+            console.log("Stop button clicked (Listener)");
+            stopTimer();
+        });
+    }
+
+    // Also re-bind subject buttons just in case
+    document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            selectSubject(btn);
+        });
+    });
+}
+
+

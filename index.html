@@ -87,25 +87,25 @@
 
         <div class="subject-selector-mvp">
             <div class="subject-item-wrapper">
-                <button class="subject-btn-mvp" data-subject="資格" onclick="selectSubject(this)">
+                <button type="button" class="subject-btn-mvp" data-subject="資格">
                     <div class="subject-icon math"></div>
                 </button>
                 <span class="subject-label-mvp">資格</span>
             </div>
             <div class="subject-item-wrapper">
-                <button class="subject-btn-mvp" data-subject="語学" onclick="selectSubject(this)">
+                <button type="button" class="subject-btn-mvp" data-subject="語学">
                     <div class="subject-icon english"></div>
                 </button>
                 <span class="subject-label-mvp">語学</span>
             </div>
             <div class="subject-item-wrapper">
-                <button class="subject-btn-mvp" data-subject="ビジネス" onclick="selectSubject(this)">
+                <button type="button" class="subject-btn-mvp" data-subject="ビジネス">
                     <div class="subject-icon science"></div>
                 </button>
                 <span class="subject-label-mvp">ビジネス</span>
             </div>
             <div class="subject-item-wrapper">
-                <button class="subject-btn-mvp" data-subject="その他" onclick="selectSubject(this)">
+                <button type="button" class="subject-btn-mvp" data-subject="その他">
                     <div class="subject-icon other"></div>
                 </button>
                 <span class="subject-label-mvp">その他</span>
@@ -116,9 +116,10 @@
             <p>勉強すると +10 EXP, +5 Coins/分</p>
         </div>
         <div class="timer-controls-mvp">
-            <button class="start-button-mvp" id="start-button" onclick="activateTimerUI()">START</button>
-            <button id="pause-button" class="pause-button-mvp hidden" onclick="handlePauseResume()">PAUSE</button>
-            <button class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">STOP</button>
+            <button type="button" class="start-button-mvp" id="start-button" onclick="activateTimerUI()">START</button>
+            <button type="button" id="pause-button" class="pause-button-mvp hidden"
+                onclick="handlePauseResume()">PAUSE</button>
+            <button type="button" class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">STOP</button>
         </div>
 
 
@@ -164,7 +165,20 @@
                 <div class="gacha-log-minimal" id="gacha-mini-log">
                     <p>へえ、いいもの持ってるじゃん。</p>
                 </div>
-
+                <!-- 科目未選択モーダル -->
+                <div id="subject-warning-modal" class="modal hidden">
+                    <div class="modal-content rpg-window" style="text-align: center;">
+                        <h2 class="screen-title-mvp" style="color: #ecc94b; font-size: 16px; margin-bottom: 10px;">
+                            WARNING</h2>
+                        <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
+                            科目を選択してください！<br>
+                            勉強する科目を選ばないと<br>
+                            タイマーを開始できません。
+                        </p>
+                        <button class="ok-button" onclick="closeSubjectWarningModal()"
+                            style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
+                    </div>
+                </div>
                 <!-- Bottom: Controls & Log -->
                 <div class="gacha-controls-area">
                     <!-- Button removed, chest is now the trigger -->
