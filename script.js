@@ -194,7 +194,8 @@ const LEVEL_TABLE = {
 const ITEM_CONFIG = {
     columns: 5,
     rows: 10,
-    sheetPath: "./assets/items_sheet.png"
+    sheetPath: "./assets/items_sheet.png",
+    maxCapacity: 50
 };
 
 /**
@@ -203,22 +204,40 @@ const ITEM_CONFIG = {
  */
 const ITEM_MASTER = [
     // ★1 (Rarity 1)
-    { id: 1, name: "木の剣", rarity: 1, spriteIndex: 0, type: "weapon", description: "木の枝を削って作った剣。" },
-    { id: 2, name: "布の服", rarity: 1, spriteIndex: 1, type: "armor", description: "丈夫な布でできた服。" },
-    { id: 3, name: "革の靴", rarity: 1, spriteIndex: 2, type: "accessory", description: "歩きやすい革の靴。" },
-    { id: 4, name: "小さな盾", rarity: 1, spriteIndex: 3, type: "shield", description: "持ち運びやすい小さな盾。" },
-    { id: 5, name: "ポーション", rarity: 1, spriteIndex: 4, type: "consumable", description: "体力を少し回復する。" },
-    { id: 6, name: "薬草袋", rarity: 1, spriteIndex: 5, type: "consumable", description: "傷を癒やす薬草が入った袋。" },
+    { id: 1, name: "木の剣", rarity: 1, spriteIndex: 0, type: "weapon", description: "冒険の始まりといえばこれ。" },
+    { id: 2, name: "布の服", rarity: 1, spriteIndex: 1, type: "armor", description: "軽くて動きやすい。" },
+    { id: 3, name: "革の靴", rarity: 1, spriteIndex: 2, type: "accessory", description: "長時間の勉強（冒険）でも疲れない。" },
+    { id: 4, name: "小さな盾", rarity: 1, spriteIndex: 3, type: "shield", description: "誘惑を跳ね返すための盾。" },
+    { id: 5, name: "ポーション", rarity: 1, spriteIndex: 4, type: "consumable", description: "疲れが少し取れる魔法の薬。" },
+    { id: 6, name: "パン", rarity: 1, spriteIndex: 5, type: "consumable", description: "腹が減っては勉強ができぬ。" },
+    { id: 7, name: "集中キャンディ", rarity: 1, spriteIndex: 12, type: "consumable", description: "レモン味でリフレッシュ！" },
+    { id: 8, name: "ひとくちチョコ", rarity: 1, spriteIndex: 13, type: "consumable", description: "疲れた脳には糖分が一番。" },
+    { id: 9, name: "サクサクビスケット", rarity: 1, spriteIndex: 14, type: "consumable", description: "お茶が欲しくなる素朴な味。" },
+    { id: 10, name: "三色団子", rarity: 1, spriteIndex: 15, type: "consumable", description: "彩りが可愛い、和みのスイーツ。" },
+    { id: 11, name: "消しゴムのカス", rarity: 1, spriteIndex: 16, type: "trash", description: "頑張った証だけど、捨ててもいいかも。" },
+    { id: 12, name: "使い古したノート", rarity: 1, spriteIndex: 17, type: "consumable", description: "読み返すとやる気が湧いてくる。" },
 
     // ★2 (Rarity 2)
-    { id: 7, name: "鋼の剣", rarity: 2, spriteIndex: 10, type: "weapon", description: "鋭く研がれた鋼鉄の剣。" },
-    { id: 8, name: "鎖の鎧", rarity: 2, spriteIndex: 11, type: "armor", description: "鎖を編み込んで作られた鎧。" },
-    { id: 9, name: "魔法の杖", rarity: 2, spriteIndex: 12, type: "weapon", description: "微かに魔力を帯びた杖。" },
-    { id: 10, name: "魔法の本", rarity: 2, spriteIndex: 13, type: "accessory", description: "呪文が記された古びた本。" },
+    { id: 13, name: "鋼の剣", rarity: 2, spriteIndex: 6, type: "weapon", description: "鋭い切れ味で課題を切り裂く。" },
+    { id: 14, name: "鎖の鎧", rarity: 2, spriteIndex: 7, type: "armor", description: "集中力を守るための頑丈な鎧。" },
+    { id: 15, name: "魔法の杖", rarity: 2, spriteIndex: 8, type: "weapon", description: "閃きを呼び起こす不思議な杖。" },
+    { id: 16, name: "魔法の本", rarity: 2, spriteIndex: 9, type: "accessory", description: "難しい知識が詰まっている。" },
+    { id: 17, name: "癒やしのマカロン", rarity: 2, spriteIndex: 18, type: "consumable", description: "食べるのがもったいない可愛さ。" },
+    { id: 18, name: "星屑のコンペイトウ", rarity: 2, spriteIndex: 19, type: "consumable", description: "噛むとキラキラした音がする。" },
+    { id: 19, name: "情熱のドーナツ", rarity: 2, spriteIndex: 20, type: "consumable", description: "燃えるようなやる気が湧く（気がする）。" },
+    { id: 20, name: "銀のヘアピン", rarity: 2, spriteIndex: 21, type: "accessory", description: "前髪を留めるのにちょうどいい。" },
+    { id: 21, name: "赤いリボン", rarity: 2, spriteIndex: 22, type: "accessory", description: "装備すると気分が華やぐ。" },
+    { id: 22, name: "賢者の羽ペン", rarity: 2, spriteIndex: 23, type: "accessory", description: "スラスラと答えが書ける不思議なペン。" },
+    { id: 23, name: "静寂の耳栓", rarity: 2, spriteIndex: 24, type: "accessory", description: "周りの音が聞こえなくなる魔法の耳栓。" },
+    { id: 24, name: "幸運のコイン", rarity: 2, spriteIndex: 25, type: "consumable", description: "ガチャ運が上がるという噂がある。" },
 
     // ★3 (Rarity 3)
-    { id: 11, name: "伝説の剣", rarity: 3, spriteIndex: 20, type: "weapon", description: "かつての英雄が使ったとされる剣。" },
-    { id: 12, name: "ドラゴンの盾", rarity: 3, spriteIndex: 21, type: "shield", description: "竜の鱗を加工して作られた盾。" }
+    { id: 25, name: "伝説の剣", rarity: 3, spriteIndex: 10, type: "weapon", description: "選ばれし勉強家だけが持てる黄金の剣。" },
+    { id: 26, name: "ドラゴンの盾", rarity: 3, spriteIndex: 11, type: "shield", description: "あらゆる雑念を無効化する。" },
+    { id: 27, name: "王家のショートケーキ", rarity: 3, spriteIndex: 26, type: "consumable", description: "今日一番頑張った自分へのご褒美！" },
+    { id: 28, name: "聖なる宝冠", rarity: 3, spriteIndex: 27, type: "accessory", description: "高貴な輝きを放つティアラ。" },
+    { id: 29, name: "精霊のドレス", rarity: 3, spriteIndex: 28, type: "armor", description: "まるで光を纏っているような服。" },
+    { id: 30, name: "全知の眼鏡", rarity: 3, spriteIndex: 29, type: "accessory", description: "世界のすべてが見通せる伝説の眼鏡。" }
 ];
 
 /**
@@ -744,6 +763,13 @@ function pullGacha() {
         }, 2000);
     }
 
+    // 所持上限チェック
+    const currentTotal = gameData.inventory.reduce((sum, item) => sum + item.count, 0);
+    if (currentTotal >= ITEM_CONFIG.maxCapacity) {
+        showMessageModal("BAG FULL", "所持品がいっぱいです！<br>アイテムを捨てるか使用してください。");
+        return;
+    }
+
     // コイン消費
     gameData.player.coins -= 100;
 
@@ -820,6 +846,9 @@ function drawGachaItem() {
 }
 
 function addItemToInventory(item) {
+    const currentTotal = gameData.inventory.reduce((sum, item) => sum + item.count, 0);
+    if (currentTotal >= ITEM_CONFIG.maxCapacity) return false;
+
     const existing = gameData.inventory.find(inv => inv.id === item.id);
 
     if (existing) {
@@ -833,6 +862,7 @@ function addItemToInventory(item) {
             count: 1
         });
     }
+    return true;
 }
 
 function showGachaResult(item) {
@@ -905,6 +935,13 @@ function closeGachaResult() {
 function updateInventoryScreen() {
     console.log("Updating inventory screen...");
     const container = document.getElementById('inventory-container');
+    const currentCountEl = document.getElementById('current-inv-count');
+    const maxCountEl = document.getElementById('max-inv-count');
+
+    if (maxCountEl) maxCountEl.textContent = ITEM_CONFIG.maxCapacity;
+    const currentTotal = gameData.inventory.reduce((sum, item) => sum + item.count, 0);
+    if (currentCountEl) currentCountEl.textContent = currentTotal;
+
     if (!container) return;
 
     if (!gameData.inventory || gameData.inventory.length === 0) {
@@ -917,17 +954,21 @@ function updateInventoryScreen() {
     gameData.inventory.forEach(item => {
         const card = document.createElement('div');
 
-        // Safety check for equipment
         const equipment = gameData.player.equipment || {};
         const isEquipped = Object.values(equipment).some(eq => eq && eq.id === item.id);
 
         card.className = `item-list-card rarity-${item.rarity} ${isEquipped ? 'equipped' : ''}`;
 
-        let iconHtml = '';
-        const style = getItemSpriteStyle(item.spriteIndex);
-        iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${style.backgroundImage} !important; background-position: ${style.backgroundPosition} !important; background-size: ${style.backgroundSize} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
+        // Add click listener to show description
+        card.onclick = (e) => {
+            // Don't trigger if a button was clicked
+            if (e.target.tagName === 'BUTTON') return;
+            showItemDescription(item.id);
+        };
 
-        // Determine Action Button
+        const style = getItemSpriteStyle(item.spriteIndex);
+        const iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${style.backgroundImage} !important; background-position: ${style.backgroundPosition} !important; background-size: ${style.backgroundSize} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
+
         let actionBtn = '';
         const masterItem = ITEM_MASTER.find(mi => mi.id === item.id);
         if (masterItem) {
@@ -938,6 +979,9 @@ function updateInventoryScreen() {
             }
         }
 
+        // Add Discard button
+        const discardBtn = `<button class="item-action-btn discard" onclick="confirmDiscard(${item.id})">DISCARD</button>`;
+
         card.innerHTML = `
             ${iconHtml}
             <div class="card-main">
@@ -946,7 +990,10 @@ function updateInventoryScreen() {
             </div>
             <div class="card-right">
                 <div class="card-badge">×${item.count}</div>
-                ${actionBtn}
+                <div class="item-actions-row">
+                    ${actionBtn}
+                    ${discardBtn}
+                </div>
             </div>
         `;
         container.appendChild(card);
@@ -1188,6 +1235,83 @@ function showCoinShortageModal() {
 
 function closeCoinShortageModal() {
     document.getElementById('coin-shortage-modal').classList.add('hidden');
+}
+
+/* ========================================
+   確認モーダル制御
+   ======================================== */
+function showConfirmModal(title, content, onConfirm) {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const contentEl = document.getElementById('confirm-modal-content');
+    const okBtn = document.getElementById('confirm-modal-ok');
+
+    if (modal && titleEl && contentEl && okBtn) {
+        titleEl.textContent = title;
+        contentEl.innerHTML = content;
+
+        // Reset and add new listener
+        const newOkBtn = okBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+        newOkBtn.onclick = () => {
+            onConfirm();
+            closeConfirmModal();
+        };
+
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '20001';
+    }
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+}
+
+function confirmDiscard(itemId) {
+    const item = gameData.inventory.find(i => i.id === itemId);
+    if (!item) return;
+
+    showConfirmModal(
+        "DISCARD ITEM",
+        `${item.name}を1つ捨てますか？`,
+        () => discardItem(itemId)
+    );
+}
+
+function discardItem(itemId) {
+    const index = gameData.inventory.findIndex(i => i.id === itemId);
+    if (index === -1) return;
+
+    const item = gameData.inventory[index];
+    item.count--;
+
+    if (item.count <= 0) {
+        // If equipped, remove it first
+        const equipment = gameData.player.equipment || {};
+        Object.keys(equipment).forEach(slot => {
+            if (equipment[slot] && equipment[slot].id === itemId) {
+                gameData.player.equipment[slot] = null;
+            }
+        });
+        gameData.inventory.splice(index, 1);
+    }
+
+    saveGameData();
+    updateInventoryScreen();
+    updateHomeScreen();
+}
+
+function showItemDescription(itemId) {
+    const item = ITEM_MASTER.find(mi => mi.id === itemId);
+    if (!item) return;
+
+    showMessageModal(item.name, `[レア度: ★${item.rarity}]<br><br>${item.description}`);
 }
 
 /* ========================================

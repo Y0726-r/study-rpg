@@ -195,6 +195,9 @@
         <div class="screen-header">
             <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
             <h2 class="screen-title-mvp">ITEM LIST</h2>
+            <div class="capacity-badge">
+                CAPACITY: <span id="current-inv-count">0</span>/<span id="max-inv-count">50</span>
+            </div>
         </div>
 
         <div class="inventory-container-mvp" id="inventory-container">
@@ -279,6 +282,22 @@
             </p>
             <button class="ok-button" onclick="closeCoinShortageModal()"
                 style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
+        </div>
+    </div>
+
+    <!-- 確認モーダル -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content rpg-window" style="text-align: center;">
+            <h2 id="confirm-modal-title" class="screen-title-mvp"
+                style="color: #e53e3e; font-size: 16px; margin-bottom: 10px;">
+                CONFIRM</h2>
+            <p id="confirm-modal-content" style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
+                本当に実行しますか？
+            </p>
+            <div class="modal-controls">
+                <button class="cancel-button" onclick="closeConfirmModal()">NO</button>
+                <button id="confirm-modal-ok" class="save-button" style="background: #e53e3e;">YES</button>
+            </div>
         </div>
     </div>
 

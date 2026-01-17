@@ -1311,6 +1311,20 @@ textarea {
     color: #333d4f;
 }
 
+.item-list-card.rarity-1 .card-title {
+    color: #4a5568;
+}
+
+.item-list-card.rarity-2 .card-title {
+    color: #3182ce;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.item-list-card.rarity-3 .card-title {
+    color: #d69e2e;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
 .card-subtitle {
     font-size: 11px;
     color: #e53e3e;
@@ -1616,7 +1630,12 @@ textarea {
 
     .screen-header {
         padding-top: 5px;
-        margin-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .capacity-badge {
+        font-size: 8px;
+        margin-top: 5px;
     }
 
     .pixel-back-btn {
@@ -2497,6 +2516,58 @@ body.gacha-mode {
     }
 }
 
+.capacity-badge {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    color: #ffd700;
+    text-shadow: 2px 2px 0 #000;
+    margin-top: 8px;
+}
+
+.item-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.item-action-btn.discard {
+    background: #e53e3e;
+    border-color: #742a2a;
+    box-shadow: 0 2px 0 #4a0000;
+}
+
+.item-action-btn.discard:active {
+    box-shadow: 0 1px 0 #4a0000;
+}
+
+.modal-controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.cancel-button {
+    background: #4a5568;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.save-button {
+    background: #2f855a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    cursor: pointer;
+}
 
 /* ========================================
    Item Action Buttons & Equipment
