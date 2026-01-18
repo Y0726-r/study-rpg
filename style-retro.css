@@ -1158,10 +1158,11 @@ textarea {
 .character-message {
     position: absolute !important;
     top: auto !important;
-    bottom: 110% !important;
+    bottom: 155px !important;
+    /* Fixed position above character (140px height + gap) */
     left: 50% !important;
     transform: translateX(-50%) !important;
-    margin-bottom: 25px !important;
+    margin-bottom: 0 !important;
     transition: bottom 0.5s ease-in-out;
     /* ドラゴン登場時の移動を滑らかに */
 
@@ -3775,16 +3776,28 @@ body.gacha-mode {
         opacity: 0;
     }
 }
+
 /* ========================================
    Item Discard Animations (Retro Style)
    ======================================== */
 
 /* 1. ゴミ (Trash): 落下して消える */
 @keyframes anim-drop {
-    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    20% { transform: translateY(-10px) rotate(-5deg); }
-    100% { transform: translateY(100px) rotate(20deg); opacity: 0; }
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+
+    20% {
+        transform: translateY(-10px) rotate(-5deg);
+    }
+
+    100% {
+        transform: translateY(100px) rotate(20deg);
+        opacity: 0;
+    }
 }
+
 .anim-drop {
     animation: anim-drop 0.6s forwards ease-in;
     pointer-events: none;
@@ -3792,24 +3805,112 @@ body.gacha-mode {
 
 /* 2. 消耗品 (Consumable): 点滅して消える */
 @keyframes anim-blink {
-    0% { opacity: 1; }
-    25% { opacity: 0; }
-    50% { opacity: 1; }
-    75% { opacity: 0; }
-    100% { opacity: 0; }
+    0% {
+        opacity: 1;
+    }
+
+    25% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    75% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }
+
 .anim-blink {
-    animation: anim-blink 0.6s forwards steps(1); /* steps for retro feel */
+    animation: anim-blink 0.6s forwards steps(1);
+    /* steps for retro feel */
     pointer-events: none;
 }
 
 /* 3. 装備品 (Equipment): 光って昇天 */
 @keyframes anim-rise {
-    0% { transform: translateY(0); filter: brightness(1); opacity: 1; }
-    50% { transform: translateY(-20px); filter: brightness(2); opacity: 0.8; }
-    100% { transform: translateY(-50px); filter: brightness(3); opacity: 0; }
+    0% {
+        transform: translateY(0);
+        filter: brightness(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(-20px);
+        filter: brightness(2);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateY(-50px);
+        filter: brightness(3);
+        opacity: 0;
+    }
 }
+
 .anim-rise {
     animation: anim-rise 0.8s forwards ease-out;
     pointer-events: none;
+}
+
+/* Equipment Layering System */
+.equipment-layer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    image-rendering: pixelated;
+    pointer-events: none;
+    /* Sync animation with base body */
+    transform-origin: bottom center;
+    animation: forelockBounce 1.0s steps(2) infinite;
+    background: transparent !important;
+}
+
+.player-layers-container,
+.player-layers-container * {
+    background: transparent !important;
+}
+
+/* Timer Cheer/Pause Message */
+.timer-message {
+    margin: 16px auto;
+    width: 90%;
+    max-width: 340px;
+    background: #fff;
+    border: 3px solid #6b4423;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 14px;
+    color: #4a2c0f;
+    line-height: 1.5;
+    text-align: center;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+    position: relative;
+    /* Animation for appearing */
+    animation: popIn 0.3s ease-out;
+}
+
+.timer-message.hidden {
+    display: none;
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0.8) translateY(10px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1.0) translateY(0);
+        opacity: 1;
+    }
 }

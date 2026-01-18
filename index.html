@@ -68,7 +68,15 @@
                 <div class="character-wrapper" onclick="showScreen('status-screen')" style="cursor: pointer;">
                     <p class="character-message" id="characterMessage">勉強してレベルアップしよう！</p>
                     <div class="character-motion">
-                        <img class="player-sprite" src="./assets/player.png" alt="Player">
+                        <div class="player-layers-container"
+                            style="position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-end;">
+                            <img class="player-sprite base-body" src="./assets/player_base.png" alt="Player"
+                                style="position: relative; z-index: 1;">
+                            <div id="equipment-layers"
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2;">
+                                <!-- Equipment images will be injected here -->
+                            </div>
+                        </div>
                     </div>
                     <!-- ドラゴン・卵のコンパニオン：主人公のすぐ隣に配置 -->
                     <div id="dragon-companion" class="dragon-companion hidden">
@@ -148,6 +156,9 @@
                 onclick="handlePauseResume()">PAUSE</button>
             <button type="button" class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">STOP</button>
         </div>
+
+        <!-- 応援・労いメッセージ表示エリア -->
+        <div id="timer-cheer-message" class="timer-message hidden"></div>
 
 
         <div class="today-stats-mvp">

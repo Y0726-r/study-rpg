@@ -72,34 +72,199 @@ let elapsedSeconds = 0;
 let startTime = null;
 let elapsedBeforePause = 0;
 
+// Notification permission request wrapper
+function requestNotificationPermission() {
+    if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission();
+    }
+}
+
+const TIMER_MESSAGES = {
+    PAUSE: [
+        "少し休憩しましょう。深呼吸！",
+        "ここまでお疲れ様。リフレッシュも大事！",
+        "水分補給を忘れずにね。",
+        "焦らなくて大丈夫。自分のペースで！",
+        "ナイス集中力！一旦ブレイク。",
+        "脳を休めるのも勉強のうちだよ。",
+        "肩の力を抜いて、リラックス。"
+    ],
+    RESUME: [
+        "さあ、ここからが本番だ！",
+        "全集中でいこう！",
+        "君ならできる。ファイト！",
+        "一歩一歩、確実に積み上げよう。",
+        "目指せ、レベルアップ！",
+        "集中、集中！ゾーンに入ろう。",
+        "その調子！応援してるよ！"
+    ]
+};
+
+function showTimerMessage(type) {
+    const msgBox = document.getElementById('timer-cheer-message');
+    if (!msgBox) return;
+
+    // Remove hidden
+    msgBox.classList.remove('hidden');
+
+    // Pick random message
+    const list = TIMER_MESSAGES[type];
+    if (!list) return;
+    const msg = list[Math.floor(Math.random() * list.length)];
+
+    // Set text
+    msgBox.textContent = msg;
+
+    // For RESUME, hide after few seconds
+    if (type === 'RESUME') {
+        // Clear previous timeout if any
+        if (msgBox.hideTimeout) clearTimeout(msgBox.hideTimeout);
+
+        msgBox.hideTimeout = setTimeout(() => {
+            msgBox.classList.add('hidden');
+        }, 5000); // Hide after 5 seconds
+    } else {
+        // For PAUSE, keep displayed
+        if (msgBox.hideTimeout) clearTimeout(msgBox.hideTimeout);
+    }
+}
+
 function startTimer() {
-    console.log("🔥 ティックベースのタイマーを開始します");
+    console.log("🔥 タイムスタンプベースのタイマーを開始します");
 
     if (!gameData.timer) {
-        gameData.timer = { isRunning: false, startTime: null, elapsedBeforePause: 0 };
+        gameData.timer = { isRunning: false, lastActionTime: null, elapsedBeforePause: 0 };
     }
+
+    requestNotificationPermission();
 
     if (timerInterval) return;
 
-    // 以前の経過秒数から再開（ポーズ対応）
+    // Start/Resume Logic
     gameData.timer.isRunning = true;
+    gameData.timer.lastActionTime = Date.now(); // Start counting from NOW
+
+    // Store warning flag to prevent spamming notifications in one session
+    gameData.timer.hasWarned45 = false;
+
     saveGameData();
 
+    // Show Cheer Message only on RESUME (not fresh start)
+    if (gameData.timer.elapsedBeforePause > 0) {
+        showTimerMessage('RESUME');
+    }
+
     timerInterval = setInterval(() => {
-        elapsedSeconds++;
-        elapsedBeforePause = elapsedSeconds * 1000; // global変数を同期
-        gameData.timer.elapsedBeforePause = elapsedBeforePause; // 保存データも更新
+        const now = Date.now();
+
+        // Calculate validation delta
+        // Delta = duration since last "Resume" or "Start"
+        const sessionDelta = now - gameData.timer.lastActionTime;
+
+        // Total Time = Previously Banked + Current Delta
+        const totalMs = gameData.timer.elapsedBeforePause + sessionDelta;
+        elapsedSeconds = Math.floor(totalMs / 1000);
+
         renderTimer(elapsedSeconds);
+
+        // --- 45 Minutes Auto-Stop Logic ---
+        const minutesInSession = sessionDelta / 1000 / 60;
+
+        // 1. Warning at 45 minutes
+        if (minutesInSession >= 45 && !gameData.timer.hasWarned45) {
+            gameData.timer.hasWarned45 = true; // Set flag
+
+            // Push Notification
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("StudyQuest", { body: "45分が経過しました。まだ続けますか？" });
+            }
+
+            // On-screen Confirm Modal (YES/NO)
+            // YES -> Continue (Bank this 45m and reset delta count so user can do another 45m block)
+            // NO -> Stop (Pause)
+            showConfirmModal(
+                "TIME CHECK",
+                "45分が経過しました。<br>まだ続けますか？<br><br><small>※あと1分で自動停止します</small>",
+                () => { // YES
+                    extendSession();
+                },
+                () => { // NO
+                    // Finish study session ("お疲れ様でした")
+                    // stopTimer() handles saving the session, showing results, and resetting stats.
+                    stopTimer();
+                }
+            );
+        }
+
+        // 2. Auto Stop at 46 minutes (1 min grace) if no response
+        if (minutesInSession >= 46) {
+            console.log("🛑 45分超過のため自動停止しました");
+            // Force close modal if open
+            closeConfirmModal();
+            autoStopTimerAtLimit();
+        }
+
     }, 1000);
 
+    // Initial render
     renderTimer(elapsedSeconds);
 
     const timerDisplay = document.getElementById('timer-display');
     if (timerDisplay) timerDisplay.classList.add('timer-pulsing');
+
+    updateStudyScreenUI();
+}
+
+// "Extend" the session (User clicked YES)
+function extendSession() {
+    // Bank the current time
+    const now = Date.now();
+    const sessionDelta = now - gameData.timer.lastActionTime;
+    gameData.timer.elapsedBeforePause += sessionDelta;
+
+    // Reset "Start" point to NOW (Start a new 45m block)
+    gameData.timer.lastActionTime = now;
+    gameData.timer.hasWarned45 = false; // Reset warning flag
+
+    saveGameData();
+    console.log("✅ Session Extended. New 45m block started.");
+}
+
+// Special Pause function that Caps credit at 45 minutes
+function autoStopTimerAtLimit() {
+    if (!timerInterval) return;
+    clearInterval(timerInterval);
+    timerInterval = null;
+
+    // Credit ONLY 45 minutes (plus previous bank)
+    // We discard the extra minute or hours
+    const cappedDelta = 45 * 60 * 1000;
+
+    // Update Bank
+    gameData.timer.elapsedBeforePause += cappedDelta;
+    gameData.timer.isRunning = false;
+    gameData.timer.lastActionTime = null; // Reset
+
+    // Sync global 'elapsedSeconds' for display
+    elapsedSeconds = Math.floor(gameData.timer.elapsedBeforePause / 1000);
+    renderTimer(elapsedSeconds);
+
+    saveGameData();
+
+    const timerDisplay = document.getElementById('timer-display');
+    if (timerDisplay) timerDisplay.classList.remove('timer-pulsing');
+
+    updateStudyScreenUI();
+
+    // Hide Timer Message immediately on auto-stop
+    const msgBox = document.getElementById('timer-cheer-message');
+    if (msgBox) msgBox.classList.add('hidden');
+
+    showMessageModal("AUTO STOP", "一定時間反応がなかったため、<br>45分でタイマーを停止しました。");
 }
 
 function updateTimer() {
-    // インターバル内のインクリメントに移行したため、この関数は実質的に renderTimer を呼ぶインターフェースのみ残します
+    // Legacy support if needed, but setInterval handles updates now.
     renderTimer(elapsedSeconds);
 }
 
@@ -109,10 +274,16 @@ function pauseTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
 
-    elapsedBeforePause = elapsedSeconds * 1000; // global変数を同期
-    gameData.timer.elapsedBeforePause = elapsedBeforePause;
+    // Standard Pause: Bank the exact calculated time
+    const now = Date.now();
+    const sessionDelta = now - gameData.timer.lastActionTime;
+    gameData.timer.elapsedBeforePause += sessionDelta;
+
     gameData.timer.isRunning = false;
     saveGameData();
+
+    // Show Pause Message
+    showTimerMessage('PAUSE');
 
     const timerDisplay = document.getElementById('timer-display');
     if (timerDisplay) timerDisplay.classList.remove('timer-pulsing');
@@ -126,7 +297,8 @@ function handlePauseResume() {
         return;
     }
 
-    if (timerInterval) {
+    if (timerInterval || gameData.timer.isRunning) {
+        // Run pause
         pauseTimer();
     } else {
         startTimer();
@@ -221,10 +393,11 @@ const ITEM_CONFIG = {
  */
 const ITEM_MASTER = [
     // ★1 (Rarity 1)
-    { id: 0, name: "木の剣", rarity: 1, file: "小さな剣.png", type: "weapon", effects: { focus: 2 }, description: "冒険の始まりといえばこれ。", equipMessage: "木の剣を構えた！少し攻撃的な気分になった！" },
-    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。" },
-    { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "accessory", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。" },
-    { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。" },
+    // visuals: { x: 横位置(%), y: 縦位置(%), scale: 拡大率, width: 幅(任意, 指定なければ100%でscale適用) }
+    { id: 0, name: "木の剣", rarity: 1, file: "小さな剣.png", type: "weapon", effects: { focus: 2 }, description: "冒険の始まりといえばこれ。", equipMessage: "木の剣を構えた！少し攻撃的な気分になった！", visuals: { x: 45, y: 55, scale: 0.2 }, equipImage: "./assets/player_sword_fixed.png" },
+    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "accessory", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。", visuals: { x: 50, y: 92, scale: 0.4 }, equipImage: "./assets/item/gacha_items/革の靴_equipped.png" },
+    { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。", visuals: { x: 55, y: 55, scale: 0.25 }, equipImage: "./assets/item/gacha_items/小さな盾_equipped.png" },
     { id: 4, name: "ポーション", rarity: 1, file: "ポーション.png", type: "consumable", useMessage: "ポーションを飲んだ！疲れが少し取れた気がする。", description: "疲れが少し取れる魔法の薬。" },
     { id: 5, name: "パン", rarity: 1, file: "薬草袋.png", type: "consumable", useMessage: "パンを食べた！お腹が満たされ、やる気が湧いた！", description: "腹が減っては勉強ができぬ。" },
     { id: 12, name: "集中キャンディ", rarity: 1, file: "集中キャンディ.png", type: "consumable", useMessage: "レモン味のキャンディで、集中力が研ぎ澄まされた！", description: "レモン味でリフレッシュ！" },
@@ -237,13 +410,13 @@ const ITEM_MASTER = [
     // ★2 (Rarity 2)
     { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！" },
     { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。" },
-    { id: 8, name: "魔法の杖", rarity: 2, file: "魔法の杖.png", type: "weapon", effects: { intellect: 10 }, description: "閃きを呼び起こす不思議な杖。", equipMessage: "魔法の杖を握った。知恵が溢れ出してくる...！" },
+    { id: 8, name: "魔法の杖", rarity: 2, file: "魔法の杖.png", type: "weapon", effects: { intellect: 10 }, description: "閃きを呼び起こす不思議な杖。", equipMessage: "魔法の杖を握った。知恵が溢れ出してくる...！", visuals: { x: 50, y: 38, scale: 0.3 }, equipImage: "./assets/item/gacha_items/魔法の杖_equipped.png" },
     { id: 9, name: "魔法の本", rarity: 2, file: "魔法の本.png", type: "accessory", effects: { intellect: 5 }, description: "難しい知識が詰まっている。", equipMessage: "魔法の本を開いた！未知の知識が頭に流れ込む。" },
     { id: 18, name: "癒やしのマカロン", rarity: 2, file: "癒しのマカロン.png", type: "consumable", useMessage: "高級な甘さにうっとり...。心も体も満たされた！", description: "食べるのがもったいない可愛さ。" },
     { id: 19, name: "星屑のコンペイトウ", rarity: 2, file: "星屑のコンペイトウ.png", type: "consumable", useMessage: "カリッと噛むと、頭がシャキッとする！", description: "噛むとキラキラした音がする。" },
     { id: 20, name: "情熱のドーナツ", rarity: 2, file: "情熱のドーナツ.png", type: "consumable", useMessage: "燃え上がるような情熱が腹の底から湧いてくる！", description: "燃えるようなやる気が湧く（気がする）。" },
-    { id: 21, name: "銀のヘアピン", rarity: 2, file: "銀のヘアピン.png", type: "accessory", effects: { intellect: 3, strength: 3 }, description: "前髪を留めるのにちょうどいい。", equipMessage: "銀のヘアピンで髪を留めた。清潔感がアップした！" },
-    { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！" },
+    { id: 21, name: "銀のヘアピン", rarity: 2, file: "銀のヘアピン.png", type: "accessory", effects: { intellect: 3, strength: 3 }, description: "前髪を留めるのにちょうどいい。", equipMessage: "銀のヘアピンで髪を留めた。清潔感がアップした！", visuals: { x: 55, y: 20, scale: 0.25 }, equipImage: "./assets/item/gacha_items/銀のヘアピン_equipped.png" },
+    { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！", visuals: { x: 50, y: 10, scale: 0.35 }, equipImage: "./assets/item/gacha_items/赤いリボン_equipped.png" },
     { id: 23, name: "賢者の羽ペン", rarity: 2, file: "賢者の羽ペン.png", type: "accessory", effects: { intellect: 15 }, description: "スラスラと答えが書ける不思議なペン。", equipMessage: "賢者の羽ペンを構えた。思考の速度が加速する！" },
     { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "accessory", effects: { focus: 15 }, description: "周りの音が聞こえなくなる魔法の耳栓。", equipMessage: "静寂の耳栓を装着。深い没入状態に入った...。" },
     { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "コインを弾くと、不思議な幸運に包まれた気がする！", description: "ガチャ運が上がるという噂がある。" },
@@ -252,8 +425,8 @@ const ITEM_MASTER = [
     { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！" },
     { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！" },
     { id: 26, name: "王家のショートケーキ", rarity: 3, file: "王家のショートケーキ.png", type: "consumable", useMessage: "究極の美味！今この瞬間、全能力が極限まで解放された！", description: "今日一番頑張った自分へのご褒美！" },
-    { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。" },
-    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "armor", effects: { strength: 100 }, description: "まるで光を纏っているような服。", equipMessage: "精霊のドレスに袖を通した。全身が神秘的な光に包まれる。" },
+    { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 50, y: 5, scale: 0.4 }, equipImage: "./assets/item/gacha_items/聖なる宝冠_equipped.png" },
+    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "infinite", effects: { intellect: 100 }, description: "まるで光を纏っているような服。", useMessage: "精霊のドレスを使った。全身が神秘的な光に包まれ、知力が大幅に上がった！" },
     { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。" }
 ];
 
@@ -345,12 +518,50 @@ function initGame() {
 
     // Restore Timer State
     if (gameData.timer) {
+        // Initialize basic display value
         elapsedBeforePause = gameData.timer.elapsedBeforePause || 0;
-        elapsedSeconds = Math.floor(elapsedBeforePause / 1000);
-        renderTimer(elapsedSeconds);
 
-        if (gameData.timer.isRunning) {
-            startTimer();
+        if (gameData.timer.isRunning && gameData.timer.lastActionTime) {
+            // Calculate time elapsed while closed/background
+            const now = Date.now();
+            const sessionDelta = now - gameData.timer.lastActionTime;
+
+            // Check limits immediately
+            const totalMs = elapsedBeforePause + sessionDelta;
+            const minutesInSession = sessionDelta / 1000 / 60;
+
+            if (minutesInSession >= 46) {
+                // Background exceeded limit
+                console.log("🛑 アプリ復帰: 45分超過のため停止");
+
+                // Manually trigger the cap logic
+                // We fake the timerInterval being present so autoStopTimerAtLimit works, 
+                // or we just run the logic manually.
+                // Simpler: Just run logic manually.
+
+                const cappedDelta = 45 * 60 * 1000;
+                gameData.timer.elapsedBeforePause += cappedDelta;
+                gameData.timer.isRunning = false;
+                gameData.timer.lastActionTime = null;
+
+                elapsedSeconds = Math.floor(gameData.timer.elapsedBeforePause / 1000);
+                renderTimer(elapsedSeconds);
+                saveGameData();
+
+                setTimeout(() => {
+                    showMessageModal("AUTO STOP", "一定時間反応がなかったため、<br>45分でタイマーを停止しました。");
+                }, 500); // Small delay to allow UI init
+
+            } else {
+                // Resume normally with correct time
+                elapsedSeconds = Math.floor(totalMs / 1000);
+                renderTimer(elapsedSeconds);
+                startTimer(); // This will pick up 'lastActionTime' and continue counting
+            }
+        } else {
+            // Just paused
+            elapsedSeconds = Math.floor(elapsedBeforePause / 1000);
+            renderTimer(elapsedSeconds);
         }
     }
     // 勉強ログの更新
@@ -577,6 +788,71 @@ function updateHomeScreen() {
 
     // ドラゴン表示の更新
     updateDragonUI();
+
+    // 装備の見た目更新 (着せ替え)
+    updateCharacterAppearance();
+}
+
+/**
+ * 装備品をキャラクターに重ねて表示する (着せ替え機能)
+ */
+function updateCharacterAppearance() {
+    const layerContainer = document.getElementById('equipment-layers');
+    if (!layerContainer) return;
+
+    // reset layers
+    layerContainer.innerHTML = '';
+
+    const equipment = gameData.player.equipment;
+    if (!equipment) return;
+
+    // Define Render Order (Z-Index equivalent)
+    // Armor (Body) -> Shield (Back/Hand) -> Weapon (Hand) -> Accessory (Head/Misc)
+    const renderOrder = [
+        { slot: 'armor', zIndex: 3 },
+        { slot: 'shield', zIndex: 4 },
+        { slot: 'weapon', zIndex: 5 },
+        { slot: 'accessory', zIndex: 6 }
+    ];
+
+    renderOrder.forEach(order => {
+        const equippedItem = equipment[order.slot];
+        if (equippedItem) {
+            const masterItem = ITEM_MASTER.find(mi => mi.id === Number(equippedItem.id));
+            // Only render valid equipment types.
+            // Items changed to 'infinite' or 'consumable' should not appear even if stuck in equipment data.
+            const validTypes = ['weapon', 'armor', 'shield', 'accessory'];
+
+            if (masterItem && validTypes.includes(masterItem.type)) {
+                // Determine image source: prefer 'equipImage' if exists, else 'file' (icon)
+                // If using 'file' (icon), user might need to adjust scale/position heavily.
+                // For this demo, we assume the user might provide a separate 'equipImage' or we use the icon.
+                const imgSource = masterItem.equipImage || `${ITEM_CONFIG.folder}${masterItem.file || masterItem.name + '.png'}`;
+
+                const img = document.createElement('img');
+                img.src = imgSource;
+                img.className = 'equipment-layer';
+
+                // Set Z-Index
+                img.style.zIndex = order.zIndex;
+
+                // Apply Coordinate / Scale Specs from Item Data
+                // Default: (0,0) with 100% scale (assumes full-body overlay or pre-positioned sprite)
+                const visuals = masterItem.visuals || { x: 0, y: 0, scale: 1.0 };
+
+                // Using percentages for responsiveness if possible, or pixels if fixed size
+                // We will use 'top' and 'left' percentage relative to the character-wrapper (140x140)
+                if (visuals.x !== undefined) img.style.left = `${visuals.x}%`;
+                if (visuals.y !== undefined) img.style.top = `${visuals.y}%`;
+                if (visuals.scale !== undefined) img.style.transform = `scale(${visuals.scale})`;
+
+                // If specific dimensions are needed
+                if (visuals.width) img.style.width = visuals.width;
+
+                layerContainer.appendChild(img);
+            }
+        }
+    });
 }
 
 /* ========================================
@@ -1326,12 +1602,12 @@ function updateInventoryScreen() {
         const iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${style.backgroundImage} !important; background-position: ${style.backgroundPosition} !important; background-size: ${style.backgroundSize} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
 
         let actionBtn = '';
-        if (masterItem) {
-            if (['weapon', 'armor', 'shield', 'accessory'].includes(masterItem.type)) {
-                actionBtn = `<button class="item-action-btn" onclick="toggleEquip(${item.id})">${isEquipped ? 'REMOVE' : 'EQUIP'}</button>`;
-            } else if (masterItem.type === 'consumable') {
-                actionBtn = `<button class="item-action-btn" onclick="useItem(${item.id})">USE</button>`;
-            }
+        if (displayItem.type === 'weapon' || displayItem.type === 'armor' || displayItem.type === 'shield' || displayItem.type === 'accessory') {
+            const btnText = isEquipped ? 'UNEQUIP' : 'EQUIP';
+            const btnClass = isEquipped ? 'unequip' : 'equip';
+            actionBtn = `<button class="item-action-btn ${btnClass}" onclick="toggleEquip(${item.id})">${btnText}</button>`;
+        } else if (displayItem.type === 'consumable' || displayItem.type === 'infinite') {
+            actionBtn = `<button class="item-action-btn use" onclick="useItem(${item.id})">USE</button>`;
         }
 
         // Add Discard button
@@ -1405,7 +1681,7 @@ function useItem(itemId) {
     if (!inventoryItem || inventoryItem.count <= 0) return;
 
     const masterItem = ITEM_MASTER.find(mi => Number(mi.id) === Number(itemId));
-    if (masterItem && masterItem.type === 'consumable') {
+    if (masterItem && (masterItem.type === 'consumable' || masterItem.type === 'infinite')) {
         const message = masterItem.useMessage || `${masterItem.name}を使用した！`;
         showMessageModal("ITEM USED", message);
 
@@ -1418,9 +1694,12 @@ function useItem(itemId) {
             });
         }
 
-        inventoryItem.count--;
-        if (inventoryItem.count === 0) {
-            gameData.inventory = gameData.inventory.filter(i => i.id !== itemId);
+        // Only decrease count if NOT infinite
+        if (masterItem.type !== 'infinite') {
+            inventoryItem.count--;
+            if (inventoryItem.count === 0) {
+                gameData.inventory = gameData.inventory.filter(i => i.id !== itemId);
+            }
         }
     }
 
@@ -1650,22 +1929,39 @@ function closeCoinShortageModal() {
 /* ========================================
    確認モーダル制御
    ======================================== */
-function showConfirmModal(title, content, onConfirm) {
+/**
+ * 確認モーダル制御
+ * @param {string} title 
+ * @param {string} content 
+ * @param {Function} onConfirm - YES callback
+ * @param {Function} [onCancel] - NO callback (optional)
+ */
+function showConfirmModal(title, content, onConfirm, onCancel = null) {
     const modal = document.getElementById('confirm-modal');
     const titleEl = document.getElementById('confirm-modal-title');
     const contentEl = document.getElementById('confirm-modal-content');
     const okBtn = document.getElementById('confirm-modal-ok');
+    const cancelBtn = modal.querySelector('.cancel-button'); // Get existing Cancel/NO button
 
-    if (modal && titleEl && contentEl && okBtn) {
+    if (modal && titleEl && contentEl && okBtn && cancelBtn) {
         titleEl.textContent = title;
         contentEl.innerHTML = content;
 
-        // Reset and add new listener
+        // Reset and add new listener for YES
         const newOkBtn = okBtn.cloneNode(true);
         okBtn.parentNode.replaceChild(newOkBtn, okBtn);
 
         newOkBtn.onclick = () => {
-            onConfirm();
+            if (onConfirm) onConfirm();
+            closeConfirmModal();
+        };
+
+        // Reset and add new listener for NO
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+        newCancelBtn.onclick = () => {
+            if (onCancel) onCancel();
             closeConfirmModal();
         };
 
@@ -1680,6 +1976,16 @@ function closeConfirmModal() {
     if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
+
+        // Reset manual close (NO button) to default behavior just in case
+        const cancelBtn = modal.querySelector('.cancel-button');
+        if (cancelBtn) {
+            cancelBtn.onclick = () => {
+                // default: close
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            };
+        }
     }
 }
 
@@ -1984,7 +2290,7 @@ function updateCharacterMessage(force = false) {
  * 現在のセーブデータを「ふっかつのじゅもん（Base64文字列）」へ変換する
  * 将来的に「バックアップ機能」としてUIに組み込むための準備関数
  */
-window.getBackupCode = function() {
+window.getBackupCode = function () {
     try {
         const json = JSON.stringify(gameData);
         // 日本語対応のために encodeURIComponent を噛ませてから Base64 化
@@ -2002,13 +2308,13 @@ window.getBackupCode = function() {
  * 「ふっかつのじゅもん（Base64文字列）」からデータを復元する
  * @param {string} code - バックアップコード
  */
-window.restoreBackupCode = function(code) {
+window.restoreBackupCode = function (code) {
     try {
         if (!code) {
             console.error("❌ 無効なコードです");
             return false;
         }
-        
+
         // Base64 デコード -> URLデコード -> JSONパース
         const json = decodeURIComponent(atob(code));
         const data = JSON.parse(json);
@@ -2021,7 +2327,7 @@ window.restoreBackupCode = function(code) {
         // 復元実行
         gameData = data;
         saveGameData();
-        
+
         // 画面リロードして反映
         alert("✨ データの復元に成功しました！");
         location.reload();
