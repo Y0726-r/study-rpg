@@ -11,11 +11,29 @@
 </head>
 
 <body>
+    <!-- オープニングムービー・オーバーレイ -->
+    <div id="opening-movie" class="opening-overlay screen active" onclick="skipOpening()">
+        <div class="movie-scene">
+            <div class="movie-bg-layer"></div>
+            <div class="movie-cloud-layer cloud-far"></div>
+            <div class="movie-cloud-layer cloud-mid"></div>
+            <div class="movie-cloud-layer cloud-near"></div>
+            <div class="movie-dragon-layer">
+                <div class="flying-dragon"></div>
+            </div>
+            <div class="movie-map-layer"></div>
+            <div class="movie-title-layer">
+                <h1 class="movie-title">StudyQuest</h1>
+                <p class="movie-subtitle">～ 勉強と共に伝説へ ～</p>
+                <div class="movie-start-text">PRESS START</div>
+            </div>
+        </div>
+    </div>
     <!-- Flash Effect Overlay -->
     <div id="flash-overlay" class="flash-overlay"></div>
 
-    <!-- オープニング画面 -->
-    <div id="opening-screen" class="screen active" onclick="closeOpening()">
+    <!-- オープニング画面（PRESS START） - 削除予定 -->
+    <div id="opening-screen" class="screen" onclick="closeOpening()">
         <div class="opening-content">
             <h1 class="opening-logo">StudyQuest</h1>
             <p class="opening-subtitle">勉強時間を冒険に変えよう</p>
@@ -51,7 +69,10 @@
                     <div class="character-motion">
                         <img class="player-sprite" src="./assets/player.png" alt="Player">
                     </div>
-
+                </div>
+                <!-- ドラゴン・卵のコンパニオン -->
+                <div id="dragon-companion" class="dragon-companion hidden">
+                    <img id="dragon-img" src="" alt="Dragon">
                 </div>
             </div>
         </div>
@@ -264,7 +285,7 @@
             <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
             <h2 class="screen-title-mvp">ITEM LIST</h2>
             <div class="capacity-badge">
-                CAPACITY: <span id="current-inv-count">0</span>/<span id="max-inv-count">50</span>
+                <span id="current-inv-count">0</span>/<span id="max-inv-count">50</span>
             </div>
         </div>
 

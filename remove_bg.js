@@ -37,16 +37,7 @@ async function removeBackground(imagePath) {
 
 async function run() {
     const files = [
-        'assets/icon_english.png',
-        'assets/icon_math.png',
-        'assets/icon_other.png',
-        'assets/icon_science.png',
-        'assets/item/chest/chest_wood.png',
-        'assets/item/chest/chest_bronze.png',
-        'assets/item/chest/chest_silver.png',
-        'assets/item/chest/chest_gold.png',
-        'assets/item/chest/chest_lv50.png',
-        'assets/item/chest/chest_lv99.png'
+        'assets/opening_movie/animation.png'
     ];
     for (const f of files) {
         try {

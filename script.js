@@ -1,8 +1,31 @@
 // ========================================
-// ランダムキャラクターメッセージ
+// 初期化処理：オープニングムービーを最優先で表示
 // ========================================
 
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("🎬 アプリ起動 - オープニングムービー初期化開始");
+
+    // 1. 全ての画面を一旦隠す（activeクラスの除去）
+    const allScreens = document.querySelectorAll('.screen');
+    allScreens.forEach(screen => {
+        screen.classList.remove('active');
+        // インラインスタイルが残っている場合はリセット
+        screen.style.display = '';
+        screen.style.opacity = '';
+    });
+
+    // 2. オープニングムービーを確実に表示（showScreen 相当の処理）
+    const openingMovie = document.getElementById('opening-movie');
+    if (openingMovie) {
+        openingMovie.classList.remove('hidden');
+        openingMovie.classList.add('active'); // activeクラスを付与
+        openingMovie.style.display = 'flex';
+        openingMovie.style.opacity = '1';
+        openingMovie.style.visibility = 'visible';
+        console.log("✅ オープニングムービーを表示状態に固定しました");
+    }
+
+    // 3. キャラクターメッセージの設定
     const messages = [
         "きょうも すこしずつ いこう！",
         "5分 できたら だいせいこう！",
@@ -13,10 +36,19 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     const messageEl = document.getElementById("characterMessage");
-    if (!messageEl) return;
+    if (messageEl) {
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        messageEl.textContent = messages[randomIndex];
+    }
 
-    const randomIndex = Math.floor(Math.random() * messages.length);
-    messageEl.textContent = messages[randomIndex];
+    // 4. ゲームデータの初期化
+    // setTimeoutを使用して、レンダリングが完了してから実行
+    setTimeout(() => {
+        initGame();
+        // ここで showScreen('home-screen') を呼んでいた場合は、
+        // ムービーを確認するためにコメントアウト、または hasSeenOpening 無視でムービー維持
+        console.log("🎮 ゲームデータ読み込み中（ムービー表示中）...");
+    }, 100);
 });
 
 // ========================================
@@ -28,7 +60,7 @@ let gameData = {
         level: 1,
         exp: 0,
         coins: 0,
-        stats: { hp: 100, maxHp: 100, atk: 10, def: 5 },
+        stats: { hp: 100, maxHp: 100, atk: 10, def: 5, focus: 10, intellect: 10, strength: 10 },
         equipment: { weapon: null, armor: null, accessory: null }
     },
     studyLogs: [],
@@ -38,6 +70,12 @@ let gameData = {
         isRunning: false,
         startTime: null,
         elapsedBeforePause: 0
+    },
+    hasSeenOpening: false,
+    dragon: {
+        obtained: false,
+        hatched: false,
+        type: null // 'red', 'blue', 'green', 'gold'
     }
 };
 
@@ -344,10 +382,45 @@ function initGame() {
     // 勉強ログの更新
     updateLogScreen();
 
+    // Dragon UIの更新
+    updateDragonUI();
+
     // Timer Controlsの初期化を念押し
-    initTimerControls();
+    initTimerControls()
 
     console.log("Game initialized!");
+}
+
+/* ========================================
+   オープニングムービー制御
+   ======================================== */
+function playOpeningMovie() {
+    const movie = document.getElementById('opening-movie');
+    if (movie) {
+        movie.classList.remove('hidden');
+    }
+}
+
+function skipOpening() {
+    console.log("🚀 オープニングムービー終了 - ホーム画面へ");
+    const movie = document.getElementById('opening-movie');
+    if (movie) {
+        // ムービーを非表示
+        movie.classList.remove('active');
+        movie.classList.add('hidden');
+
+        // インラインスタイルをリセット（もしあれば）
+        movie.style.display = '';
+        movie.style.opacity = '';
+        movie.style.visibility = '';
+
+        gameData.hasSeenOpening = true;
+        saveGameData();
+
+        // ホーム画面を表示
+        showScreen('home-screen');
+        console.log("✅ ホーム画面表示完了");
+    }
 }
 
 function loadGameData() {
@@ -382,6 +455,12 @@ function loadGameData() {
         if (!gameData.player.equipment) gameData.player.equipment = { weapon: null, armor: null, accessory: null, shield: null };
         if (!gameData.inventory) gameData.inventory = [];
         if (!gameData.studyLogs) gameData.studyLogs = [];
+
+        // オープニング・ドラゴンの初期化
+        if (gameData.hasSeenOpening === undefined) gameData.hasSeenOpening = false;
+        if (!gameData.dragon) {
+            gameData.dragon = { obtained: false, hatched: false, type: null };
+        }
 
         console.log("Game data loaded:", gameData);
     } else {
@@ -433,10 +512,17 @@ function showScreen(screenId) {
     // 全ての画面を非表示
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
+        // インラインスタイルをリセット
+        screen.style.display = '';
+        screen.style.opacity = '';
     });
 
     // 指定された画面を表示
-    document.getElementById(screenId).classList.add('active');
+    const target = document.getElementById(screenId);
+    if (target) {
+        target.classList.add('active');
+        target.classList.remove('hidden'); // hiddenクラスがあれば除去
+    }
 
     // 画面ごとの初期化処理
     // 画面ごとの初期化処理
@@ -490,28 +576,106 @@ function showScreen(screenId) {
 // ========================================
 // ホーム画面の更新
 // ========================================
-
 function updateHomeScreen() {
     const player = gameData.player;
+    if (!player) return;
 
     // レベル表示
-    document.getElementById('player-level').textContent = player.level;
+    const levelEl = document.getElementById('player-level');
+    if (levelEl) levelEl.textContent = player.level;
 
     // EXP表示
     const currentLevelExp = LEVEL_TABLE[player.level] || 0;
-    const nextLevelExp = LEVEL_TABLE[player.level + 1] || currentLevelExp;
+    const nextLevelExp = LEVEL_TABLE[player.level + 1] || (currentLevelExp + 100);
     const expInLevel = player.exp - currentLevelExp;
     const expNeeded = nextLevelExp - currentLevelExp;
 
-    document.getElementById('current-exp').textContent = expInLevel;
-    document.getElementById('max-exp').textContent = expNeeded;
+    const curExpEl = document.getElementById('current-exp');
+    const maxExpEl = document.getElementById('max-exp');
+    if (curExpEl) curExpEl.textContent = Math.floor(expInLevel);
+    if (maxExpEl) maxExpEl.textContent = expNeeded;
 
     // EXPバーの幅
-    const expPercentage = (expInLevel / expNeeded) * 100;
-    document.getElementById('exp-bar').style.width = expPercentage + '%';
+    const expBar = document.getElementById('exp-bar');
+    if (expBar) {
+        const expPercentage = Math.min(100, (expInLevel / expNeeded) * 100);
+        expBar.style.width = expPercentage + '%';
+    }
 
     // コイン表示
-    document.getElementById('coin-count').textContent = player.coins;
+    const coinEl = document.getElementById('coin-count');
+    if (coinEl) coinEl.textContent = player.coins;
+
+    // ドラゴン表示の更新
+    updateDragonUI();
+}
+
+/* ========================================
+   ドラゴン・卵の表示制御
+   ======================================== */
+function updateDragonUI() {
+    const companion = document.getElementById('dragon-companion');
+    const dragonImg = document.getElementById('dragon-img');
+    if (!companion || !dragonImg) return;
+
+    const level = gameData.player.level;
+    const dragon = gameData.dragon;
+
+    // Lv 70未満は何もしない
+    if (level < 70 && !dragon.obtained) {
+        companion.classList.add('hidden');
+        return;
+    }
+
+    // Lv 70以上 または 既に卵を持っている場合
+    companion.classList.remove('hidden');
+
+    if (level < 80) {
+        // Lv 70-79: 卵1
+        dragonImg.src = './assets/opening_movie/egg1.png';
+        dragon.obtained = true;
+    } else if (level < 99) {
+        // Lv 80-98: 卵2 (ヒビ)
+        dragonImg.src = './assets/opening_movie/egg2.png';
+    } else {
+        // Lv 99: ドラゴン誕生
+        if (!dragon.hatched) {
+            dragon.hatched = true;
+            determineDragonType();
+        }
+
+        // ドラゴンの種類に応じた画像
+        const type = dragon.type || 'gold';
+        dragonImg.src = `./assets/opening_movie/${type}_dragon.png`;
+
+        // ドラゴン誕生後はプレイヤー単層ではなく、ドラゴンの画像をコンパニオンとして表示
+        // さらに、プレイヤーのスプライト自体を「騎乗スプライト」に差し替える
+        const playerSprite = document.querySelector('.player-sprite');
+        if (playerSprite) {
+            playerSprite.src = './assets/opening_movie/animation.png';
+            // 騎乗画像にドラゴンが含まれているため、コンパニオン画像は隠す
+            companion.classList.add('hidden');
+        }
+    }
+}
+
+function determineDragonType() {
+    const stats = gameData.player.stats;
+    const focus = stats.focus || 0;
+    const intellect = stats.intellect || 0;
+    const strength = stats.strength || 0;
+
+    // 全てが高い場合はゴールド
+    if (focus >= 100 && intellect >= 100 && strength >= 100) {
+        gameData.dragon.type = 'gold';
+    } else if (focus >= intellect && focus >= strength) {
+        gameData.dragon.type = 'green';
+    } else if (intellect >= focus && intellect >= strength) {
+        gameData.dragon.type = 'blue';
+    } else {
+        gameData.dragon.type = 'red';
+    }
+    saveGameData();
 }
 
 function updateStatusScreen() {
@@ -722,9 +886,18 @@ function saveStudySession() {
     updateHomeScreen();
     calculateTodayStats();
 
-    // 確認メッセージ
+    // 確認メッセージ (レトロなメッセージモーダルへ変更)
     const statNameMap = { focus: '集中力', intellect: '知力', strength: '筋力(STRENGTH)' };
-    alert(`勉強お疲れ様！\n${minutes}分勉強しました\n\n+${earnedExp} EXP\n+${earnedCoins} コイン\n+${statIncrease} ${statNameMap[statKey]} (上限: ${statCap})`);
+    const studyResultMessage = `
+        <div style="text-align: left; line-height: 1.6;">
+            📖 ${minutes}分勉強しました<br>
+            <br>
+            ✨ <span style="color:#ffd43b">+${earnedExp}</span> EXP<br>
+            💰 <span style="color:#ffd43b">+${earnedCoins}</span> コイン<br>
+            🆙 <span style="color:#ffd43b">+${statIncrease}</span> ${statNameMap[statKey]} (上限: ${statCap})
+        </div>
+    `;
+    showMessageModal("STUDY COMPLETE", studyResultMessage);
 }
 
 function checkLevelUp(oldLevel) {
@@ -1232,7 +1405,7 @@ function updateLogScreen() {
                 <span class="card-date">${dateStr}</span>
             </div>
             <div class="card-body">
-                <div class="card-icon-box subject-icon ${subjectClass}" style="width: 48px; height: 48px; background-size: 80%; border: 2px solid #6b4400;"></div>
+                <div class="card-icon-box ${subjectClass}"></div>
                 <div class="card-content">
                     <div class="card-title">${log.subject}</div>
                     <div class="card-stats">

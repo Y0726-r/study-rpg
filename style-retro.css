@@ -1,6 +1,384 @@
 @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=VT323&display=swap');
 
 /* ========================================
+   Opening Movie (Legendary Dragon RPG) - REMASTERED
+   ======================================== */
+.opening-overlay {
+    position: fixed;
+    top: 0;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    /* screenクラスの480px制限を解除 */
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    /* screenクラスのパディングを解除 */
+    border: none !important;
+    /* screenクラスの枠線を解除 */
+    transform: none !important;
+    background: #000;
+    z-index: 99999;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    visibility: visible;
+}
+
+.opening-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 1.5s ease-out;
+}
+
+.movie-scene {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    /* 黒い縁取り干渉を防ぐため透明化 */
+}
+
+/* 全画面背景 */
+.movie-bg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('./assets/opening_movie/backglound.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 1;
+    z-index: 0;
+    /* 最背面 */
+}
+
+/* 動く雲のレイヤー（2層パララックス演出） */
+.movie-cloud-layer {
+    position: absolute;
+    left: 0;
+    width: 200%;
+    /* シームレスループのために2倍の幅を確保 */
+    height: 100%;
+    background-image: url('./assets/opening_movie/cloud.png');
+    background-repeat: repeat-x;
+    background-color: transparent !important;
+    filter: none !important;
+    pointer-events: none;
+    z-index: 5;
+    /* 空(0)とドラゴン(10)の間 */
+    image-rendering: pixelated;
+    /* ドット感をパキッと */
+}
+
+/* 遠景の雲（小さく、遅い） */
+.cloud-far {
+    top: 5%;
+    height: 30%;
+    opacity: 0.4;
+    background-size: 600px auto;
+    animation: cloudScrollFar 120s linear infinite;
+}
+
+/* 中景の雲（新しく追加された cloud2.png） */
+.cloud-mid {
+    top: 10%;
+    height: 40%;
+    opacity: 0.6;
+    background-image: url('./assets/opening_movie/cloud2.png') !important;
+    background-size: 800px auto;
+    animation: cloudScrollMid 100s linear infinite;
+}
+
+/* 近景の雲（大きく、速い） */
+.cloud-near {
+    top: 15%;
+    height: 50%;
+    opacity: 0.7;
+    background-size: 1000px auto;
+    animation: cloudScrollNear 80s linear infinite;
+}
+
+@keyframes cloudScrollFar {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes cloudScrollMid {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes cloudScrollNear {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+
+
+/* ドラゴン・スプライトアニメーション層（滑らかにフェードアウト） */
+.movie-dragon-layer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 10;
+    /* 雲（復帰時5）より前面 */
+    /* 7秒後から2秒かけてフェードアウト */
+    animation: dragonLayerFadeOut 9s ease-in-out forwards;
+}
+
+@keyframes dragonLayerFadeOut {
+
+    0%,
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* スプライトシート（3列×2行 = 6コマ）のパラパラアニメ */
+.flying-dragon {
+    width: 400px;
+    height: 266px;
+    background-image: url('./assets/opening_movie/animation.png');
+    background-size: 300% 200%;
+    /* 3列×2行。1コマは 100%/3 x 100%/2 */
+    background-color: transparent !important;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    /* ズームしてもドットを維持して鮮明さを保つ */
+    /* 透過を綺麗に見せるため、ノイズの原因になるフィルタは除去 */
+    filter: none;
+    /* パラパラアニメ(dragonSpriteWalk) と 遠近ズーム(dragonZoom) を連動 */
+    animation:
+        dragonSpriteWalk 0.9s steps(1) infinite,
+        dragonZoom 9s ease-in-out forwards;
+}
+
+/* ドラゴンの遠近感アニメーション（徐々に大きくして迫力を出す） */
+@keyframes dragonZoom {
+    0% {
+        transform: scale(0.6) translateY(30px);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    70% {
+        transform: scale(1.3) translateY(-10px);
+    }
+
+    100% {
+        transform: scale(3.0) translateY(-60px);
+        opacity: 0;
+    }
+}
+
+@keyframes dragonSpriteWalk {
+
+    /* 3x2シートの各コマへ厳密にジャンプ */
+    0% {
+        background-position: 0% 0%;
+    }
+
+    /* コマ1: 左上 */
+    16.6% {
+        background-position: 50% 0%;
+    }
+
+    /* コマ2: 中上 */
+    33.3% {
+        background-position: 100% 0%;
+    }
+
+    /* コマ3: 右上 */
+    50.0% {
+        background-position: 0% 100%;
+    }
+
+    /* コマ4: 左下 */
+    66.6% {
+        background-position: 50% 100%;
+    }
+
+    /* コマ5: 中下 */
+    83.3% {
+        background-position: 100% 100%;
+    }
+
+    /* コマ6: 右下 */
+}
+
+
+/* 地図レイヤー（ドラゴン退場後に滑らかにフェードイン） */
+.movie-map-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('./assets/opening_movie/map.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent !important;
+    opacity: 0;
+    animation: mapFadeIn 3s ease-in-out 7s forwards;
+    z-index: 20;
+    /* 雲やドラゴンより前面 */
+}
+
+@keyframes mapFadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 0.95;
+    }
+}
+
+/* タイトル&ボタン層（地図の後に登場） */
+.movie-title-layer {
+    position: absolute;
+    bottom: 15%;
+    width: 100%;
+    text-align: center;
+    z-index: 30;
+    /* 地図よりも前面 */
+    opacity: 0;
+    animation: titleAppear 2s ease 10s forwards;
+}
+
+@keyframes titleAppear {
+    to {
+        opacity: 1;
+    }
+}
+
+.movie-title {
+    font-family: 'Press Start 2P', cursive;
+    color: #ffd700;
+    font-size: 24px;
+    /* さらに少し小さくして確実に収める */
+    width: 90%;
+    margin: 0 auto 12px;
+    text-align: center;
+    text-shadow:
+        0 0 20px #ff6b00,
+        4px 4px 0 #000,
+        -2px -2px 0 #000;
+    letter-spacing: 1px;
+}
+
+.movie-subtitle {
+    font-family: 'DotGothic16', sans-serif;
+    color: #fff;
+    font-size: 16px;
+    text-shadow: 2px 2px 4px #000;
+    margin-bottom: 30px;
+}
+
+/* 点滅する PRESS START テキスト */
+.movie-start-text {
+    font-family: 'Press Start 2P', cursive;
+    color: #fff;
+    font-size: 18px;
+    margin-top: 20px;
+    text-shadow: 2px 2px 0 #000;
+    letter-spacing: 2px;
+    animation: blinkText 1.2s infinite ease-in-out;
+    cursor: pointer;
+}
+
+@keyframes blinkText {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+/* SKIPボタンは削除（要望により） */
+.movie-skip-btn {
+    display: none;
+}
+
+/* ========================================
+   Dragon Companion (Home Screen)
+   ======================================== */
+.dragon-companion {
+    position: absolute;
+    right: 10px;
+    bottom: 160px;
+    /* 位置調整 */
+    width: 130px;
+    height: 130px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    animation: dragonFloat 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.dragon-companion.hidden {
+    display: none;
+}
+
+@keyframes dragonFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+#dragon-img {
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.6));
+}
+
+/* ========================================
    レトロRPG ドット絵スタイル
    ======================================== */
 
@@ -84,12 +462,12 @@ body {
    ======================================== */
 .screen-header {
     position: relative;
+    width: 100%;
     height: 60px;
-    /* ヘッダーの高さを決める */
     display: flex;
     align-items: center;
     justify-content: center;
-    /* タイトルを中央に */
+    margin-bottom: 20px;
 }
 
 .pixel-back-btn {
@@ -106,8 +484,43 @@ body {
 
 .screen-title-mvp {
     margin: 0;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 2px;
+    color: #e8e8e8;
+    font-family: "Press Start 2P", cursive;
     pointer-events: none;
-    /* ボタンと干渉しない */
+    /* 絶対中央配置 */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    white-space: nowrap;
+}
+
+/* タイマー画面のみ別で位置調整：右寄せにしてバックボタンとの被りを防ぐ */
+#study-screen .screen-title-mvp {
+    left: auto;
+    right: 40px;
+    transform: none;
+    width: auto;
+    text-align: right;
+}
+
+#menu-screen .screen-title-mvp {
+    left: auto;
+    right: 70px;
+    transform: none;
+    width: auto;
+    text-align: right;
+}
+
+#log-screen .screen-title-mvp {
+    left: auto;
+    right: 70px;
+    transform: none;
+    width: auto;
+    text-align: right;
 }
 
 .pixel-back-btn:active {
@@ -463,12 +876,13 @@ textarea {
 
 .character-wrapper {
     position: absolute;
-    bottom: 0px;
+    bottom: -10px;
+    /* 主人公の位置をさらに下げる */
     /* Adjusting for the new stone pavement */
     left: 50%;
     transform: translateX(-50%);
-    width: 160px;
-    /* Slightly wider to accommodate panels */
+    width: 140px;
+    /* サイズを 160px から 130px へ控えめに調整 */
     margin: 0 auto;
     /* 基準サイズ */
     /* 画面が狭い時の保険 */
@@ -483,27 +897,28 @@ textarea {
 
 
 .character-message {
-    position: absolute;
-    bottom: 100%;
-    /* ← キャラの真上に固定 */
-    margin-bottom: 24px;
-    /* ← 距離はここで作る */
-    left: 50%;
-    transform: translateX(-50%);
+    position: absolute !important;
+    top: auto !important;
+    bottom: 110% !important;
+    /* 主人公の頭の上に配置 */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin-bottom: 20px !important;
+
+    /* 見た目の設定 */
     background: #fff;
     border: 3px solid #2c1810;
-    border-radius: 12px;
-    padding: 10px 14px;
+    border-radius: 8px;
+    /* 角丸を少し控えめに */
+    padding: 6px 10px;
+    /* 余白を縮小 */
     width: max-content;
-    max-width: 200px;
-    min-width: 120px;
-    text-align: center;
-    font-size: 10px;
-    color: #2c1810;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    max-width: 180px;
+    /* 最大幅も制限 */
+    font-size: 9px;
+    /* フォントサイズをわずかに縮小 */
+    line-height: 1.3;
     z-index: 200;
-    pointer-events: none;
-    line-height: 1.4;
 }
 
 @media (max-width: 420px) {
@@ -514,29 +929,37 @@ textarea {
 }
 
 
-/* Speech bubble tail pointing down to character */
+/* しっぽ（白）：本体の枠のすぐ下に配置 */
 .character-message::after {
-    content: '';
+    content: '' !important;
     position: absolute;
-    bottom: -12px;
+    top: 100% !important;
+    /* 本体の底辺から開始 */
+    bottom: auto !important;
     left: 50%;
     transform: translateX(-50%);
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid #fff;
+    border-left: 10px solid transparent !important;
+    border-right: 10px solid transparent !important;
+    border-top: 10px solid #fff !important;
+    border-bottom: none !important;
+    z-index: 199 !important;
 }
 
+/* しっぽの枠線（茶）：白のすぐ後ろに配置 */
 .character-message::before {
-    content: '';
+    content: '' !important;
     position: absolute;
-    bottom: -15px;
+    top: 100% !important;
+    /* 白い三角(10px)より少し大きく(13px)して縁取りに見せる */
+    bottom: auto !important;
     left: 50%;
     transform: translateX(-50%);
-    border-left: 12px solid transparent;
-    border-right: 12px solid transparent;
-    border-top: 12px solid #2c1810;
+    border-left: 12px solid transparent !important;
+    border-right: 12px solid transparent !important;
+    border-top: 13px solid #2c1810 !important;
+    border-bottom: none !important;
+    z-index: 198 !important;
 }
-
 
 .player-sprite {
     width: 100%;
@@ -545,32 +968,28 @@ textarea {
     image-rendering: pixelated;
     background: transparent !important;
     mix-blend-mode: normal !important;
-    /* animation: idleShake 0.5s steps(2) infinite; ← コメントアウト */
+    /* 勇者の待機モーション：足元を固定して前髪が弾むような動き */
+    transform-origin: bottom center;
+    animation: forelockBounce 1.0s steps(2) infinite;
 }
 
-@keyframes idleShake {
-    0% {
-        transform: translateX(0);
-    }
+@keyframes forelockBounce {
 
-    25% {
-        transform: translateX(-2px);
+    0%,
+    100% {
+        transform: scale(1, 1);
     }
 
     50% {
-        transform: translateX(2px);
+        transform: scale(1, 1.02);
     }
 
-    75% {
-        transform: translateX(-2px);
-    }
-
-    100% {
-        transform: translateX(0);
-    }
+    /* 極めて微細な「ピョコン」 */
 }
 
 .character-motion {
+    position: relative;
+    z-index: 10;
     width: 100%;
     height: 100%;
     display: flex;
@@ -843,37 +1262,28 @@ textarea {
 /* ========================================
    勉強タイマー画面 (MVP Style)
    ======================================== */
-.screen-title-mvp {
-    font-size: 18px;
-    text-align: center;
-    margin-bottom: 20px;
-    letter-spacing: 2px;
-    color: #e8e8e8;
-    font-family: "Press Start 2P", cursive;
-}
+/* Base title style moved to top */
 
 .pixel-back-btn {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     background: #040303;
     border: 3px solid #fff;
-    padding: 5px 12px;
+    padding: 6px 10px;
     font-family: 'Press Start 2P', monospace;
-    font-size: 11px;
+    font-size: 10px;
     color: #fff;
     border-radius: 4px;
     cursor: pointer;
-    margin-bottom: 10px;
     z-index: 100;
-    /* Ensure it stays above title */
+    margin: 0;
+    /* Clear previous margin */
 }
 
 /* Adjust title to not overlap with BACK button */
-#log-screen .screen-title-mvp,
-#menu-screen .screen-title-mvp {
-    flex: 1;
-    text-align: right;
-    padding-right: 10px;
-    margin-bottom: 0;
-}
+/* Specific right-alignment overrides removed to favor absolute centering */
 
 .timer-container-mvp {
     text-align: center;
@@ -1546,14 +1956,20 @@ textarea {
 
 /* Log Action Buttons */
 .log-btn {
+    flex: 1;
+    /* 枠いっぱいに広げる */
     background: #3e3e3c;
     border: 2px solid #2a2a29;
     border-radius: 4px;
     cursor: pointer;
-    padding: 2px 6px;
-    font-size: 14px;
+    padding: 8px;
+    /* パディングを増やして大きく */
+    font-size: 11px;
+    /* 押しボタン感を出すために少し調整 */
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
     transition: 0.1s;
-    box-shadow: 0 3px #111;
+    box-shadow: 0 4px #111;
 }
 
 .log-btn:active {
@@ -1622,7 +2038,9 @@ textarea {
 .log-container-mvp {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
+    padding-bottom: 100px;
+    /* 一番下のカードが見えなくなるのを防ぐ */
 }
 
 /* ========================================
@@ -2175,32 +2593,31 @@ body.gacha-mode {
 
 /* Shake Animation Class */
 .chest-shaking .chest-image-large {
-    animation: chestShake 0.5s cubic-bezier(.36, .07, .19, .97) both;
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
+    animation: chestShake 0.5s cubic-bezier(.36, .07, .19, .97) infinite;
+    transform-origin: center bottom;
 }
 
 @keyframes chestShake {
 
-    10%,
-    90% {
-        transform: translate3d(-2px, 0, 0);
+    0%,
+    100% {
+        transform: scale(1.2) translate(0, 0) rotate(0);
     }
 
-    20%,
-    80% {
-        transform: translate3d(4px, 0, 0);
+    20% {
+        transform: scale(1.2) translate(-6px, 0) rotate(-2deg);
     }
 
-    30%,
-    50%,
-    70% {
-        transform: translate3d(-8px, 0, 0);
+    40% {
+        transform: scale(1.2) translate(6px, 0) rotate(2deg);
     }
 
-    40%,
     60% {
-        transform: translate3d(8px, 0, 0);
+        transform: scale(1.2) translate(-4px, 0) rotate(-1deg);
+    }
+
+    80% {
+        transform: scale(1.2) translate(4px, 0) rotate(1deg);
     }
 }
 
@@ -2401,14 +2818,13 @@ body.gacha-mode {
     background: #fdf6e3;
     border: 3px solid #6b4400;
     border-radius: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     padding: 0;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
-    min-height: 80px;
-    /* Ensure cards have a minimum height */
+    height: auto !important;
+    /* 強制的に自動調整 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     animation: cardAppear 0.5s ease-out forwards;
 }
 
@@ -2435,32 +2851,57 @@ body.gacha-mode {
 }
 
 .card-tier {
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 14px;
     font-weight: bold;
 }
 
 .card-date {
     font-family: 'DotGothic16', sans-serif;
+    font-size: 10px;
 }
 
 .card-body {
     padding: 12px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    /* 中央寄せをやめて上揃えに */
     gap: 12px;
+    flex: 1;
 }
 
 .card-body .card-icon-box {
     width: 48px;
     height: 48px;
-    background: rgba(0, 0, 0, 0.05);
-    border: 2px dashed #6b4400;
+    background-color: #fdf6e3;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 80%;
+    image-rendering: pixelated;
+    border: 2px solid #6b4400;
     border-radius: 4px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 24px;
+    flex-shrink: 0;
 }
+
+.card-body .card-icon-box.math {
+    background-image: url('./assets/icon_math.png');
+}
+
+.card-body .card-icon-box.english {
+    background-image: url('./assets/icon_english.png');
+}
+
+.card-body .card-icon-box.science {
+    background-image: url('./assets/icon_science.png');
+}
+
+.card-body .card-icon-box.other {
+    background-image: url('./assets/icon_other.png');
+}
+
 
 .card-content {
     flex: 1;
@@ -2476,7 +2917,10 @@ body.gacha-mode {
 
 .card-stats {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    /* 長いときは折り返す */
+    gap: 8px;
+    /* 少し狭める */
 }
 
 .stat-item {
@@ -2489,11 +2933,12 @@ body.gacha-mode {
 }
 
 .card-footer {
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: rgba(0, 0, 0, 0.05);
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+    justify-content: space-between;
+    /* 左右いっぱいに配置 */
+    gap: 12px;
 }
 
 /* Tier Colors */
@@ -2646,42 +3091,17 @@ body.gacha-mode {
     }
 }
 
-.chest-shaking {
-    animation: chestShake 0.5s infinite;
-}
-
-@keyframes chestShake {
-    0% {
-        transform: translate(0, 0) rotate(0);
-    }
-
-    20% {
-        transform: translate(-2px, 0) rotate(-2deg);
-    }
-
-    40% {
-        transform: translate(2px, 0) rotate(2deg);
-    }
-
-    60% {
-        transform: translate(-2px, 0) rotate(-2deg);
-    }
-
-    80% {
-        transform: translate(2px, 0) rotate(2deg);
-    }
-
-    100% {
-        transform: translate(0, 0) rotate(0);
-    }
-}
+/* Deleted duplicate chestShake to avoid conflict and shift issues */
 
 .capacity-badge {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
     font-family: 'Press Start 2P', cursive;
-    font-size: 10px;
+    font-size: 11px;
     color: #ffd700;
     text-shadow: 2px 2px 0 #000;
-    margin-top: 8px;
 }
 
 .item-actions-row {
@@ -2789,7 +3209,7 @@ body.gacha-mode {
 /* Clickable Chest Container */
 .chest-centered {
     position: absolute;
-    bottom: 1px !important;
+    bottom: 0.5px !important;
     /* 大きくしたので少し浮かせて配置 */
     left: 50%;
     transform: translateX(-50%);
