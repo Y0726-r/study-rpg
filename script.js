@@ -213,6 +213,12 @@ const ITEM_CONFIG = {
  * アイテム・マスターデータ
  * spriteIndex: 0〜49 (5x10のグリッド位置)
  */
+/**
+ * アイテムマスターデータ
+ * 
+ * 【アイテム追加用テンプレート】
+ * { id: ID番号, name: "名前", rarity: レア度, file: "画像名.png", type: "種別", effects: { ステータス: 上昇値 }, description: "説明文", discardType: "捨て方" },
+ */
 const ITEM_MASTER = [
     // ★1 (Rarity 1)
     { id: 0, name: "木の剣", rarity: 1, file: "小さな剣.png", type: "weapon", effects: { focus: 2 }, description: "冒険の始まりといえばこれ。", equipMessage: "木の剣を構えた！少し攻撃的な気分になった！" },
@@ -1733,21 +1739,23 @@ function createDiscardEffect(element, masterItem) {
 
     const itemName = masterItem.name;
     const type = masterItem.type;
+    // テンプレートで指定された discardType があればそれを優先、なければ type を使用
+    const discardType = masterItem.discardType || type;
 
     let animClass = 'anim-drop';
     let message = `${itemName}を　かなたへ　なげすてた！スッキリした！`;
     let duration = 600;
 
     // タイプ別分岐
-    if (type === 'trash') {
+    if (discardType === 'trash') {
         animClass = 'anim-drop';
         message = `${itemName}を　かなたへ　なげすてた！スッキリした！`;
         duration = 600;
-    } else if (type === 'consumable') {
+    } else if (discardType === 'consumable') {
         animClass = 'anim-blink';
         message = `${itemName}を　しょぶんした。また　ひつようなら　てにいれよう。`;
         duration = 600;
-    } else if (['weapon', 'armor', 'shield', 'accessory'].includes(type)) {
+    } else if (['weapon', 'armor', 'shield', 'accessory'].includes(discardType) || discardType === 'equipment') {
         animClass = 'anim-rise';
         message = `${itemName}は　ひかりのなかへ　きえていった…いままで　ありがとう！`;
         duration = 800;
