@@ -25,21 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("✅ オープニングムービーを表示状態に固定しました");
     }
 
-    // 3. キャラクターメッセージの設定
-    const messages = [
-        "きょうも すこしずつ いこう！",
-        "5分 できたら だいせいこう！",
-        "疲れたら いったん やすも？",
-        "きょうの ぼうけん は ここから！",
-        "つづけてるの えらいぞ！",
-        "あせらなくて だいじょうぶ"
-    ];
-
-    const messageEl = document.getElementById("characterMessage");
-    if (messageEl) {
-        const randomIndex = Math.floor(Math.random() * messages.length);
-        messageEl.textContent = messages[randomIndex];
-    }
+    // 3. キャラクターメッセージの初期設定
+    updateCharacterMessage();
 
     // 4. ゲームデータの初期化
     // setTimeoutを使用して、レンダリングが完了してから実行
@@ -86,36 +73,33 @@ let startTime = null;
 let elapsedBeforePause = 0;
 
 function startTimer() {
-    console.log("🔥 startTimer 呼ばれた");
+    console.log("🔥 ティックベースのタイマーを開始します");
 
-    // Guard: Ensure gameData.timer exists to prevent crashes
     if (!gameData.timer) {
         gameData.timer = { isRunning: false, startTime: null, elapsedBeforePause: 0 };
     }
 
     if (timerInterval) return;
 
-    // 現在時刻から、過去の経過時間を引いた地点を「開始点」にする
-    startTime = Date.now() - elapsedBeforePause;
-
+    // 以前の経過秒数から再開（ポーズ対応）
     gameData.timer.isRunning = true;
-    gameData.timer.startTime = startTime; // 保存用
     saveGameData();
 
-    timerInterval = setInterval(updateTimer, 1000);
-    updateTimer(); // 即時実行して1秒のラグを消す
+    timerInterval = setInterval(() => {
+        elapsedSeconds++;
+        elapsedBeforePause = elapsedSeconds * 1000; // global変数を同期
+        gameData.timer.elapsedBeforePause = elapsedBeforePause; // 保存データも更新
+        renderTimer(elapsedSeconds);
+    }, 1000);
 
-    // Add pulsing class for visual feedback
+    renderTimer(elapsedSeconds);
+
     const timerDisplay = document.getElementById('timer-display');
     if (timerDisplay) timerDisplay.classList.add('timer-pulsing');
 }
 
 function updateTimer() {
-    if (!startTime) return;
-    const now = Date.now();
-    const elapsedMs = now - startTime;
-    elapsedSeconds = Math.floor(elapsedMs / 1000);
-
+    // インターバル内のインクリメントに移行したため、この関数は実質的に renderTimer を呼ぶインターフェースのみ残します
     renderTimer(elapsedSeconds);
 }
 
@@ -125,23 +109,18 @@ function pauseTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
 
-    // 停止した瞬間の累積時間を保存
-    elapsedBeforePause = Date.now() - startTime;
-
+    elapsedBeforePause = elapsedSeconds * 1000; // global変数を同期
     gameData.timer.elapsedBeforePause = elapsedBeforePause;
     gameData.timer.isRunning = false;
     saveGameData();
 
-    // Remove pulsing class
     const timerDisplay = document.getElementById('timer-display');
     if (timerDisplay) timerDisplay.classList.remove('timer-pulsing');
 
-    // UI更新
     updateStudyScreenUI();
 }
 
 function handlePauseResume() {
-    // 科目選択チェック（これがないとアラートが一瞬で消える原因になる）
     if (!gameData.currentSubject) {
         showSubjectWarningModal();
         return;
@@ -155,49 +134,46 @@ function handlePauseResume() {
     updateStudyScreenUI();
 }
 
-// UIの状態を一括管理する関数
 function updateStudyScreenUI() {
     const startBtn = document.getElementById('start-button');
     const stopBtn = document.getElementById('stop-button');
     const pauseBtn = document.getElementById('pause-button');
 
+    // A. 【実行中】（タイマーが動いている）
     if (timerInterval) {
-        // 実行中
         if (startBtn) startBtn.classList.add('hidden');
+        if (stopBtn) stopBtn.classList.remove('hidden');
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
             pauseBtn.textContent = 'PAUSE';
+            pauseBtn.classList.remove('is-paused'); // オレンジ
+            pauseBtn.style.pointerEvents = 'auto'; // クリック可能に
         }
+    }
+    // B. 【一時停止中】（タイマー停止中 且つ 経過時間がある）
+    else if (elapsedBeforePause > 0) {
+        if (startBtn) startBtn.classList.add('hidden');
         if (stopBtn) stopBtn.classList.remove('hidden');
-    } else {
-        // 停止中
-        if (startBtn) {
-            startBtn.classList.remove('hidden');
-            startBtn.textContent = elapsedBeforePause > 0 ? 'RESUME' : 'START';
+        if (pauseBtn) {
+            pauseBtn.classList.remove('hidden');
+            pauseBtn.textContent = 'RESUME';
+            pauseBtn.classList.add('is-paused'); // キャンプの緑
+            pauseBtn.style.pointerEvents = 'auto'; // クリック可能に
         }
+    }
+    // C. 【未開始・リセット後】
+    else {
+        if (startBtn) startBtn.classList.remove('hidden');
+        if (stopBtn) stopBtn.classList.add('hidden');
         if (pauseBtn) pauseBtn.classList.add('hidden');
-
-        // 1秒でも進んでいればSTOPボタンを見せる
-        if (stopBtn) {
-            if (elapsedBeforePause > 0) {
-                stopBtn.classList.remove('hidden');
-            } else {
-                stopBtn.classList.add('hidden');
-            }
-        }
     }
 }
 
+
 function renderTimer(totalSeconds) {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
     const hours = Math.floor(totalSeconds / 3600);
     const displayMinutes = Math.floor((totalSeconds % 3600) / 60);
-
-    const formattedTime =
-        String(minutes).padStart(2, "0") +
-        ":" +
-        String(seconds).padStart(2, "0");
+    const seconds = totalSeconds % 60;
 
     const formattedLCD =
         String(hours).padStart(2, "0") + ':' +
@@ -210,20 +186,19 @@ function renderTimer(totalSeconds) {
     }
 }
 
+// ... (省略された中間の定数や関数は維持されます) ...
+
 
 // レベルテーブル（レベルアップに必要な累積EXP）
-const LEVEL_TABLE = {
-    1: 0,
-    2: 100,
-    3: 250,
-    4: 450,
-    5: 700,
-    6: 1000,
-    7: 1350,
-    8: 1750,
-    9: 2200,
-    10: 2700
-};
+const LEVEL_TABLE = {};
+(function () {
+    let cumulativeExp = 0;
+    for (let i = 1; i <= 99; i++) {
+        LEVEL_TABLE[i] = cumulativeExp;
+        // Lv(n) -> Lv(n+1) に必要な経験値: 100 + 50 * (n-1)
+        cumulativeExp += (100 + 50 * (i - 1));
+    }
+})();
 
 // ========================================
 // アイテム・マスターデータ (5x10マス対応)
@@ -365,18 +340,11 @@ function initGame() {
     // Restore Timer State
     if (gameData.timer) {
         elapsedBeforePause = gameData.timer.elapsedBeforePause || 0;
+        elapsedSeconds = Math.floor(elapsedBeforePause / 1000);
+        renderTimer(elapsedSeconds);
 
-        if (gameData.timer.isRunning && gameData.timer.startTime) {
-            // Restore startTime from saved data
-            startTime = gameData.timer.startTime;
-
-            // Resume timer automatically
-            timerInterval = setInterval(updateTimer, 1000);
-            updateTimer(); // Initial call
-        } else {
-            // Not running
-            elapsedSeconds = Math.floor(elapsedBeforePause / 1000);
-            renderTimer(elapsedSeconds);
+        if (gameData.timer.isRunning) {
+            startTimer();
         }
     }
     // 勉強ログの更新
@@ -403,25 +371,20 @@ function playOpeningMovie() {
 
 function skipOpening() {
     console.log("🚀 オープニングムービー終了 - ホーム画面へ");
-    const movie = document.getElementById('opening-movie');
-    if (movie) {
-        // ムービーを非表示
-        movie.classList.remove('active');
-        movie.classList.add('hidden');
+    const openingElement = document.getElementById('opening-movie');
 
-        // インラインスタイルをリセット（もしあれば）
-        movie.style.display = '';
-        movie.style.opacity = '';
-        movie.style.visibility = '';
+    // 1. まずは「ふわっ」とムービーを暗くして消し始める
+    openingElement.style.opacity = '0';
+    openingElement.style.transition = 'opacity 2.0s ease-out'; // 2秒かけて消す
 
-        gameData.hasSeenOpening = true;
-        saveGameData();
-
-        // ホーム画面を表示
-        showScreen('home-screen');
-        console.log("✅ ホーム画面表示完了");
-    }
+    // 2. そのまま「3秒」待ってから、トップ画面を表示させる
+    setTimeout(() => {
+        openingElement.classList.add('hidden'); // オープニングを完全に消す
+        showScreen('home-screen'); // ここでトップ画面（ホーム）を呼び出す
+    }, 1500); // 3000ミリ秒 ＝ 3秒
+    console.log("✅ ホーム画面表示完了");
 }
+
 
 function loadGameData() {
     const savedData = localStorage.getItem('studyQuestData');
@@ -611,52 +574,169 @@ function updateHomeScreen() {
 }
 
 /* ========================================
-   ドラゴン・卵の表示制御
+   ドラゴン・卵の表示制御（修正版）
    ======================================== */
 function updateDragonUI() {
     const companion = document.getElementById('dragon-companion');
     const dragonImg = document.getElementById('dragon-img');
+    const playerSprite = document.querySelector('.player-sprite');
+    const messageEl = document.getElementById("characterMessage");
+    const wrapper = document.querySelector('.character-wrapper');
+
     if (!companion || !dragonImg) return;
 
     const level = gameData.player.level;
     const dragon = gameData.dragon;
 
-    // Lv 70未満は何もしない
-    if (level < 70 && !dragon.obtained) {
-        companion.classList.add('hidden');
-        return;
+    if (!dragon) return; // 安全策
+
+    // --- 1. 状態フラグの同期 ---
+    if (level < 70) {
+        dragon.hatched = false;
+    } else if (level === 99) {
+        dragon.obtained = true;
     }
 
-    // Lv 70以上 または 既に卵を持っている場合
-    companion.classList.remove('hidden');
-
-    if (level < 80) {
-        // Lv 70-79: 卵1
-        dragonImg.src = './assets/opening_movie/egg1.png';
-        dragon.obtained = true;
-    } else if (level < 99) {
-        // Lv 80-98: 卵2 (ヒビ)
-        dragonImg.src = './assets/opening_movie/egg2.png';
-    } else {
-        // Lv 99: ドラゴン誕生
-        if (!dragon.hatched) {
-            dragon.hatched = true;
-            determineDragonType();
+    // --- 2. クラス管理（ここが重要！） ---
+    // CSSの「.dragon-active」が効くように、ここでクラスを付け替えます。
+    // JS側での style.width や style.bottom の直接指定はすべて削除しました。
+    if (wrapper) {
+        if (level >= 99 && dragon.hatched) {
+            wrapper.classList.add('dragon-active');
+        } else {
+            wrapper.classList.remove('dragon-active');
         }
+    }
 
-        // ドラゴンの種類に応じた画像
+    // --- 3. ビジュアル基本設定 ---
+    if (playerSprite) {
+        if (level >= 99 && dragon.hatched) {
+            playerSprite.classList.add('hidden');
+        } else {
+            playerSprite.classList.remove('hidden');
+        }
+    }
+
+    // --- 4. 各レベル帯の表示ロジック（高い順に判定） ---
+    if (level >= 99) {
+        if (!dragon.hatched) {
+            executeDragonBirthAnimation();
+            return;
+        }
         const type = dragon.type || 'gold';
         dragonImg.src = `./assets/opening_movie/${type}_dragon.png`;
-
-        // ドラゴン誕生後はプレイヤー単層ではなく、ドラゴンの画像をコンパニオンとして表示
-        // さらに、プレイヤーのスプライト自体を「騎乗スプライト」に差し替える
-        const playerSprite = document.querySelector('.player-sprite');
-        if (playerSprite) {
-            playerSprite.src = './assets/opening_movie/animation.png';
-            // 騎乗画像にドラゴンが含まれているため、コンパニオン画像は隠す
+    }
+    else if (level >= 90) {
+        dragonImg.src = './assets/opening_movie/egg2.png';
+        if (messageEl) messageEl.textContent = "なんか最近、卵が割れそう・・・・？";
+    }
+    else if (level >= 80) {
+        dragonImg.src = './assets/opening_movie/egg2.png';
+        if (messageEl) messageEl.textContent = "あれ？ 卵に変化が……";
+    }
+    else if (level >= 70) {
+        if (dragon.obtained) {
+            dragonImg.src = './assets/opening_movie/egg1.png';
+            companion.classList.remove('hidden');
+        } else {
             companion.classList.add('hidden');
         }
     }
+    else {
+        companion.classList.add('hidden');
+        updateCharacterMessage(true);
+    }
+}
+
+
+/**
+ * Lv 70 到達時のドラゴンの卵入手ガチャ演出
+ */
+function triggerDragonEggGacha() {
+    console.log("🐲 ドラゴンの卵入手イベント開始！");
+    showScreen('gacha-screen');
+
+    const chestContainer = document.querySelector('.chest-centered');
+    const chestImage = document.getElementById('chest-display');
+    const flashOverlay = document.getElementById('flash-overlay');
+    const tooltip = document.getElementById('pull-tooltip');
+
+    if (tooltip) tooltip.classList.add('hidden');
+    if (chestContainer) chestContainer.style.pointerEvents = 'none';
+
+    setTimeout(() => {
+        if (chestContainer) chestContainer.classList.add('chest-shaking');
+
+        setTimeout(() => {
+            if (chestContainer) chestContainer.classList.remove('chest-shaking');
+            if (chestImage) chestImage.src = 'assets/chest_open.png';
+            if (flashOverlay) {
+                flashOverlay.style.background = 'radial-gradient(circle, #fff 0%, #ffd700 100%)';
+                flashOverlay.classList.add('flash-active');
+            }
+
+            const eggItem = {
+                name: "ドラゴンの卵",
+                rarity: 5,
+                id: 'dragon_egg_special',
+                isSpecial: true
+            };
+
+            setTimeout(() => {
+                gameData.dragon.obtained = true;
+                saveGameData();
+                showGachaResult(eggItem);
+                if (flashOverlay) flashOverlay.classList.remove('flash-active');
+                if (chestContainer) chestContainer.style.pointerEvents = 'auto';
+            }, 600);
+        }, 1500);
+    }, 500);
+}
+
+/**
+ * Lv 99 到達時の誕生アニメーション
+ */
+function executeDragonBirthAnimation() {
+    const companion = document.getElementById('dragon-companion');
+    const dragonImg = document.getElementById('dragon-img');
+    const playerSprite = document.querySelector('.player-sprite');
+    const flashBg = document.getElementById('birth-flash-bg');
+
+    if (!companion || !dragonImg) return;
+
+    gameData.dragon.hatched = true;
+    determineDragonType();
+
+    // 1. 激しく揺れる
+    companion.classList.add('birth-shake');
+
+    // 2. 誕生テキストエフェクト
+    const effect = document.createElement('div');
+    effect.className = 'dragon-birth-text';
+    effect.textContent = 'ドラゴン誕生！';
+    document.body.appendChild(effect);
+
+    // 3. 背後光エフェクト発動
+    if (flashBg) flashBg.classList.add('active');
+
+    // 4. 一定時間後に交代
+    setTimeout(() => {
+        companion.classList.remove('birth-shake');
+
+        if (playerSprite) playerSprite.classList.add('hidden');
+        const wrapper = document.querySelector('.character-wrapper');
+        if (wrapper) wrapper.classList.add('dragon-active');
+
+        const type = gameData.dragon.type || 'gold';
+        dragonImg.src = `./assets/opening_movie/${type}_dragon.png`;
+
+        saveGameData();
+
+        setTimeout(() => {
+            if (flashBg) flashBg.classList.remove('active');
+            effect.remove();
+        }, 3000);
+    }, 2000);
 }
 
 function determineDragonType() {
@@ -903,20 +983,39 @@ function saveStudySession() {
 function checkLevelUp(oldLevel) {
     let newLevel = oldLevel;
 
-    // レベルアップ判定
-    for (let level = oldLevel + 1; level <= 10; level++) {
-        if (gameData.player.exp >= LEVEL_TABLE[level]) {
-            newLevel = level;
+    // 1. 最新の累積EXPに基づいて新レベルを算出 (Lv.99上限)
+    for (let l = oldLevel + 1; l <= 99; l++) {
+        if (gameData.player.exp >= LEVEL_TABLE[l]) {
+            newLevel = l;
         } else {
             break;
         }
     }
 
+    // レベルが上がった場合のみチェック
     if (newLevel > oldLevel) {
         gameData.player.level = newLevel;
-        showLevelUpModal(oldLevel, newLevel);
+
+        console.log(`🆙 レベル判定: 新レベル=${newLevel}, 以前=${oldLevel}, 卵所持=${gameData.dragon.obtained}`);
+
+        // --- 【アンチへの念押し：本番演出フロー】 ---
+
+        // A. レベル99到達：問答無用で誕生演出（ガチャはスキップ）
+        if (newLevel === 99) {
+            gameData.dragon.obtained = true;
+            updateHomeScreen(); // ここで誕生アニメーションが自動トリガー
+        }
+        // B. レベル70以上 且つ 卵をまだ持っていない：ガチャ実行！
+        else if (newLevel >= 70 && !gameData.dragon.obtained) {
+            triggerDragonEggGacha();
+        }
+        // C. それ以外：通常のレベルアップモーダルを表示
+        else {
+            showLevelUpModal(oldLevel, newLevel);
+        }
     }
 }
+
 
 function showLevelUpModal(oldLevel, newLevel) {
     document.getElementById('old-level').textContent = oldLevel;
@@ -1114,6 +1213,19 @@ function showGachaResult(item) {
     document.getElementById('result-name').textContent = item.name;
     document.getElementById('result-rarity').textContent = '★'.repeat(item.rarity);
 
+    // 特別なアイテム（卵など）の場合の調整
+    if (item.isSpecial) {
+        iconElement.style.backgroundImage = "url('./assets/opening_movie/egg1.png')";
+        iconElement.style.backgroundSize = "contain";
+        iconElement.style.backgroundPosition = "center";
+        iconElement.style.backgroundRepeat = "no-repeat";
+        const resText = document.querySelector('.result-text-mvp');
+        if (resText) resText.textContent = "ドラゴンの卵を手に入れた！";
+    } else {
+        const resText = document.querySelector('.result-text-mvp');
+        if (resText) resText.textContent = "獲得！";
+    }
+
     // Switch to use "show" class
     document.getElementById('gacha-result').classList.remove('hidden'); // Ensure hidden is removed if present
     document.getElementById('gacha-result').classList.add('show');
@@ -1139,6 +1251,8 @@ function updateGachaMiniLog(item) {
 
 function closeGachaResult() {
     const modal = document.getElementById('gacha-result');
+    const isDragonEgg = modal.querySelector('#result-name').textContent === "ドラゴンの卵";
+
     modal.classList.remove('show');
     modal.classList.add('hidden');
 
@@ -1153,9 +1267,12 @@ function closeGachaResult() {
     const btn = document.getElementById('pull-button');
     if (btn) btn.disabled = false;
 
-    // New flavor text
-    updateGachaScreen();
+    // もしドラゴンの卵を入手した直後なら、ホーム画面に戻す
+    if (isDragonEgg) {
+        showScreen('home-screen');
+    }
 }
+
 
 // ========================================
 // メニュー画面（インベントリ）
@@ -1191,6 +1308,7 @@ function updateInventoryScreen() {
         const isEquipped = Object.values(equipment).some(eq => eq && Number(eq.id) === Number(item.id));
 
         card.className = `item-list-card rarity-${displayItem.rarity} ${isEquipped ? 'equipped' : ''}`;
+        card.setAttribute('data-id', item.id);
 
         // Add click listener to show description
         card.onclick = (e) => {
@@ -1306,19 +1424,38 @@ function useItem(itemId) {
 }
 
 function confirmReset() {
-    const confirmed = confirm('本当にデータをリセットしますか？\nこの操作は取り消せません。');
+    showConfirmModal(
+        "きろくを けす",
+        "いままでの　ぼうけんの　きろくを\nすべて　けして　しまいますか？\n（この　そうさは　とりけせません！）",
+        () => {
+            localStorage.removeItem('studyQuestData');
+            // 完全な初期状態へリセット（dragonやtimerも含める）
+            gameData = {
+                player: {
+                    level: 1,
+                    exp: 0,
+                    coins: 0,
+                    stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 },
+                    equipment: { weapon: null, armor: null, accessory: null, shield: null }
+                },
+                studyLogs: [],
+                inventory: [],
+                currentSubject: null,
+                timer: { isRunning: false, startTime: null, elapsedBeforePause: 0 },
+                hasSeenOpening: false,
+                dragon: { obtained: false, hatched: false, type: null }
+            };
+            saveGameData();
+            showScreen('home-screen');
 
-    if (confirmed) {
-        localStorage.removeItem('studyQuestData');
-        gameData = {
-            player: { level: 1, exp: 0, coins: 0 },
-            studyLogs: [],
-            inventory: []
-        };
-        saveGameData();
-        showScreen('home-screen');
-        alert('データをリセットしました');
-    }
+            // 完了トースト
+            const toast = document.createElement('div');
+            toast.className = 'discard-toast';
+            toast.textContent = "✨ ぼうけんの きろくを しょきか しました";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+    );
 }
 
 // ========================================
@@ -1545,8 +1682,8 @@ function confirmDiscard(itemId) {
     if (!item) return;
 
     showConfirmModal(
-        "DISCARD ITEM",
-        `${item.name}を1つ捨てますか？`,
+        "どうぐを すてる",
+        `${item.name} を　すてますか？\n（いちど すてると　にどと　もどりません！）`,
         () => discardItem(itemId)
     );
 }
@@ -1556,22 +1693,73 @@ function discardItem(itemId) {
     if (index === -1) return;
 
     const item = gameData.inventory[index];
-    item.count--;
+    const itemName = item.name;
 
-    if (item.count <= 0) {
-        // If equipped, remove it first
-        const equipment = gameData.player.equipment || {};
-        Object.keys(equipment).forEach(slot => {
-            if (equipment[slot] && equipment[slot].id === itemId) {
-                gameData.player.equipment[slot] = null;
-            }
-        });
-        gameData.inventory.splice(index, 1);
+    // 1. 演出の実行
+    const cardElement = document.querySelector(`.item-list-card[data-id="${itemId}"]`);
+    if (cardElement) {
+        createDiscardEffect(cardElement, itemName);
     }
 
-    saveGameData();
-    updateInventoryScreen();
-    updateHomeScreen();
+    // 2. 演出が終わるのを待ってから実際に削除
+    setTimeout(() => {
+        item.count--;
+
+        if (item.count <= 0) {
+            // 装備中なら外す
+            const equipment = gameData.player.equipment || {};
+            Object.keys(equipment).forEach(slot => {
+                if (equipment[slot] && equipment[slot].id === itemId) {
+                    gameData.player.equipment[slot] = null;
+                }
+            });
+            gameData.inventory.splice(index, 1);
+        }
+
+        saveGameData();
+        updateInventoryScreen();
+        updateHomeScreen();
+    }, 700); // CSSアニメーションの時間(0.7s)に合わせる
+}
+
+/**
+ * アイテム破棄時のエフェクト生成
+ */
+function createDiscardEffect(element, itemName) {
+    if (!element) return;
+
+    // パーティクル発生
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'discard-particle';
+        p.style.left = centerX + 'px';
+        p.style.top = centerY + 'px';
+
+        // 放射状にランダムに飛ばす
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 40 + Math.random() * 60;
+        p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 600);
+    }
+
+    // カード自体のフェードアウト上昇
+    element.classList.add('item-discard-animation');
+
+    // 「スッキリ！」トースト
+    setTimeout(() => {
+        const toast = document.createElement('div');
+        toast.className = 'discard-toast';
+        toast.textContent = `✨ ${itemName}をポイ捨てしました（スッキリ！）`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1800);
+    }, 300);
 }
 
 function showItemDescription(itemId) {
@@ -1644,4 +1832,107 @@ function subjectBtnHandler(e) {
     selectSubject(e.currentTarget);
 }
 
+// ========================================
+// 🛠️ デバッグ・演出テスト用 隠しコマンド
+// ========================================
 
+/**
+ * レベルを強制変更して演出を確認する
+ * コンソールで使用: setTestLevel(70)
+ */
+window.setTestLevel = function (level) {
+    if (typeof level !== 'number' || level < 1) {
+        console.error("❌ 無効なレベルです。数値を入力してください。");
+        return;
+    }
+
+    const oldLevel = gameData.player.level;
+    console.log(`🛠️ デバッグ: レベルを ${oldLevel} -> ${level} に設定します...`);
+
+    gameData.player.level = level;
+
+    // --- デバッグ移動時の優先順位ガード ---
+
+    // 1. レベル99設定時は誕生演出を最優先
+    if (level === 99) {
+        gameData.dragon.obtained = true;
+        updateHomeScreen();
+    }
+    // 2. レベル70への設定時は、未入手の場合のみガチャを起動
+    else if (level === 70 && !gameData.dragon.obtained) {
+        triggerDragonEggGacha();
+    }
+    // 3. レベル70越え移動で且つ「未入手」ならガチャ
+    else if (level >= 70 && oldLevel < 70 && !gameData.dragon.obtained) {
+        triggerDragonEggGacha();
+    }
+
+    else {
+        updateHomeScreen();
+    }
+
+    saveGameData();
+    console.log(`✅ 更新完了。`);
+};
+
+/**
+ * ガチャおよびドラゴンの成長状態を初期化する
+ * Lv70 の演出を再度確認したい場合に使用
+ */
+window.resetGacha = function () {
+    console.log("🐲 ドラゴンとガチャの状態をリセット中...");
+    gameData.dragon.obtained = false;
+    gameData.dragon.hatched = false;
+    gameData.dragon.type = null;
+
+    updateHomeScreen();
+    saveGameData();
+    console.log("✅ リセット完了！Lv.70に到達すると再びガチャ演出が始まります。");
+};
+
+/**
+ * ステータスを強制変更する（ドラゴンの分岐テスト用）
+ * コンソールで使用: setTestStats(100, 0, 0)
+ */
+window.setTestStats = function (focus, intellect, strength) {
+    if (!gameData.player.stats) gameData.player.stats = {};
+    gameData.player.stats.focus = focus || 0;
+    gameData.player.stats.intellect = intellect || 0;
+    gameData.player.stats.strength = strength || 0;
+
+    console.log(`🛠️ デバッグ: ステータスを変更しました (集中:${focus}, 知力:${intellect}, 筋力:${strength})`);
+
+    // ドラゴン誕生済みの場合は再計算させるために一旦フラグをリセット
+    if (gameData.player.level >= 99) {
+        gameData.dragon.hatched = false;
+    }
+
+    updateHomeScreen();
+    saveGameData();
+    console.log("✅ ステータスとUIを更新しました。");
+};
+
+
+/**
+ * キャラクターのセリフをランダムに変更、またはリセットする
+ */
+function updateCharacterMessage(force = false) {
+    const messages = [
+        "きょうも すこしずつ いこう！",
+        "5分 できたら だいせいこう！",
+        "疲れたら いったん やすも？",
+        "きょうの ぼうけん は ここから！",
+        "つづけてるの えらいぞ！",
+        "あせらなくて だいじょうぶ"
+    ];
+    const messageEl = document.getElementById("characterMessage");
+    if (!messageEl) return;
+
+    // 現在がレベル上げイベント用のセリフでない場合、または強制リセットの場合のみ更新
+    const isSpecial = ["あれ？ 卵に変化が……", "なんか最近、卵が割れそう・・・・？"].includes(messageEl.textContent);
+
+    if (!isSpecial || force) {
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        messageEl.textContent = messages[randomIndex];
+    }
+}

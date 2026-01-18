@@ -27,6 +27,7 @@
                 <p class="movie-subtitle">～ 勉強と共に伝説へ ～</p>
                 <div class="movie-start-text">PRESS START</div>
             </div>
+            <button class="movie-skip-btn" onclick="skipOpening()">SKIP &raquo;</button>
         </div>
     </div>
     <!-- Flash Effect Overlay -->
@@ -69,10 +70,11 @@
                     <div class="character-motion">
                         <img class="player-sprite" src="./assets/player.png" alt="Player">
                     </div>
-                </div>
-                <!-- ドラゴン・卵のコンパニオン -->
-                <div id="dragon-companion" class="dragon-companion hidden">
-                    <img id="dragon-img" src="" alt="Dragon">
+                    <!-- ドラゴン・卵のコンパニオン：主人公のすぐ隣に配置 -->
+                    <div id="dragon-companion" class="dragon-companion hidden">
+                        <div class="birth-flash-bg" id="birth-flash-bg"></div>
+                        <img id="dragon-img" src="" alt="Dragon">
+                    </div>
                 </div>
             </div>
         </div>
@@ -294,7 +296,7 @@
         </div>
 
         <div class="menu-footer-mvp">
-            <button class="reset-button-mvp" onclick="confirmReset()">DATA RESET</button>
+            <button class="reset-button-mvp" onclick="confirmReset()">きろくを けす</button>
         </div>
     </div>
 

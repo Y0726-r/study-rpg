@@ -34,6 +34,76 @@
     transition: opacity 1.5s ease-out;
 }
 
+/* スキップボタン */
+.movie-skip-btn {
+    /* 1. 配置の強制固定 */
+    position: fixed !important;
+    /* absoluteより強力な「画面固定」に変更 */
+    top: 20px !important;
+    right: 20px !important;
+
+    /* 2. サイズを明示的に指定（消えないようにする） */
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 70px !important;
+    min-height: 20px !important;
+
+    /* 3. 最前面へ引っ張り出す */
+    z-index: 999999 !important;
+    /* 既存のどのレイヤーよりも大きく */
+
+    /* 4. 見た目の強調（真っ赤な枠線でテスト） */
+    background-color: #75b8f3 !important;
+    color: #fff !important;
+    border: 1px dashed #3d64f1 !important;
+    /* 一旦、赤い枠にして場所を確認 */
+
+    /* 5. フォントとクリックの設定 */
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    /* --- 1. 最初は透明にしておく --- */
+    opacity: 0;
+    visibility: visible !important;
+    /* --- 点滅アニメーションを追加（1.5秒周期で繰り返す） --- */
+    animation: buttonFadeIn 1s ease-out 3s forwards,
+        blinker 1.5s ease-in-out 4s infinite;
+}
+
+/* 登場アニメーション：0（透明）から1（不透明）へ */
+@keyframes buttonFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* 点滅の動き：不透明度(opacity)を 1.0 から 0.3 の間で変化させます */
+@keyframes blinker {
+    0% {
+        opacity: 1.0;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 1.0;
+    }
+}
+
+/* ホバー（マウスを乗せた時）の演出 */
+.movie-skip-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
 .movie-scene {
     position: relative;
     width: 100%;
@@ -138,17 +208,20 @@
 
 /* ドラゴン・スプライトアニメーション層（滑らかにフェードアウト） */
 .movie-dragon-layer {
-    position: absolute;
-    width: 100%;
-    height: 100%;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
     display: flex;
     justify-content: center;
     align-items: center;
     pointer-events: none;
-    z-index: 10;
-    /* 雲（復帰時5）より前面 */
-    /* 7秒後から2秒かけてフェードアウト */
-    animation: dragonLayerFadeOut 9s ease-in-out forwards;
+    /* ドラゴンがクリックを邪魔しないように */
+
+    /* 以前設定した「フェードアウト」などのアニメーションはそのまま維持 */
+    z-index: 10 !important;
+    /* 雲より前、地図やボタンより後ろ */
 }
 
 @keyframes dragonLayerFadeOut {
@@ -167,6 +240,8 @@
 .flying-dragon {
     width: 400px;
     height: 266px;
+    margin: 0 !important;
+    position: relative;
     background-image: url('./assets/opening_movie/animation.png');
     background-size: 300% 200%;
     /* 3列×2行。1コマは 100%/3 x 100%/2 */
@@ -342,21 +417,48 @@
    ======================================== */
 .dragon-companion {
     position: absolute;
-    right: 10px;
-    bottom: 160px;
-    /* 位置調整 */
-    width: 130px;
-    height: 130px;
+    /* 主人公(wrapper)を基準に右横へ配置 */
+    left: 75%;
+    bottom: 5px;
+    width: 80px;
+    /* サイズを少しコンパクトに調整 */
+    height: 80px;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 50;
+    z-index: 20;
+    /* 主人公のWrapper(10)より手前へ */
     animation: dragonFloat 4s ease-in-out infinite;
     pointer-events: none;
+    image-rendering: pixelated;
+    /* ドット感をはっきり */
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
 }
 
 .dragon-companion.hidden {
     display: none;
+}
+
+/* 成体ドラゴンの場合の中央配置とサイズアップ（JSでの数値をCSSへ移動） */
+.character-wrapper.dragon-active .dragon-companion {
+    left: 50%;
+    width: 280px;
+    /* 巨大化：1.5倍以上の存在感 */
+    height: 280px;
+    bottom: 0px;
+    /* 足元を地面に固定 */
+    z-index: 50;
+    /* 主人公の少し前面、メッセージより背面 */
+    animation: dragonFloatCentered 4s ease-in-out infinite;
+}
+
+.character-wrapper.dragon-active #dragon-img {
+    width: 320px !important;
+    bottom: -20px;
+    z-index: 1;
+    height: auto;
+    object-fit: contain;
+    vertical-align: bottom;
 }
 
 @keyframes dragonFloat {
@@ -368,6 +470,153 @@
 
     50% {
         transform: translateY(-15px);
+    }
+}
+
+@keyframes dragonFloatCentered {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-15px);
+    }
+}
+
+/* 誕生時の背面光エフェクト（イラストを隠さない） */
+.birth-flash-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
+    z-index: 15;
+    /* ドラゴン(20)のすぐ後ろ */
+    opacity: 0;
+    pointer-events: none;
+}
+
+.birth-flash-bg.active {
+    animation: flashFade 2s ease-out forwards;
+}
+
+@keyframes flashFade {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+        filter: brightness(3);
+    }
+
+    30% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.5);
+        filter: brightness(5);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2);
+        filter: brightness(1);
+    }
+}
+
+/* 誕生時の揺れ */
+.birth-shake {
+    animation: shakeEffect 0.2s ease-in-out infinite !important;
+}
+
+@keyframes shakeEffect {
+    0% {
+        transform: translate(1px, 1px) rotate(0deg);
+    }
+
+    10% {
+        transform: translate(-1px, -2px) rotate(-1deg);
+    }
+
+    20% {
+        transform: translate(-3px, 0px) rotate(1deg);
+    }
+
+    30% {
+        transform: translate(3px, 2px) rotate(0deg);
+    }
+
+    40% {
+        transform: translate(1px, -1px) rotate(1deg);
+    }
+
+    50% {
+        transform: translate(-1px, 2px) rotate(-1deg);
+    }
+
+    60% {
+        transform: translate(-3px, 1px) rotate(0deg);
+    }
+
+    70% {
+        transform: translate(3px, 1px) rotate(-1deg);
+    }
+
+    80% {
+        transform: translate(-1px, -1px) rotate(1deg);
+    }
+
+    90% {
+        transform: translate(1px, 2px) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(1px, -2px) rotate(-1deg);
+    }
+}
+
+/* 誕生時のフラッシュ（フィルタから背面発光へ変更検討のため一旦無効化、または加減調整） */
+.birth-flash {
+    /* 弱めのフラッシュにしてイラストを活かす */
+    filter: brightness(1.2) contrast(1.1) !important;
+    transition: filter 0.5s ease-out;
+}
+
+/* 誕生テキストエフェクト */
+.dragon-birth-text {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 24px;
+    color: #ffd700;
+    text-shadow: 0 0 10px #ff8c00, 0 0 20px #ff4500, 4px 4px 0px #000;
+    z-index: 100000;
+    pointer-events: none;
+    animation: textPopUp 3s forwards;
+    white-space: nowrap;
+}
+
+@keyframes textPopUp {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -20%) scale(0.5);
+    }
+
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -80%) scale(1);
     }
 }
 
@@ -481,7 +730,6 @@ body {
         0 3px 4px rgba(0, 0, 0, 0.3);
 }
 
-
 .screen-title-mvp {
     margin: 0;
     font-size: 18px;
@@ -490,13 +738,27 @@ body {
     color: #e8e8e8;
     font-family: "Press Start 2P", cursive;
     pointer-events: none;
-    /* 絶対中央配置 */
+    /* 基本は絶対配置（画面上部中央） */
     position: absolute;
     left: 50%;
+    top: 5px;
     transform: translateX(-50%);
     width: 100%;
     white-space: nowrap;
 }
+
+/* モーダルの中では他の文字と重ならないように位置を戻す */
+.modal-content .screen-title-mvp {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    margin-bottom: 20px !important;
+    padding-top: 5px;
+    white-space: normal !important;
+    display: block !important;
+}
+
 
 /* タイマー画面のみ別で位置調整：右寄せにしてバックボタンとの被りを防ぐ */
 #study-screen .screen-title-mvp {
@@ -876,22 +1138,19 @@ textarea {
 
 .character-wrapper {
     position: absolute;
-    bottom: -10px;
-    /* 主人公の位置をさらに下げる */
-    /* Adjusting for the new stone pavement */
+    bottom: 0px;
     left: 50%;
     transform: translateX(-50%);
     width: 140px;
-    /* サイズを 160px から 130px へ控えめに調整 */
-    margin: 0 auto;
-    /* 基準サイズ */
-    /* 画面が狭い時の保険 */
-    z-index: 10;
-    /* Grounding shadow */
-    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
+    height: 140px;
+    /* ★重要：吹き出しの % 計算の基準 */
+    z-index: 100;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-end;
+    /* 地面に足を付ける */
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
 }
 
 
@@ -900,34 +1159,63 @@ textarea {
     position: absolute !important;
     top: auto !important;
     bottom: 110% !important;
-    /* 主人公の頭の上に配置 */
     left: 50% !important;
     transform: translateX(-50%) !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 25px !important;
+    transition: bottom 0.5s ease-in-out;
+    /* ドラゴン登場時の移動を滑らかに */
 
-    /* 見た目の設定 */
+    /* --- ここからサイズアップの調整 --- */
     background: #fff;
     border: 3px solid #2c1810;
-    border-radius: 8px;
-    /* 角丸を少し控えめに */
-    padding: 6px 10px;
-    /* 余白を縮小 */
+    border-radius: 12px;
+    /* 角丸を少し大きくして柔らかい印象に */
+    padding: 12px 18px;
+    /* 余白を広げて、文字周りにゆとりを作る */
+
     width: max-content;
-    max-width: 180px;
-    /* 最大幅も制限 */
-    font-size: 9px;
-    /* フォントサイズをわずかに縮小 */
-    line-height: 1.3;
-    z-index: 200;
+    max-width: 240px;
+    /* 最大幅を広げて、長文でも窮屈にしない */
+
+    font-size: 12px;
+    /* 文字を読みやすい大きさにアップ */
+    line-height: 1.5;
+    /* 行間を広げて読みやすく */
+    /* ------------------------------ */
+
+    color: #2c1810;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    z-index: 1000 !important;
+    /* ドラゴンより確実に前面へ */
+    pointer-events: none;
 }
 
+/* 成体ドラゴン登場時の高度調整：巨大化したドラゴンの頭上に配置 */
+.character-wrapper.dragon-active .character-message {
+    position: absolute;
+    bottom: 250px !important;
+    /* px指定で高さを完全固定 */
+    z-index: 10;
+    /* セリフは一番手前 */
+    /* ドラゴン(280px)のさらに上へ */
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 30px !important;
+    transition: bottom 0.4s ease-out;
+    /*z-index: 1000 !important;*/
+    /* 最前面を死守 */
+}
+
+/* スマホ対応（縦長画面）の調整 */
 @media (max-width: 420px) {
-    .character-message {
-        margin-bottom: 44px;
-        /* ← スマホは余裕を作る */
+    .character-wrapper.dragon-active .character-message {
+        bottom: 260% !important;
+        /* スマホではさらに高く設定して視認性を確保 */
+        width: 90%;
+        left: 5%;
+        margin-bottom: 10px !important;
     }
 }
-
 
 /* しっぽ（白）：本体の枠のすぐ下に配置 */
 .character-message::after {
@@ -942,7 +1230,7 @@ textarea {
     border-right: 10px solid transparent !important;
     border-top: 10px solid #fff !important;
     border-bottom: none !important;
-    z-index: 199 !important;
+    z-index: 1001 !important;
 }
 
 /* しっぽの枠線（茶）：白のすぐ後ろに配置 */
@@ -958,7 +1246,7 @@ textarea {
     border-right: 12px solid transparent !important;
     border-top: 13px solid #2c1810 !important;
     border-bottom: none !important;
-    z-index: 198 !important;
+    z-index: 999 !important;
 }
 
 .player-sprite {
@@ -1527,27 +1815,45 @@ textarea {
     box-shadow: 0 4px #1b441b;
 }
 
-/* PAUSEボタン固有の見た目 */
+/* --- 共通：ボタンの基本の形（崩れないように固定） --- */
 .pause-button-mvp {
-    background: #e67e22;
-    /* キャンプファイヤーのオレンジ */
-    border: 4px solid #a04a1b;
-    color: #fff;
-    box-shadow: 0 4px #873d16;
+    width: 140px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
+/* 1. 勉強中（PAUSE）の色：やる気のオレンジ */
+.pause-button-mvp {
+    background: #f39c12;
+    border: 4px solid #e67e22;
+    color: #fff;
+    box-shadow: 0 4px #d35400;
+}
+
+/* 2. ポーズ中（RESUME）の色：キャンプの緑 */
+.pause-button-mvp.is-paused {
+    background: #357132 !important;
+    border: 4px solid #a04a1b !important;
+    color: #fff !important;
+    box-shadow: 0 4px #873d16 !important;
+}
+
+/* ボタンを押した時の「カチッ」とする沈み込み演出 */
 .pause-button-mvp:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px #873d16;
+    box-shadow: 0 0 transparent !important;
+    transform: translateY(4px) !important;
 }
 
 /* クラス名が正しく当たっているか確認 */
 .timer-controls-mvp .pause-button-mvp {
     display: inline-block;
     /* hiddenが外れた時に確実に見せる */
-    background: #e67e22 !important;
-    /* オレンジを強制 */
-    color: white !important;
 }
 
 .stop-button-mvp {
@@ -3380,4 +3686,92 @@ body.gacha-mode {
 
 #subject-warning-modal:not(.hidden) {
     display: flex !important;
+}
+
+/* ========================================
+   アイテム破棄演出（ポイ捨て）
+   ======================================== */
+.item-discard-animation {
+    animation: discardRiseFade 0.7s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards !important;
+    pointer-events: none;
+    z-index: 2000;
+}
+
+@keyframes discardRiseFade {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-80px) scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* 破棄時のキラキラパーティクル */
+.discard-particle {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border: 2px solid #ffd700;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2100;
+    animation: particleFly 0.6s ease-out forwards;
+}
+
+@keyframes particleFly {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+    }
+}
+
+/* ポイ捨てトースト（スッキリ！） */
+.discard-toast {
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #ffd43b;
+    padding: 15px 30px;
+    border-radius: 4px;
+    border: 3px solid #6fa66f;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: "DotGothic16", sans-serif;
+    white-space: nowrap;
+    animation: toastPop 1.8s ease-out forwards;
+}
+
+@keyframes toastPop {
+    0% {
+        transform: translate(-50%, -30%);
+        opacity: 0;
+    }
+
+    15% {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+
+    85% {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -70%);
+        opacity: 0;
+    }
 }

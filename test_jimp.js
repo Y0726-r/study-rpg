@@ -4,10 +4,18 @@ const path = require('path');
 
 async function processImages() {
     const dir = 'assets/opening_movie';
-    const files = ['cloud.png', 'cloud2.png', 'map.png'];
+    const files = [
+        'cloud.png', 'cloud2.png', 'map.png',
+        'egg1.png', 'egg2.png',
+        'gold_dragon.png', 'red_dragon.png', 'blue_dragon.png', 'green_dragon.png'
+    ];
 
     for (const file of files) {
         const filePath = path.join(dir, file);
+        if (!fs.existsSync(filePath)) {
+            console.log(`Skipping (not found): ${file}`);
+            continue;
+        }
         try {
             const image = await Jimp.read(filePath);
             console.log(`Processing: ${file}`);
@@ -17,7 +25,7 @@ async function processImages() {
                 const b = this.bitmap.data[idx + 2];
                 const a = this.bitmap.data[idx + 3];
 
-                // Remove pure white and very close to white
+                // Remove pure white and very close to white (background removal)
                 if (r > 240 && g > 240 && b > 240) {
                     this.bitmap.data[idx + 3] = 0;
                 }
