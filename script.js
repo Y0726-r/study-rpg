@@ -1425,7 +1425,7 @@ function useItem(itemId) {
 
 function confirmReset() {
     showConfirmModal(
-        "きろくを けす",
+        "DATA RESET",
         "いままでの　ぼうけんの　きろくを\nすべて　けして　しまいますか？\n（この　そうさは　とりけせません！）",
         () => {
             localStorage.removeItem('studyQuestData');
