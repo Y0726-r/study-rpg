@@ -1975,3 +1975,60 @@ function updateCharacterMessage(force = false) {
         messageEl.textContent = messages[randomIndex];
     }
 }
+
+// ========================================
+// 💾 バックアップ機能（準備用）
+// ========================================
+
+/**
+ * 現在のセーブデータを「ふっかつのじゅもん（Base64文字列）」へ変換する
+ * 将来的に「バックアップ機能」としてUIに組み込むための準備関数
+ */
+window.getBackupCode = function() {
+    try {
+        const json = JSON.stringify(gameData);
+        // 日本語対応のために encodeURIComponent を噛ませてから Base64 化
+        const code = btoa(encodeURIComponent(json));
+        console.log("📋 バックアップコードを生成しました（コピーして保管してください）:");
+        console.log(code);
+        return code;
+    } catch (e) {
+        console.error("❌ バックアップコードの生成に失敗しました", e);
+        return null;
+    }
+};
+
+/**
+ * 「ふっかつのじゅもん（Base64文字列）」からデータを復元する
+ * @param {string} code - バックアップコード
+ */
+window.restoreBackupCode = function(code) {
+    try {
+        if (!code) {
+            console.error("❌ 無効なコードです");
+            return false;
+        }
+        
+        // Base64 デコード -> URLデコード -> JSONパース
+        const json = decodeURIComponent(atob(code));
+        const data = JSON.parse(json);
+
+        // 簡易的なデータ整合性チェック
+        if (!data.player || !data.inventory) {
+            throw new Error("Invalid Save Data Structure");
+        }
+
+        // 復元実行
+        gameData = data;
+        saveGameData();
+        
+        // 画面リロードして反映
+        alert("✨ データの復元に成功しました！");
+        location.reload();
+        return true;
+    } catch (e) {
+        console.error("❌ データの復元に失敗しました。コードが正しいか確認してください。", e);
+        alert("❌ データの復元に失敗しました。コードが間違っている可能性があります。");
+        return false;
+    }
+};
