@@ -1683,7 +1683,7 @@ function confirmDiscard(itemId) {
 
     showConfirmModal(
         "どうぐを すてる",
-        `${item.name} を　すてますか？\n（いちど すてると　にどと　もどりません！）`,
+        `${item.name}を　すててしまうのですか？`,
         () => discardItem(itemId)
     );
 }
@@ -1692,20 +1692,23 @@ function discardItem(itemId) {
     const index = gameData.inventory.findIndex(i => i.id === itemId);
     if (index === -1) return;
 
-    const item = gameData.inventory[index];
-    const itemName = item.name;
+    const inventoryItem = gameData.inventory[index];
+    // Find master item to check strict type
+    const masterItem = ITEM_MASTER.find(mi => mi.id === inventoryItem.id) || inventoryItem;
 
     // 1. 演出の実行
     const cardElement = document.querySelector(`.item-list-card[data-id="${itemId}"]`);
+    let duration = 700;
+
     if (cardElement) {
-        createDiscardEffect(cardElement, itemName);
+        duration = createDiscardEffect(cardElement, masterItem);
     }
 
     // 2. 演出が終わるのを待ってから実際に削除
     setTimeout(() => {
-        item.count--;
+        inventoryItem.count--;
 
-        if (item.count <= 0) {
+        if (inventoryItem.count <= 0) {
             // 装備中なら外す
             const equipment = gameData.player.equipment || {};
             Object.keys(equipment).forEach(slot => {
@@ -1719,16 +1722,56 @@ function discardItem(itemId) {
         saveGameData();
         updateInventoryScreen();
         updateHomeScreen();
-    }, 700); // CSSアニメーションの時間(0.7s)に合わせる
+    }, duration);
 }
 
 /**
  * アイテム破棄時のエフェクト生成
  */
-function createDiscardEffect(element, itemName) {
-    if (!element) return;
+function createDiscardEffect(element, masterItem) {
+    if (!element) return 600;
 
-    // パーティクル発生
+    const itemName = masterItem.name;
+    const type = masterItem.type;
+
+    let animClass = 'anim-drop';
+    let message = `${itemName}を　かなたへ　なげすてた！スッキリした！`;
+    let duration = 600;
+
+    // タイプ別分岐
+    if (type === 'trash') {
+        animClass = 'anim-drop';
+        message = `${itemName}を　かなたへ　なげすてた！スッキリした！`;
+        duration = 600;
+    } else if (type === 'consumable') {
+        animClass = 'anim-blink';
+        message = `${itemName}を　しょぶんした。また　ひつようなら　てにいれよう。`;
+        duration = 600;
+    } else if (['weapon', 'armor', 'shield', 'accessory'].includes(type)) {
+        animClass = 'anim-rise';
+        message = `${itemName}は　ひかりのなかへ　きえていった…いままで　ありがとう！`;
+        duration = 800;
+
+        // 装備品の場合のみパーティクル発生
+        createDiscardParticles(element);
+    }
+
+    // アニメーションクラス付与
+    element.classList.add(animClass);
+
+    // メッセージトースト
+    setTimeout(() => {
+        const toast = document.createElement('div');
+        toast.className = 'discard-toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+    }, 300);
+
+    return duration;
+}
+
+function createDiscardParticles(element) {
     const rect = element.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
@@ -1748,18 +1791,6 @@ function createDiscardEffect(element, itemName) {
         document.body.appendChild(p);
         setTimeout(() => p.remove(), 600);
     }
-
-    // カード自体のフェードアウト上昇
-    element.classList.add('item-discard-animation');
-
-    // 「スッキリ！」トースト
-    setTimeout(() => {
-        const toast = document.createElement('div');
-        toast.className = 'discard-toast';
-        toast.textContent = `✨ ${itemName}をポイ捨てしました（スッキリ！）`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 1800);
-    }, 300);
 }
 
 function showItemDescription(itemId) {
