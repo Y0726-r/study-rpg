@@ -706,7 +706,8 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 8;
+    z-index: 2000 !important;
+    /* Screen(1000)よりも大きくする */
     /* Celestial(5) の上、Screen(10) の下 */
     transition: all 2s ease;
     display: block;
@@ -720,7 +721,8 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 5;
+    z-index: 5 !important;
+    /* Screen(1000)より小さいままでOK */
     /* 背景(Body)の上、TimeOverlay(8)・Screen(10)の下 */
     overflow: hidden;
     background: transparent !important;
@@ -777,8 +779,10 @@ body {
 
 /* 夜 (19-4時): 暗く、青みを強く */
 .time-night {
-    background-color: rgba(10, 20, 80, 0.45);
-    backdrop-filter: brightness(0.6) contrast(1.1) hue-rotate(200deg);
+    background-color: rgba(20, 20, 60, 0.35) !important;
+    /* 0.45から0.35に下げて少し明るく */
+    backdrop-filter: brightness(0.7) contrast(1.1);
+    /* 強すぎる色相回転(hue-rotate)を消す */
 }
 
 /* ========================================
@@ -798,7 +802,7 @@ body {
     padding: 32px;
     /* Increased padding for the border */
     animation: fadeIn 0.3s ease;
-    z-index: 10;
+    z-index: 1000 !important;
     /* Ensure UI and character are above the time tint */
     border: 24px solid transparent;
     border-image: url('./assets/ui_frame.png') 30 30 round;
@@ -4296,4 +4300,77 @@ img,
     to {
         left: -150px;
     }
+}
+
+/* --- 天体と画面の重なり調整 --- */
+
+/* ホーム画面（フィールド）は透明にして後ろの太陽・月を見せる */
+#home-screen {
+    background-color: transparent !important;
+}
+
+/* --- 修正：画面を真っ黒にしない設定 --- */
+
+/* 1. 全ての画面（.screen）の塗りつぶしを一度リセットして透明に戻す */
+#home-screen,
+#study-screen,
+#gacha-screen,
+#status-screen,
+#menu-screen,
+#log-screen {
+    background-color: transparent !important;
+}
+
+/* 2. その代わり、ホーム画面以外では天体レイヤーそのものを「後ろ」に追い出す */
+/* JSで制御するのが一番確実ですが、まずはこれで試してみてください */
+.screen:not(#home-screen).active~#celestial-layer {
+    display: none !important;
+}
+
+/* 月が自作の三日月になった時のための最終位置・サイズ調整（必要なら） */
+#moon-element {
+    width: 70px;
+    /* お好みのサイズに微調整してください */
+    height: 70px;
+    z-index: 120 !important;
+    /* 雲(110)より手前 */
+}
+
+/* --- 最終レイヤー調整 --- */
+
+/* --- 最終：夜のホラー演出を幻想的に変える --- */
+
+/* 1. 夜の色を「不気味な青」から「深い紺色」へ、透明度を下げて明るく */
+.time-night {
+    background-color: rgba(15, 15, 50, 0.3) !important;
+    /* 0.35から0.3へ下げて透過度アップ */
+    backdrop-filter: brightness(0.8) contrast(1.05) !important;
+    /* 強すぎる暗さを緩和 */
+}
+
+/* 2. 時間フィルターを勇者(10)やUI(1000)より「後ろ」に完全に下げる */
+.time-overlay {
+    z-index: 2 !important;
+    /* 背景(0)のすぐ上、太陽・月(5)のすぐ上に配置 */
+}
+
+/* 3. 勇者やUIをクッキリ見せるための z-index 優先順位 */
+.character-wrapper {
+    z-index: 100 !important;
+    /* 勇者はフィルターより前 */
+}
+
+.screen {
+    z-index: 1000 !important;
+    /* UI枠やボタンは一番手前 */
+}
+
+/* 4. 自作の月を「枠」から救出し、温かい光にする */
+#moon-element {
+    top: 25% !important;
+    /* 位置をさらに少し下げて、枠に被らないように */
+    width: 65px !important;
+    height: 65px !important;
+    /* 黄色〜オレンジの光(255, 200, 100)にして温かみを出す */
+    filter: drop-shadow(0 0 15px rgba(255, 220, 100, 0.9)) brightness(1.2) !important;
 }

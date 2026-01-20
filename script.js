@@ -40,12 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // または、最初は強制的に隠しておきます
         document.getElementById('sun-element').classList.add('hidden');
         document.getElementById('moon-element').classList.add('hidden');
-
+        // 1分ごとの自動更新ループだけ作っておく
         setInterval(() => {
             updateTimeBackgroundEffect();
-            updateCelestialCycle(); // ここで1分ごとにチェックして、適切な方を表示する
-        }, 10000);
-
+            updateCelestialCycle();
+        }, 60000);
         console.log("🎮 ゲームデータ読み込み中（ムービー表示中）...");
     }, 100);
 });
@@ -1061,6 +1060,16 @@ function showScreen(screenId) {
         document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.subject === gameData.currentSubject);
         });
+    }
+
+    // 天体レイヤーの表示制御（ホーム画面のみ表示）
+    const celestial = document.getElementById('celestial-layer');
+    if (celestial) {
+        if (screenId === 'home-screen') {
+            celestial.style.display = 'block';
+        } else {
+            celestial.style.display = 'none';
+        }
     }
 }
 
