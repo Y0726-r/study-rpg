@@ -34,13 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 5. 時間連動背景システム & 天体サイクルの初期化
         updateTimeBackgroundEffect();
+        updateCelestialCycle(); // ←【重要】1分待たずに、今すぐ空の状態を判定する！
 
-        // 【修正ポイント】
-        // 最初は天体を表示せず、1分後の最初の更新から表示が始まるようにします
-        // または、最初は強制的に隠しておきます
-        document.getElementById('sun-element').classList.add('hidden');
-        document.getElementById('moon-element').classList.add('hidden');
-        // 1分ごとの自動更新ループだけ作っておく
+        // その後は、今まで通り1分ごとに更新し続ける
         setInterval(() => {
             updateTimeBackgroundEffect();
             updateCelestialCycle();
@@ -96,7 +92,8 @@ let startTime = null;
 let elapsedBeforePause = 0;
 
 // タイマーのアラート音
-const alertSound = new Audio('./assets/sounds/alert.mp3');
+// タイマーのアラート音
+const alertSound = new Audio('./assets/sounds/alart.mp3');
 
 // Notification permission request wrapper
 function requestNotificationPermission() {
@@ -259,6 +256,8 @@ function updateCelestialCycle() {
 
     // 太陽: 6:00 ～ 18:59 (19時手前まで)
     // 月: 19:00 ～ 5:59
+
+
 
     if (hour >= 6 && hour < 19) {
         // 太陽を表示
@@ -1071,6 +1070,9 @@ function showScreen(screenId) {
             celestial.style.display = 'none';
         }
     }
+
+    // 画面切り替え時に天体サイクルも更新（オープニングスキップ後の表示復帰などに対応）
+    updateCelestialCycle();
 }
 
 // ========================================
@@ -1178,18 +1180,14 @@ function updateCharacterAppearance() {
                     const cacheBuster = `?t=${new Date().getTime()}`;
                     img.src = part.src + cacheBuster;
 
-                    // クラス設定
-                    if (order.slot === 'foot') {
-                        img.className = 'independent-boots-final';
-                    } else {
-                        img.className = 'equipment-sprite-only';
-                    }
-
-                    // 背景と枠線の抹殺（JS側での最終防衛）
-                    img.style.setProperty('background', 'none', 'important');
-                    img.style.setProperty('border', 'none', 'important');
                     img.style.setProperty('box-shadow', 'none', 'important');
                     img.style.setProperty('outline', 'none', 'important');
+
+                    // アニメーション適用（全装備共通で勇者と一緒に跳ねる）
+                    img.classList.add('forelockBounce');
+
+                    // クラス設定（特別なクラスは廃止し、共通のスタイルを適用）
+                    img.className += ' equipment-sprite-only';
 
                     // 配置設定
                     const w = visuals.width || 100;
@@ -1672,6 +1670,9 @@ function saveStudySession() {
         </div>
     `;
     showMessageModal("STUDY COMPLETE", studyResultMessage);
+
+    // ログ画面も即座に更新しておく
+    updateLogScreen();
 }
 
 // --- 消しゴムのカス（努力の証）出現チェック ---
@@ -1697,6 +1698,7 @@ function checkAndAwardEraserDust() {
                 // 保存が成功してからカウンターを同期
                 gameData.eraserDustAwardedCount++;
                 saveGameData();
+                updateInventoryScreen(); // インベントリ画面も更新
                 console.log("✅ 努力の結晶を保存しました。現在のカウント:", gameData.eraserDustAwardedCount);
             } else {
                 console.error("❌ 努力の結晶の追加に失敗しました。カバンがいっぱいの可能性があります。");
@@ -1909,7 +1911,26 @@ function drawGachaItem() {
     }
 
     // 指定レアリティのアイテムからランダム選択
-    const itemsOfRarity = GACHA_ITEMS.filter(item => item.rarity === rarity);
+    // 指定レアリティのアイテムからランダム選択
+    // 累計勉強時間の計算
+    const totalMinutes = gameData.studyLogs.reduce((sum, log) => sum + log.minutes, 0);
+
+    // 【10時間の壁 (600分ルール)】
+    // 600分未満なら「消しゴムのカス(ID:16)」を排出リストから完全に除外する
+    let itemsOfRarity = GACHA_ITEMS.filter(item => item.rarity === rarity);
+
+    if (totalMinutes < 600) {
+        itemsOfRarity = itemsOfRarity.filter(item => Number(item.id) !== 16);
+        // 万が一、そのレアリティがID:16しかなくてリストが空になった場合の保険
+        if (itemsOfRarity.length === 0) {
+            // 他のアイテムがあればそれにする、なければポーション(ID:1)などを強制で返す
+            return ITEM_MASTER.find(i => i.id === 1) || ITEM_MASTER[0];
+        }
+    } else {
+        // 600分以上なら制限なし（ID:16も含めて抽選）
+        console.log("🔓 10時間の壁突破済み: 消しゴムのカスチャンスあり");
+    }
+
     const randomItem = itemsOfRarity[Math.floor(Math.random() * itemsOfRarity.length)];
 
     return randomItem;
@@ -2042,6 +2063,8 @@ function closeGachaResult() {
 
 function updateInventoryScreen() {
     console.log("Updating inventory screen...");
+    console.log("Current Inventory Data:", JSON.parse(JSON.stringify(gameData.inventory))); // Debug logging
+
     const container = document.getElementById('inventory-container');
     const currentCountEl = document.getElementById('current-inv-count');
     const maxCountEl = document.getElementById('max-inv-count');
@@ -2060,55 +2083,85 @@ function updateInventoryScreen() {
     container.innerHTML = '';
 
     gameData.inventory.forEach(item => {
-        const card = document.createElement('div');
+        try {
+            const card = document.createElement('div');
 
-        // Always refer to masterItem for canonical display properties
-        const masterItem = ITEM_MASTER.find(mi => mi.id === Number(item.id));
-        const displayItem = masterItem || item; // Fallback to inventory record
+            // 1. Try to find in Master Data
+            const masterItem = ITEM_MASTER.find(mi => Number(mi.id) === Number(item.id));
 
-        const equipment = gameData.player.equipment || {};
-        const isEquipped = Object.values(equipment).some(eq => eq && Number(eq.id) === Number(item.id));
+            // 2. Fallback Logic
+            let displayItem = masterItem;
 
-        card.className = `item-list-card rarity-${displayItem.rarity} ${isEquipped ? 'equipped' : ''}`;
-        card.setAttribute('data-id', item.id);
+            if (!displayItem) {
+                console.warn(`Item ID ${item.id} not found in ITEM_MASTER. Using inventory data.`);
+                displayItem = item;
+            }
 
-        // Add click listener to show description
-        card.onclick = (e) => {
-            if (e.target.tagName === 'BUTTON') return;
-            showItemDescription(item.id);
-        };
+            // 3. Ensure essential properties exist (Prevent crash/empty display)
+            const safeName = displayItem.name || `Unknown (ID:${item.id})`;
+            const safeRarity = displayItem.rarity || 1;
+            const safeType = displayItem.type || 'misc';
+            // file is handled by getItemSpriteStyle helper, but we should ensure fallback there too if needed.
 
-        const style = getItemSpriteStyle(displayItem);
-        const iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${style.backgroundImage} !important; background-position: ${style.backgroundPosition} !important; background-size: ${style.backgroundSize} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
+            // Construct a temporary safe display object
+            const safeDisplayItem = {
+                ...displayItem,
+                name: safeName,
+                rarity: safeRarity,
+                type: safeType,
+                file: displayItem.file || displayItem.name + ".png" // Fallback file name
+            };
 
-        let actionBtn = '';
-        const equippableTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot'];
-        if (equippableTypes.includes(displayItem.type)) {
-            const btnText = isEquipped ? 'UNEQUIP' : 'EQUIP';
-            const btnClass = isEquipped ? 'unequip' : 'equip';
-            actionBtn = `<button class="item-action-btn ${btnClass}" onclick="toggleEquip(${item.id})">${btnText}</button>`;
-        } else if (displayItem.type === 'consumable' || displayItem.type === 'infinite') {
-            actionBtn = `<button class="item-action-btn use" onclick="useItem(${item.id})">USE</button>`;
-        }
+            const equipment = gameData.player.equipment || {};
+            const isEquipped = Object.values(equipment).some(eq => eq && Number(eq.id) === Number(item.id));
 
-        // Add Discard button
-        const discardBtn = `<button class="item-action-btn discard" onclick="confirmDiscard(${item.id})">DISCARD</button>`;
+            card.className = `item-list-card rarity-${safeRarity} ${isEquipped ? 'equipped' : ''}`;
+            card.setAttribute('data-id', item.id);
 
-        card.innerHTML = `
-            ${iconHtml}
-            <div class="card-main">
-                <div class="card-title">${displayItem.name} ${isEquipped ? '<span class="eq-tag">(E)</span>' : ''}</div>
-                <div class="card-subtitle">${'★'.repeat(displayItem.rarity)}</div>
-            </div>
-            <div class="card-right">
-                <div class="card-badge">×${item.count}</div>
-                <div class="item-actions-row">
-                    ${actionBtn}
-                    ${discardBtn}
+            // Add click listener to show description
+            card.onclick = (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                showItemDescription(item.id);
+            };
+
+            const style = getItemSpriteStyle(safeDisplayItem);
+            // Ensure valid background image style
+            const cleanBgImage = style.backgroundImage && style.backgroundImage !== "url('undefined')" ? style.backgroundImage : "none";
+
+            const iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${cleanBgImage} !important; background-position: ${style.backgroundPosition || 'center'} !important; background-size: ${style.backgroundSize || 'contain'} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
+
+            let actionBtn = '';
+            const equippableTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot'];
+            if (equippableTypes.includes(safeType)) {
+                const btnText = isEquipped ? 'UNEQUIP' : 'EQUIP';
+                const btnClass = isEquipped ? 'unequip' : 'equip';
+                actionBtn = `<button class="item-action-btn ${btnClass}" onclick="toggleEquip(${item.id})">${btnText}</button>`;
+            } else if (safeType === 'consumable' || safeType === 'infinite') {
+                actionBtn = `<button class="item-action-btn use" onclick="useItem(${item.id})">USE</button>`;
+            }
+
+            // Add Discard button
+            const discardBtn = `<button class="item-action-btn discard" onclick="confirmDiscard(${item.id})">DISCARD</button>`;
+
+            card.innerHTML = `
+                ${iconHtml}
+                <div class="card-main">
+                    <div class="card-title">${safeName} ${isEquipped ? '<span class="eq-tag">(E)</span>' : ''}</div>
+                    <div class="card-subtitle">${'★'.repeat(safeRarity)}</div>
                 </div>
-            </div>
-        `;
-        container.appendChild(card);
+                <div class="card-right">
+                    <div class="card-badge">×${item.count}</div>
+                    <div class="item-actions-row">
+                        ${actionBtn}
+                        ${discardBtn}
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        } catch (e) {
+            console.error("Failed to render item:", item, e);
+            // Optionally append a placeholder error card
+        }
     });
 }
 
