@@ -452,6 +452,41 @@
     animation: dragonFloatCentered 4s ease-in-out infinite;
 }
 
+/* Jump Animation for Dragon */
+.dragon-companion.jump-active {
+    animation: dragonJump 0.6s cubic-bezier(0.28, 0.84, 0.42, 1) !important;
+}
+
+@keyframes dragonJump {
+    0% {
+        transform: translateY(0) scale(1, 1);
+    }
+
+    10% {
+        transform: translateY(5px) scale(1.1, 0.9);
+    }
+
+    /* 溜め */
+    40% {
+        transform: translateY(-30px) scale(0.9, 1.1);
+    }
+
+    /* ジャンプ */
+    60% {
+        transform: translateY(0) scale(1, 1);
+    }
+
+    /* 着地 */
+    70% {
+        transform: translateY(3px) scale(1.05, 0.95);
+    }
+
+    /* バウンド */
+    100% {
+        transform: translateY(0) scale(1, 1);
+    }
+}
+
 .character-wrapper.dragon-active #dragon-img {
     width: 320px !important;
     bottom: -20px;
@@ -662,6 +697,91 @@ body {
 }
 
 /* ========================================
+   時間連動背景システム (Time-based Background System)
+   ======================================== */
+.time-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 8;
+    /* Celestial(5) の上、Screen(10) の下 */
+    transition: all 2s ease;
+    display: block;
+}
+
+/* 天体サイクル (Sun & Moon Cycle) */
+.celestial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+    /* 背景(Body)の上、TimeOverlay(8)・Screen(10)の下 */
+    overflow: hidden;
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.celestial-body {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    image-rendering: pixelated;
+    transition: all 1s linear;
+    /* ゆっくり移動 */
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.sky-element {
+    background-color: transparent !important;
+    /* 背景を完全に透明に */
+    border: none !important;
+    /* 枠線を消す */
+    box-shadow: none !important;
+    /* 影を消す */
+    pointer-events: none;
+    /* クリックの邪魔をしない */
+}
+
+.celestial-body.hidden {
+    display: none;
+}
+
+/* 早朝 (4-8時): 少し青白く、透明感のある明るさ */
+.time-morning {
+    background-color: rgba(135, 206, 250, 0.15);
+    backdrop-filter: brightness(1.1) sepia(0.1) hue-rotate(10deg);
+}
+
+/* 日中 (8-16時): 標準 */
+.time-day {
+    background-color: transparent;
+    backdrop-filter: none;
+}
+
+/* 夕方 (16-19時): 暖色系（オレンジ） */
+.time-evening {
+    background-color: rgba(255, 140, 0, 0.2);
+    backdrop-filter: sepia(0.4) brightness(0.9) saturate(1.5);
+}
+
+/* 夜 (19-4時): 暗く、青みを強く */
+.time-night {
+    background-color: rgba(10, 20, 80, 0.45);
+    backdrop-filter: brightness(0.6) contrast(1.1) hue-rotate(200deg);
+}
+
+/* ========================================
    画面切り替え
    ======================================== */
 .screen {
@@ -678,6 +798,8 @@ body {
     padding: 32px;
     /* Increased padding for the border */
     animation: fadeIn 0.3s ease;
+    z-index: 10;
+    /* Ensure UI and character are above the time tint */
     border: 24px solid transparent;
     border-image: url('./assets/ui_frame.png') 30 30 round;
     background-color: transparent;
@@ -1120,13 +1242,21 @@ textarea {
     border: 4px solid #6b4400;
     box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(107, 68, 0, 0.2);
     border-radius: 4px;
-    padding: 40px;
+    padding: 10px 20px !important;
+    /* 上下の余白をギュッと詰める */
+    min-height: auto !important;
+    /* 変な高さ制限を解除 */
     position: relative;
     /* Texture pattern */
     background-image: linear-gradient(45deg, #dccfb8 25%, transparent 25%, transparent 75%, #dccfb8 75%, #dccfb8),
         linear-gradient(45deg, #dccfb8 25%, transparent 25%, transparent 75%, #dccfb8 75%, #dccfb8);
     background-size: 20px 20px;
     background-position: 0 0, 10px 10px;
+}
+
+#message-modal-content {
+    margin: 5px 0 15px 0 !important;
+    /* 文字周りの隙間も最小限に */
 }
 
 .rpg-bg-img {
@@ -1141,16 +1271,41 @@ textarea {
     bottom: 0px;
     left: 50%;
     transform: translateX(-50%);
-    width: 140px;
-    height: 140px;
+    width: 140px !important;
+    height: 140px !important;
     /* ★重要：吹き出しの % 計算の基準 */
-    z-index: 100;
+    z-index: 50;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
     /* 地面に足を付ける */
+    /* 地面に足を付ける */
     filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
+    pointer-events: none;
+    /* 透明な余白部分のクリックを無効化 */
+}
+
+/* 内部のクリック可能な要素だけ復活させる */
+.character-wrapper>* {
+    pointer-events: auto;
+}
+
+.independent-boots-final {
+    position: absolute !important;
+    z-index: 100 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    filter: none !important;
+    pointer-events: none;
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: pixelated !important;
+    image-rendering: crisp-edges !important;
+    object-fit: contain !important;
 }
 
 
@@ -1252,7 +1407,8 @@ textarea {
 
 .player-sprite {
     width: 100%;
-    height: auto;
+    height: 100%;
+    /* 高さも親に合わせる */
     object-fit: contain;
     image-rendering: pixelated;
     background: transparent !important;
@@ -1260,17 +1416,19 @@ textarea {
     /* 勇者の待機モーション：足元を固定して前髪が弾むような動き */
     transform-origin: bottom center;
     animation: forelockBounce 1.0s steps(2) infinite;
+    pointer-events: auto !important;
+    /* 主人公をクリック可能にする（経験値確認など） */
 }
 
 @keyframes forelockBounce {
 
     0%,
     100% {
-        transform: scale(1, 1);
+        transform: scale(var(--x-scale, 1), 1);
     }
 
     50% {
-        transform: scale(1, 1.02);
+        transform: scale(var(--x-scale, 1), 1.02);
     }
 
     /* 極めて微細な「ピョコン」 */
@@ -1286,6 +1444,8 @@ textarea {
     align-items: flex-end;
     /* 底面合わせ */
     transform-origin: bottom center;
+    pointer-events: none;
+    /* コンテナ自体はクリック透過 */
 }
 
 .character-motion.jump-active {
@@ -3858,24 +4018,27 @@ body.gacha-mode {
     pointer-events: none;
 }
 
-/* Equipment Layering System */
-.equipment-layer {
+/* Equipment Layering System - Renamed to avoid conflicts */
+.equipment-sprite-only {
     position: absolute;
-    bottom: 0;
-    left: 0;
     width: 100%;
     height: auto;
     object-fit: contain;
-    image-rendering: pixelated;
+    display: block !important;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
     pointer-events: none;
     /* Sync animation with base body */
     transform-origin: bottom center;
     animation: forelockBounce 1.0s steps(2) infinite;
-    background: transparent !important;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    mix-blend-mode: normal !important;
 }
 
-.player-layers-container,
-.player-layers-container * {
+.player-layers-container {
     background: transparent !important;
 }
 
@@ -3912,5 +4075,225 @@ body.gacha-mode {
     100% {
         transform: scale(1.0) translateY(0);
         opacity: 1;
+    }
+}
+
+/* --- キラキラ（パーティクル）の基本スタイル --- */
+.sparkle-particle {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    pointer-events: none;
+    z-index: 10000;
+    border-radius: 50%;
+    /* 丸いキラキラ */
+    animation: sparkle-animation 0.8s ease-out forwards;
+}
+
+/* --- キラキラが飛び散る動き --- */
+@keyframes sparkle-animation {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        /* JS側で設定した --tx, --ty の方向に飛んでいく */
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+    }
+}
+
+/* --- アイテム破棄・使用時のテキスト（ふわっと浮き上がる数字） --- */
+.floating-text {
+    position: fixed;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 10001;
+    text-shadow: 2px 2px #000;
+    animation: float-up 1.5s ease-out forwards;
+}
+
+@keyframes float-up {
+    0% {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -100px);
+        opacity: 0;
+    }
+}
+
+/* --- アイテムを捨てた時のメッセージ（下からスッと出る） --- */
+.discard-toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 10px 20px;
+    border: 2px solid #fff;
+    font-size: 10px;
+    z-index: 10002;
+    pointer-events: none;
+    animation: toast-fade 2.5s ease-in-out forwards;
+}
+
+@keyframes toast-fade {
+    0% {
+        opacity: 0;
+        bottom: 80px;
+    }
+
+    10% {
+        opacity: 1;
+        bottom: 100px;
+    }
+
+    90% {
+        opacity: 1;
+        bottom: 100px;
+    }
+
+    100% {
+        opacity: 0;
+        bottom: 120px;
+    }
+}
+
+/* レア度3専用：主人公を光らせるアニメーション */
+@keyframes holy-light-wrap {
+    0% {
+        filter: brightness(1);
+        transform: scale(1);
+    }
+
+    50% {
+        filter: brightness(2.5) drop-shadow(0 0 20px gold);
+        transform: scale(1.05);
+    }
+
+    100% {
+        filter: brightness(1);
+        transform: scale(1);
+    }
+}
+
+.holy-glow {
+    animation: holy-light-wrap 1.5s ease-in-out;
+    position: relative;
+    z-index: 200;
+    /* エフェクトの中でも手前に */
+}
+
+/* 聖なる光の輪 */
+.holy-ring {
+    position: fixed;
+    width: 20px;
+    height: 10px;
+    border: 4px solid rgba(255, 215, 0, 0.8);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.4);
+    pointer-events: none;
+    z-index: 10000;
+    opacity: 0;
+    animation: ring-expand 0.8s ease-out forwards;
+}
+
+@keyframes ring-expand {
+    0% {
+        width: 20px;
+        height: 10px;
+        opacity: 1;
+        border-width: 5px;
+    }
+
+    100% {
+        width: 300px;
+        height: 150px;
+        opacity: 0;
+        border-width: 0px;
+    }
+}
+
+/* モーダルの縦幅を無理やりコンパクトにする */
+.rpg-window {
+    padding: 10px 15px !important;
+    min-height: 80px !important;
+    /* 高すぎた設定を強制上書き */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#message-modal-content {
+    margin: 10px 0 !important;
+    line-height: 1.4 !important;
+}
+
+.ok-button {
+    margin-top: 5px !important;
+    padding: 8px !important;
+}
+
+/* 強制的にガチャリザルトを最前面へ */
+#gacha-result {
+    z-index: 30000 !important;
+    overflow: hidden !important;
+}
+
+/* 演出用アイコンのサイズを適正化 */
+.gacha-result .item-icon-mvp {
+    width: 140px !important;
+    height: 140px !important;
+    max-width: 200px !important;
+    max-height: 200px !important;
+    margin: 10px auto !important;
+    background-size: contain !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* 演出画面の中央配置と溢れ防止 */
+.result-content-mvp {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: auto !important;
+}
+
+/* プレミアム・レトロ演出：全画像をドット絵としてクッキリ表示 */
+img,
+.image-sprite,
+.card-icon-box,
+.item-icon-mvp {
+    image-rendering: pixelated !important;
+}
+
+/* 1枚目：左から右へ */
+@keyframes cloudFlow1 {
+    from {
+        left: -150px;
+    }
+
+    to {
+        left: 100%;
+    }
+}
+
+/* 2枚目：右から左へ */
+@keyframes cloudFlowReverse {
+    from {
+        left: 100%;
+    }
+
+    to {
+        left: -150px;
     }
 }

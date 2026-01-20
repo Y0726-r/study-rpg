@@ -11,6 +11,21 @@
 </head>
 
 <body>
+    <!-- タイムエフェクト・オーバーレイ（時間連動背景システム） -->
+    <div id="time-effect-layer" class="time-overlay"></div>
+
+    <!-- 天体サイクル（太陽と月） -->
+    <div id="celestial-layer" class="celestial-overlay" style="z-index: 100 !important;">
+        <img id="sun-element" src="./assets/sun.png" class="celestial-body sun sky-element hidden"
+            style="background: transparent !important;">
+        <img id="moon-element" src="./assets/moon.png" class="celestial-body moon sky-element hidden"
+            style="background: transparent !important; z-index: 120 !important; position: relative;">
+        <img id="cloud-element-1" src="assets/cloud2.png" style="position: absolute; top: 15%; left: -150px; width: 120px; z-index: 110 !important; 
+            pointer-events: none; animation: cloudFlow1 40s linear infinite;">
+        <img id="cloud-element-2" src="assets/cloud2.png" style="position: absolute; top: 25%; left: 100%; width: 100px; z-index: 110 !important; 
+            pointer-events: none; animation: cloudFlowReverse 30s linear infinite;">
+    </div>
+
     <!-- オープニングムービー・オーバーレイ -->
     <div id="opening-movie" class="opening-overlay screen active" onclick="skipOpening()">
         <div class="movie-scene">
@@ -84,6 +99,7 @@
                         <img id="dragon-img" src="" alt="Dragon">
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -375,7 +391,8 @@
     <!-- コイン不足モーダル -->
     <div id="coin-shortage-modal" class="modal hidden">
         <div class="modal-content rpg-window" style="text-align: center;">
-            <h2 class="screen-title-mvp" style="color: #e53e3e; font-size: 16px; margin-bottom: 10px;">NOT ENOUGH COINS
+            <h2 class="screen-title-mvp" style="color: #e53e3e; font-size: 16px; margin-bottom: 10px;">NOT ENOUGH
+                COINS
             </h2>
             <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
                 コインが足りません！<br>

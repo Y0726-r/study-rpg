@@ -29,11 +29,23 @@ document.addEventListener("DOMContentLoaded", () => {
     updateCharacterMessage();
 
     // 4. ゲームデータの初期化
-    // setTimeoutを使用して、レンダリングが完了してから実行
     setTimeout(() => {
         initGame();
-        // ここで showScreen('home-screen') を呼んでいた場合は、
-        // ムービーを確認するためにコメントアウト、または hasSeenOpening 無視でムービー維持
+
+        // 5. 時間連動背景システム & 天体サイクルの初期化
+        updateTimeBackgroundEffect();
+
+        // 【修正ポイント】
+        // 最初は天体を表示せず、1分後の最初の更新から表示が始まるようにします
+        // または、最初は強制的に隠しておきます
+        document.getElementById('sun-element').classList.add('hidden');
+        document.getElementById('moon-element').classList.add('hidden');
+
+        setInterval(() => {
+            updateTimeBackgroundEffect();
+            updateCelestialCycle(); // ここで1分ごとにチェックして、適切な方を表示する
+        }, 10000);
+
         console.log("🎮 ゲームデータ読み込み中（ムービー表示中）...");
     }, 100);
 });
@@ -41,6 +53,16 @@ document.addEventListener("DOMContentLoaded", () => {
 // ========================================
 // グローバル変数とゲームデータ
 // ========================================
+
+const BASE_CHARACTER_SIZE = 64; // 主人公スプライトの基準キャンバスサイズ (64x64)
+
+// 勉強科目の定義（カスタマイズ可能）
+const STUDY_SUBJECTS = [
+    { id: 'subject-qualification', label: '資格', type: 'qualification' },
+    { id: 'subject-language', label: '語学', type: 'language' },
+    { id: 'subject-business', label: 'ビジネス', type: 'business' },
+    { id: 'subject-other', label: 'その他', type: 'other' }
+];
 
 let gameData = {
     player: {
@@ -63,7 +85,9 @@ let gameData = {
         obtained: false,
         hatched: false,
         type: null // 'red', 'blue', 'green', 'gold'
-    }
+    },
+    // NEW: Pending effect for item usage
+    pendingEffect: null // { active: boolean, message: string, floatTexts: [{text, color}] }
 };
 
 // タイマー関連 (Session state, initialized from gameData at load)
@@ -72,11 +96,238 @@ let elapsedSeconds = 0;
 let startTime = null;
 let elapsedBeforePause = 0;
 
+// タイマーのアラート音
+const alertSound = new Audio('./assets/sounds/alert.mp3');
+
 // Notification permission request wrapper
 function requestNotificationPermission() {
     if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
     }
+}
+
+// Helper: Trigger Pending Effect on Home Screen
+function triggerPendingEffect() {
+    if (!gameData.pendingEffect || !gameData.pendingEffect.active) return;
+
+    const effectData = gameData.pendingEffect;
+
+    console.log("✨ Triggering Pending Effect...", effectData);
+
+    // 1. Visual Effect (Normal or Ultra Rare)
+    if (effectData.rarity && effectData.rarity >= 3) {
+        createUltraRareEffect();
+    } else {
+        createSparkleEffect();
+    }
+
+    // 2. Character Speech Bubble (Temporary)
+    const msgEl = document.getElementById("characterMessage");
+    if (msgEl && effectData.message) {
+        msgEl.textContent = effectData.message;
+
+        // 5秒後に元の挨拶に戻すタイマーをセット
+        setTimeout(() => {
+            updateCharacterMessage(true); // 強制的にランダム挨拶を再セット
+        }, 3000);
+    }
+
+    // 3. Dragon Jump reaction
+    const dragon = document.querySelector('.dragon-companion');
+    if (dragon) {
+        dragon.classList.remove('jump-active');
+        void dragon.offsetWidth; // trigger reflow
+        dragon.classList.add('jump-active');
+        // Remove class after animation
+        setTimeout(() => dragon.classList.remove('jump-active'), 1000);
+    }
+
+    // 4. Floating Texts
+    if (effectData.floatTexts && Array.isArray(effectData.floatTexts)) {
+        effectData.floatTexts.forEach((ft, i) => {
+            // Stagger slightly
+            setTimeout(() => {
+                showFloatingText(ft.text, ft.color);
+            }, i * 300);
+        });
+    }
+
+    console.log("✨ Pending Effect Triggered Successfully DONE.");
+
+    // Reset Flag
+    gameData.pendingEffect = null;
+    saveGameData();
+}
+
+/**
+ * 時間連動背景システム：現在時刻に合わせて背景エフェクトを更新する
+ */
+function updateTimeBackgroundEffect() {
+    const hour = new Date().getHours();
+    const overlay = document.getElementById('time-effect-layer');
+    if (!overlay) return;
+
+    // クラスを一旦全削除
+    overlay.classList.remove('time-morning', 'time-day', 'time-evening', 'time-night');
+
+    let timeClass = '';
+    if (hour >= 4 && hour < 8) {
+        timeClass = 'time-morning';
+    } else if (hour >= 8 && hour < 16) {
+        timeClass = 'time-day';
+    } else if (hour >= 16 && hour < 19) {
+        timeClass = 'time-evening';
+    } else {
+        timeClass = 'time-night';
+    }
+
+    overlay.classList.add(timeClass);
+    console.log(`🕒 Time-based background updated: ${hour}時 -> ${timeClass}`);
+}
+
+/**
+ * 天体サイクルシステム：太陽と月の位置を更新する
+ */
+function updateCelestialCycle() {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const totalMinutes = hour * 60 + minute;
+
+
+
+    // --- HTML要素の存在保証 (Force Creation) ---
+    // 親レイヤーの確認・作成
+    let celestialLayer = document.getElementById('celestial-layer');
+    if (!celestialLayer) {
+        console.warn("⚠️ celestial-layer missing, creating...");
+        celestialLayer = document.createElement('div');
+        celestialLayer.id = 'celestial-layer';
+        celestialLayer.classList.add('celestial-overlay');
+        celestialLayer.style.setProperty('background', 'transparent', 'important');
+        celestialLayer.style.setProperty('pointer-events', 'none', 'important');
+        celestialLayer.style.zIndex = "5";
+        document.body.appendChild(celestialLayer);
+    }
+
+    // 太陽の確認・作成
+    let sunEl = document.getElementById('sun-element');
+    if (!sunEl) {
+        console.warn("⚠️ sun-element missing, creating...");
+        sunEl = document.createElement('img');
+        sunEl.id = 'sun-element';
+        sunEl.src = './assets/sun.png';
+        sunEl.className = 'celestial-body sun sky-element hidden';
+        sunEl.style.setProperty('background', 'none', 'important'); // Create時も即適用
+        celestialLayer.appendChild(sunEl);
+    }
+
+    // 月の確認・作成
+    let moonEl = document.getElementById('moon-element');
+    if (!moonEl) {
+        console.warn("⚠️ moon-element missing, creating...");
+        moonEl = document.createElement('img');
+        moonEl.id = 'moon-element';
+        moonEl.src = './assets/moon.png';
+        moonEl.className = 'celestial-body moon sky-element hidden';
+        moonEl.style.setProperty('background', 'none', 'important'); // Create時も即適用
+        celestialLayer.appendChild(moonEl);
+    }
+    // -------------------------------------------
+
+    if (!sunEl || !moonEl) return; // Should not happen now
+
+    // ユーザー要望: JS側でも確実に sky-element クラスを付与して透明化を強制的
+    sunEl.classList.add('sky-element');
+    moonEl.classList.add('sky-element');
+
+    // 背景色の強制排除と表示補正（ユーザー指定: background: none !important）
+    sunEl.style.setProperty('background', 'none', 'important');
+    sunEl.style.setProperty('background-color', 'transparent', 'important');
+    sunEl.style.border = 'none';
+    sunEl.style.outline = 'none';
+    sunEl.style.objectFit = 'contain';
+    sunEl.style.padding = '0';
+    sunEl.style.margin = '0';
+
+    moonEl.style.setProperty('background', 'none', 'important');
+    moonEl.style.setProperty('background-color', 'transparent', 'important');
+    moonEl.style.border = 'none';
+    moonEl.style.outline = 'none';
+    moonEl.style.objectFit = 'contain';
+    moonEl.style.padding = '0';
+    moonEl.style.margin = '0';
+
+    // 太陽: 6:00 ～ 18:59 (19時手前まで)
+    // 月: 19:00 ～ 5:59
+
+    if (hour >= 6 && hour < 19) {
+        // 太陽を表示
+        sunEl.classList.remove('hidden');
+        moonEl.classList.add('hidden');
+
+        // 6:00を0%、19:00を100%とした進捗
+        const start = 6 * 60;
+        const end = 19 * 60;
+        const progress = Math.max(0, Math.min(1, (totalMinutes - start) / (end - start)));
+
+        // --- ☀️ 12時半（progress 0.5）に中央(50%)へ来る計算 ---
+        const x = 20 + 60 * progress;
+        const y = 30 - 20 * Math.sin(Math.PI * progress);
+
+        sunEl.style.left = `${x}%`;
+        sunEl.style.top = `${y}%`;
+        sunEl.style.transform = `translate(-50%, -50%)`;
+
+        // 昼間は月の光をリセットしておく
+        moonEl.classList.remove('moon-glow');
+
+    } else {
+        // 月を表示
+        sunEl.classList.add('hidden');
+        moonEl.classList.remove('hidden');
+
+        // 19:00を0%、翌6:00を100%とした進捗
+        let progress;
+        if (hour >= 19) {
+            progress = (totalMinutes - 19 * 60) / 660;
+        } else {
+            progress = (totalMinutes + (24 * 60) - (19 * 60)) / 660;
+        }
+        progress = Math.max(0, Math.min(1, progress));
+
+        // --- 🌙 月は右側に表示 ---
+        const x = 75 + 15 * progress;
+        const y = 25 - 10 * Math.sin(Math.PI * progress);
+
+        moonEl.style.left = `${x}%`;
+        moonEl.style.top = `${y}%`;
+        moonEl.style.transform = `translate(-50%, -50%)`;
+
+        // --- ✨ 23時の時だけ光らせる特殊命令 ---
+        if (hour === 23) {
+            moonEl.classList.add('moon-glow');
+            moonEl.style.width = '70px';  // 23時だけ大きくする
+            moonEl.style.height = '70px';
+        } else {
+            moonEl.classList.remove('moon-glow'); moonEl.style.width = '60px';   // 通常サイズに戻す
+            moonEl.style.height = '60px';
+        }
+    }
+    // 座標セットの「直後」にこれを配置して背景を強制抹殺（最強権限で上書き）
+    sunEl.style.setProperty('background', 'none', 'important');
+    sunEl.style.setProperty('background-color', 'transparent', 'important');
+    sunEl.style.setProperty('box-shadow', 'none', 'important');
+    sunEl.style.setProperty('border', 'none', 'important');
+    sunEl.style.setProperty('outline', 'none', 'important');
+
+    moonEl.style.setProperty('background', 'none', 'important');
+    moonEl.style.setProperty('background-color', 'transparent', 'important');
+    moonEl.style.setProperty('box-shadow', 'none', 'important');
+    moonEl.style.setProperty('border', 'none', 'important');
+    moonEl.style.setProperty('outline', 'none', 'important');
+
+    console.log(`🌙 Celestial cycle updated: hour=${hour}, minute=${minute}`);
 }
 
 const TIMER_MESSAGES = {
@@ -130,6 +381,9 @@ function showTimerMessage(type) {
 }
 
 function startTimer() {
+    closeMessageModal(); // 再開時にメッセージを消す
+    const msgBox = document.getElementById('timer-cheer-message');
+    if (msgBox) msgBox.classList.add('hidden'); // 励ましメッセージも消す
     console.log("🔥 タイムスタンプベースのタイマーを開始します");
 
     if (!gameData.timer) {
@@ -173,6 +427,9 @@ function startTimer() {
         // 1. Warning at 45 minutes
         if (minutesInSession >= 45 && !gameData.timer.hasWarned45) {
             gameData.timer.hasWarned45 = true; // Set flag
+
+            // アラート音を再生
+            alertSound.play().catch(e => console.log('Audio play failed:', e));
 
             // Push Notification
             if ("Notification" in window && Notification.permission === "granted") {
@@ -323,7 +580,7 @@ function updateStudyScreenUI() {
         }
     }
     // B. 【一時停止中】（タイマー停止中 且つ 経過時間がある）
-    else if (elapsedBeforePause > 0) {
+    else if (gameData.timer.elapsedBeforePause > 0) {
         if (startBtn) startBtn.classList.add('hidden');
         if (stopBtn) stopBtn.classList.remove('hidden');
         if (pauseBtn) {
@@ -394,40 +651,40 @@ const ITEM_CONFIG = {
 const ITEM_MASTER = [
     // ★1 (Rarity 1)
     // visuals: { x: 横位置(%), y: 縦位置(%), scale: 拡大率, width: 幅(任意, 指定なければ100%でscale適用) }
-    { id: 0, name: "木の剣", rarity: 1, file: "小さな剣.png", type: "weapon", effects: { focus: 2 }, description: "冒険の始まりといえばこれ。", equipMessage: "木の剣を構えた！少し攻撃的な気分になった！", visuals: { x: 45, y: 55, scale: 0.2 }, equipImage: "./assets/player_sword_fixed.png" },
-    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。", visuals: { x: 0, y: 0, scale: 1.0 } },
-    { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "accessory", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。", visuals: { x: 50, y: 92, scale: 0.4 }, equipImage: "./assets/item/gacha_items/革の靴_equipped.png" },
-    { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。", visuals: { x: 55, y: 55, scale: 0.25 }, equipImage: "./assets/item/gacha_items/小さな盾_equipped.png" },
-    { id: 4, name: "ポーション", rarity: 1, file: "ポーション.png", type: "consumable", useMessage: "ポーションを飲んだ！疲れが少し取れた気がする。", description: "疲れが少し取れる魔法の薬。" },
-    { id: 5, name: "パン", rarity: 1, file: "薬草袋.png", type: "consumable", useMessage: "パンを食べた！お腹が満たされ、やる気が湧いた！", description: "腹が減っては勉強ができぬ。" },
-    { id: 12, name: "集中キャンディ", rarity: 1, file: "集中キャンディ.png", type: "consumable", useMessage: "レモン味のキャンディで、集中力が研ぎ澄まされた！", description: "レモン味でリフレッシュ！" },
-    { id: 13, name: "ひとくちチョコ", rarity: 1, file: "一口チョコ.png", type: "consumable", useMessage: "チョコの甘みが脳に染み渡る...！知力が一時的に高まった気がする！", description: "疲れた脳には糖分が一番。" },
-    { id: 14, name: "サクサクビスケット", rarity: 1, file: "サクサクビスケット.png", type: "consumable", useMessage: "サクサクの食感に心が和む。精神力(STRENGTH)が回復した！", description: "お茶が欲しくなる素朴な味。" },
-    { id: 15, name: "三色団子", rarity: 1, file: "３色団子.png", type: "consumable", useMessage: "団子を食べて気分転換。穏やかな気持ちになった。", description: "彩りが可愛い、和みのスイーツ。" },
-    { id: 16, name: "消しゴムのカス", rarity: 1, file: "消しゴムのカス.png", type: "trash", description: "頑張った証だけど、捨ててもいいかも。" },
-    { id: 17, name: "使い古したノート", rarity: 1, file: "使い古したノート.png", type: "consumable", useMessage: "過去の努力に勇気をもらった！やる気が大幅に上がった！", description: "読み返すとやる気が湧いてくる。" },
+    { id: 0, name: "木の剣", rarity: 1, file: "小さな剣.png", type: "weapon", effects: { focus: 2 }, description: "冒険の始まりといえばこれ。", equipMessage: "木の剣を構えた！少し攻撃的な気分になった！", visuals: { x: 30, y: 35, width: 15 }, equipImage: "./assets/player_sword_fixed.png" },
+    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。", visuals: { x: 0, y: 0, width: 64 } },
+    { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "foot", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。", visuals: { x_L: 38, x_R: 58, y: 83.5, width: 16 }, equipImage: "./assets/item/gacha_equipment/Boots2M.png", equipImageR: "./assets/item/gacha_equipment/Boots2M.png" },
+    { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。", visuals: { x: 35, y: 35, width: 16 }, equipImage: "./assets/item/gacha_items/小さな盾_equipped.png" },
+    { id: 4, name: "ポーション", rarity: 1, file: "ポーション.png", type: "consumable", useMessage: "ポーションを使った！", description: "疲れが少し取れる魔法の薬。" },
+    { id: 5, name: "パン", rarity: 1, file: "パン.png", type: "consumable", useMessage: "お腹いっぱい！", description: "腹が減っては勉強ができぬ。" },
+    { id: 12, name: "集中キャンディ", rarity: 1, file: "集中キャンディ.png", type: "consumable", useMessage: "レモンの酸味で、集中力が研ぎ澄まされた！", description: "レモン味でリフレッシュ！" },
+    { id: 13, name: "ひとくちチョコ", rarity: 1, file: "一口チョコ.png", type: "consumable", useMessage: "糖分補給完了！脳が活性化していく…！", description: "疲れた脳には糖分が一番。" },
+    { id: 14, name: "サクサクビスケット", rarity: 1, file: "サクサクビスケット.png", type: "consumable", useMessage: "お腹いっぱい！", description: "お茶が欲しくなる素朴な味。" },
+    { id: 15, name: "三色団子", rarity: 1, file: "３色団子.png", type: "consumable", useMessage: "お腹いっぱい！", description: "彩りが可愛い、和みのスイーツ。" },
+    { id: 16, name: "消しゴムのカス", rarity: 3, file: "消しゴムのカス.png", type: "consumable", useMessage: "これは君の努力の結晶だ。試験合格へ一歩近づいたよ！", description: "沢山の勉強を積み重ねた証。光り輝いている。", effects: { focus: 50, intellect: 50, strength: 50 } },
+    { id: 17, name: "使い古したノート", rarity: 1, file: "使い古したノート.png", type: "consumable", useMessage: "これまでの努力が思い出される…よし、もう一踏ん張り！", description: "読み返すとやる気が湧いてくる。" },
 
     // ★2 (Rarity 2)
-    { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！" },
-    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。" },
+    { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。", visuals: { x: 0, y: 0, scale: 1.0 } },
     { id: 8, name: "魔法の杖", rarity: 2, file: "魔法の杖.png", type: "weapon", effects: { intellect: 10 }, description: "閃きを呼び起こす不思議な杖。", equipMessage: "魔法の杖を握った。知恵が溢れ出してくる...！", visuals: { x: 50, y: 38, scale: 0.3 }, equipImage: "./assets/item/gacha_items/魔法の杖_equipped.png" },
-    { id: 9, name: "魔法の本", rarity: 2, file: "魔法の本.png", type: "accessory", effects: { intellect: 5 }, description: "難しい知識が詰まっている。", equipMessage: "魔法の本を開いた！未知の知識が頭に流れ込む。" },
-    { id: 18, name: "癒やしのマカロン", rarity: 2, file: "癒しのマカロン.png", type: "consumable", useMessage: "高級な甘さにうっとり...。心も体も満たされた！", description: "食べるのがもったいない可愛さ。" },
-    { id: 19, name: "星屑のコンペイトウ", rarity: 2, file: "星屑のコンペイトウ.png", type: "consumable", useMessage: "カリッと噛むと、頭がシャキッとする！", description: "噛むとキラキラした音がする。" },
-    { id: 20, name: "情熱のドーナツ", rarity: 2, file: "情熱のドーナツ.png", type: "consumable", useMessage: "燃え上がるような情熱が腹の底から湧いてくる！", description: "燃えるようなやる気が湧く（気がする）。" },
+    { id: 9, name: "魔法の本", rarity: 2, file: "魔法の本.png", type: "accessory", effects: { intellect: 5 }, description: "難しい知識が詰まっている。", equipMessage: "魔法の本を開いた！未知の知識が頭に流れ込む。", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 18, name: "癒やしのマカロン", rarity: 2, file: "癒しのマカロン.png", type: "consumable", useMessage: "お腹いっぱい！", description: "食べるのがもったいない可愛さ。" },
+    { id: 19, name: "星屑のコンペイトウ", rarity: 2, file: "星屑のコンペイトウ.png", type: "consumable", useMessage: "お腹いっぱい！", description: "噛むとキラキラした音がする。" },
+    { id: 20, name: "情熱のドーナツ", rarity: 2, file: "情熱のドーナツ.png", type: "consumable", useMessage: "お腹いっぱい！", description: "燃えるようなやる気が湧く（気がする）。" },
     { id: 21, name: "銀のヘアピン", rarity: 2, file: "銀のヘアピン.png", type: "accessory", effects: { intellect: 3, strength: 3 }, description: "前髪を留めるのにちょうどいい。", equipMessage: "銀のヘアピンで髪を留めた。清潔感がアップした！", visuals: { x: 55, y: 20, scale: 0.25 }, equipImage: "./assets/item/gacha_items/銀のヘアピン_equipped.png" },
     { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！", visuals: { x: 50, y: 10, scale: 0.35 }, equipImage: "./assets/item/gacha_items/赤いリボン_equipped.png" },
-    { id: 23, name: "賢者の羽ペン", rarity: 2, file: "賢者の羽ペン.png", type: "accessory", effects: { intellect: 15 }, description: "スラスラと答えが書ける不思議なペン。", equipMessage: "賢者の羽ペンを構えた。思考の速度が加速する！" },
-    { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "accessory", effects: { focus: 15 }, description: "周りの音が聞こえなくなる魔法の耳栓。", equipMessage: "静寂の耳栓を装着。深い没入状態に入った...。" },
-    { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "コインを弾くと、不思議な幸運に包まれた気がする！", description: "ガチャ運が上がるという噂がある。" },
+    { id: 23, name: "賢者の羽ペン", rarity: 2, file: "賢者の羽ペン.png", type: "accessory", effects: { intellect: 15 }, description: "スラスラと答えが書ける不思議なペン。", equipMessage: "賢者の羽ペンを構えた。思考の速度が加速する！", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "accessory", effects: { focus: 15 }, description: "周りの音が聞こえなくなる魔法の耳栓。", equipMessage: "静寂の耳栓を装着。深い没入状態に入った...。", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "幸運のコインを使った！", description: "ガチャ運が上がるという噂がある。" },
 
     // ★3 (Rarity 3)
-    { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！" },
-    { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！" },
+    { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！", visuals: { x: 0, y: 0, scale: 1.0 } },
     { id: 26, name: "王家のショートケーキ", rarity: 3, file: "王家のショートケーキ.png", type: "consumable", useMessage: "究極の美味！今この瞬間、全能力が極限まで解放された！", description: "今日一番頑張った自分へのご褒美！" },
     { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 50, y: 5, scale: 0.4 }, equipImage: "./assets/item/gacha_items/聖なる宝冠_equipped.png" },
-    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "infinite", effects: { intellect: 100 }, description: "まるで光を纏っているような服。", useMessage: "精霊のドレスを使った。全身が神秘的な光に包まれ、知力が大幅に上がった！" },
-    { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。" }
+    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "infinite", effects: { intellect: 100 }, description: "まるで光を纏っているような服。", useMessage: "聖なる光に包まれた…！" },
+    { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 0, y: 0, scale: 1.0 } }
 ];
 
 /**
@@ -478,7 +735,24 @@ window.addCoins = function (amount = 1000) {
     saveGameData();
     updateHomeScreen();
     updateGachaScreen();
-    console.log(`💰 Added ${amount} coins!`);
+    console.log(`💰 Added ${amount} coins. Current: ${gameData.player.coins}`);
+};
+
+/**
+ * デバッグ用：装備の配置デバッグ数値をリセットする
+ * 例: resetItemVisuals(2) // 革の靴を 64x64 フルサイズ重ねにリセット
+ */
+window.resetItemVisuals = function (id) {
+    const item = ITEM_MASTER.find(mi => mi.id === id);
+    if (!item) return console.error("Item not found");
+    // 64x64 キャンバスへの「重ねるだけ」設定にリセット
+    if (item.type === 'foot') {
+        item.visuals = { x: 0, y: 0, width: 64 };
+    } else {
+        item.visuals = { x: 0, y: 0, width: 64 };
+    }
+    updateCharacterAppearance();
+    console.log(`✅ Item ${id} (${item.name}) visuals reset to 64x64 overlay.`);
 };
 
 /**
@@ -618,7 +892,7 @@ function loadGameData() {
                 exp: 0,
                 coins: 0,
                 stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 },
-                equipment: { weapon: null, armor: null, accessory: null, shield: null }
+                equipment: { head: null, armor: null, weapon: null, accessory: null, shield: null }
             };
         }
         if (!gameData.player.stats) {
@@ -632,9 +906,41 @@ function loadGameData() {
                 delete gameData.player.stats.spirit;
             }
         }
-        if (!gameData.player.equipment) gameData.player.equipment = { weapon: null, armor: null, accessory: null, shield: null };
-        if (!gameData.inventory) gameData.inventory = [];
+        if (!gameData.player.equipment) {
+            gameData.player.equipment = { head: null, armor: null, weapon: null, accessory: null, shield: null };
+        } else {
+            // Force strict object structure for equipment slots
+            gameData.player.equipment = {
+                head: gameData.player.equipment.head || null,
+                weapon: gameData.player.equipment.weapon || null,
+                armor: gameData.player.equipment.armor || null,
+                shield: gameData.player.equipment.shield || null,
+                accessory: gameData.player.equipment.accessory || null,
+                foot: gameData.player.equipment.foot || null
+            };
+        }
+        if (!gameData.inventory || !Array.isArray(gameData.inventory)) {
+            gameData.inventory = [];
+        } else {
+            // インベントリの各アイテムの型を正常化
+            gameData.inventory.forEach(item => {
+                if (item) {
+                    item.id = Number(item.id);
+                    if (item.count === undefined) item.count = 1;
+                }
+            });
+        }
         if (!gameData.studyLogs) gameData.studyLogs = [];
+
+        // Ensure pendingEffect capability exists
+        if (gameData.pendingEffect === undefined) {
+            gameData.pendingEffect = null;
+        }
+
+        // Initialize Eraser Dust Counter
+        if (gameData.eraserDustAwardedCount === undefined) {
+            gameData.eraserDustAwardedCount = 0;
+        }
 
         // オープニング・ドラゴンの初期化
         if (gameData.hasSeenOpening === undefined) gameData.hasSeenOpening = false;
@@ -650,7 +956,6 @@ function loadGameData() {
     // [Cleanup] Always start with no subject selected to enforce the "Select Subject first" rule.
     gameData.currentSubject = null;
 }
-
 function saveGameData() {
     localStorage.setItem('studyQuestData', JSON.stringify(gameData));
     console.log("Game data saved");
@@ -715,7 +1020,12 @@ function showScreen(screenId) {
     }
 
     if (screenId === 'home-screen') {
+        // データを読み直さず、今の状態のまま表示を更新
         updateHomeScreen();
+        // 確実に画面が出てから、一回だけ呼ぶ
+        setTimeout(() => {
+            triggerPendingEffect();
+        }, 300);
     } else if (screenId === 'gacha-screen') {
         updateGachaScreen();
         // Randomize initial flavor text
@@ -737,11 +1047,12 @@ function showScreen(screenId) {
         }
     } else if (screenId === 'status-screen') {
         updateStatusScreen();
-    } else if (screenId === 'menu-screen') {
+    } else if (screenId === 'menu-screen') { // Original was 'menu-screen', instruction implies 'inventory-screen'
         updateInventoryScreen();
     } else if (screenId === 'log-screen') {
         updateLogScreen();
     } else if (screenId === 'study-screen') {
+        generateSubjectButtons();
         calculateTodayStats();
         // ボタンの見た目を現在のタイマー状態に合わせる
         updateStudyScreenUI();
@@ -791,65 +1102,109 @@ function updateHomeScreen() {
 
     // 装備の見た目更新 (着せ替え)
     updateCharacterAppearance();
+
 }
 
 /**
  * 装備品をキャラクターに重ねて表示する (着せ替え機能)
  */
 function updateCharacterAppearance() {
+    console.log("👗 Updating character appearance...");
     const layerContainer = document.getElementById('equipment-layers');
+    const footLayer = document.getElementById('foot-layer'); // NEW: 靴専用レイヤー
+
     if (!layerContainer) return;
 
-    // reset layers
+    // reset layers (Aggressive clear to prevent residuals)
     layerContainer.innerHTML = '';
+    if (footLayer) {
+        footLayer.innerHTML = ''; // NEW: 靴レイヤーもクリア
+
+        // ユーザー指示: 親コンテナ（#foot-layer）自体が白い箱にならないよう、JSで物理的にスタイルをねじ込む
+        footLayer.style.setProperty('background', 'none', 'important');
+        footLayer.style.setProperty('border', 'none', 'important');
+        footLayer.style.setProperty('box-shadow', 'none', 'important');
+    }
 
     const equipment = gameData.player.equipment;
     if (!equipment) return;
 
     // Define Render Order (Z-Index equivalent)
-    // Armor (Body) -> Shield (Back/Hand) -> Weapon (Hand) -> Accessory (Head/Misc)
+    // Armor (Body) -> Shield (Back/Hand) -> Weapon (Hand) -> Accessory (Misc) -> Head (Top)
     const renderOrder = [
+        { slot: 'foot', zIndex: 2 },
         { slot: 'armor', zIndex: 3 },
         { slot: 'shield', zIndex: 4 },
         { slot: 'weapon', zIndex: 5 },
-        { slot: 'accessory', zIndex: 6 }
+        { slot: 'accessory', zIndex: 6 },
+        { slot: 'head', zIndex: 7 }
     ];
 
     renderOrder.forEach(order => {
         const equippedItem = equipment[order.slot];
         if (equippedItem) {
             const masterItem = ITEM_MASTER.find(mi => mi.id === Number(equippedItem.id));
-            // Only render valid equipment types.
-            // Items changed to 'infinite' or 'consumable' should not appear even if stuck in equipment data.
-            const validTypes = ['weapon', 'armor', 'shield', 'accessory'];
+            const validTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot'];
 
             if (masterItem && validTypes.includes(masterItem.type)) {
-                // Determine image source: prefer 'equipImage' if exists, else 'file' (icon)
-                // If using 'file' (icon), user might need to adjust scale/position heavily.
-                // For this demo, we assume the user might provide a separate 'equipImage' or we use the icon.
-                const imgSource = masterItem.equipImage || `${ITEM_CONFIG.folder}${masterItem.file || masterItem.name + '.png'}`;
+                const visuals = masterItem.visuals || { x: 0, y: 0, width: BASE_CHARACTER_SIZE };
 
-                const img = document.createElement('img');
-                img.src = imgSource;
-                img.className = 'equipment-layer';
+                // Determine default source
+                const defaultSrc = masterItem.equipImage || `${ITEM_CONFIG.folder}${masterItem.file || masterItem.name + '.png'}`;
 
-                // Set Z-Index
-                img.style.zIndex = order.zIndex;
+                // 左右分割描画が必要か判定 (x_L と x_R が存在) - 反転ロジックは完全廃止し、画像の指定に従う
+                const renderParts = (visuals.x_L !== undefined && visuals.x_R !== undefined)
+                    ? [
+                        { x: visuals.x_L, src: defaultSrc }, // Left uses standard equipImage
+                        { x: visuals.x_R, src: (masterItem.equipImageR || defaultSrc) } // Right uses equipImageR if available
+                    ]
+                    : [
+                        { x: visuals.x, src: defaultSrc }
+                    ];
 
-                // Apply Coordinate / Scale Specs from Item Data
-                // Default: (0,0) with 100% scale (assumes full-body overlay or pre-positioned sprite)
-                const visuals = masterItem.visuals || { x: 0, y: 0, scale: 1.0 };
+                renderParts.forEach(part => {
+                    const img = document.createElement('img');
 
-                // Using percentages for responsiveness if possible, or pixels if fixed size
-                // We will use 'top' and 'left' percentage relative to the character-wrapper (140x140)
-                if (visuals.x !== undefined) img.style.left = `${visuals.x}%`;
-                if (visuals.y !== undefined) img.style.top = `${visuals.y}%`;
-                if (visuals.scale !== undefined) img.style.transform = `scale(${visuals.scale})`;
+                    // キャッシュバスター
+                    const cacheBuster = `?t=${new Date().getTime()}`;
+                    img.src = part.src + cacheBuster;
 
-                // If specific dimensions are needed
-                if (visuals.width) img.style.width = visuals.width;
+                    // クラス設定
+                    if (order.slot === 'foot') {
+                        img.className = 'independent-boots-final';
+                    } else {
+                        img.className = 'equipment-sprite-only';
+                    }
 
-                layerContainer.appendChild(img);
+                    // 背景と枠線の抹殺（JS側での最終防衛）
+                    img.style.setProperty('background', 'none', 'important');
+                    img.style.setProperty('border', 'none', 'important');
+                    img.style.setProperty('box-shadow', 'none', 'important');
+                    img.style.setProperty('outline', 'none', 'important');
+
+                    // 配置設定
+                    const w = visuals.width || 100;
+                    const x = (part.x !== undefined) ? part.x : (visuals.x || 0);
+                    const y = (visuals.y !== undefined) ? visuals.y : 0;
+
+                    img.style.width = w + '%';
+                    img.style.height = 'auto';
+                    img.style.left = x + '%';
+                    img.style.top = y + '%';
+                    img.style.position = 'absolute';
+                    img.style.zIndex = order.zIndex;
+                    img.style.pointerEvents = 'none';
+
+                    // 読み込み監視
+                    img.onload = () => console.log(`✅ Gear [${order.slot}] Loaded: ${img.src}`);
+                    img.onerror = () => {
+                        console.error(`❌ Gear [${order.slot}] Failed: ${img.src}`);
+                        img.style.display = 'none';
+                    };
+
+                    // 全装備、共通のコンテナ（#equipment-layers）に直接入れる
+                    layerContainer.appendChild(img);
+                });
             }
         }
     });
@@ -1067,6 +1422,51 @@ function updateStatusScreen() {
 // 勉強タイマー機能
 // ========================================
 
+// アプリ復帰時にボタンの見た目を今の状態に合わせる
+function syncTimerUIOnResume() {
+    console.log("🔄 アプリ復帰：UIを同期します");
+    updateStudyScreenUI();
+}
+
+// 画面がアクティブになったら実行
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        syncTimerUIOnResume();
+    }
+});
+
+// Helper to generate Subject Buttons dynamically
+function generateSubjectButtons() {
+    const container = document.querySelector('.subject-selection-mvp');
+    if (!container) return;
+
+    // Clear existing static buttons
+    container.innerHTML = '';
+
+    STUDY_SUBJECTS.forEach((subj) => {
+        const btn = document.createElement('button');
+        btn.className = 'subject-btn-mvp';
+        btn.id = subj.id;
+        btn.dataset.subject = subj.label;
+        btn.onclick = () => selectSubject(btn);
+
+        let iconClass = 'math';
+        if (subj.type === 'qualification') iconClass = 'math';
+        else if (subj.type === 'language') iconClass = 'english';
+        else if (subj.type === 'business') iconClass = 'science';
+        else if (subj.type === 'other') iconClass = 'other';
+
+        btn.innerHTML = `
+            <div class="subject-icon-wrapper">
+                <div class="subject-icon ${iconClass}"></div>
+            </div>
+            <span class="subject-label">${subj.label}</span>
+        `;
+
+        container.appendChild(btn);
+    });
+}
+
 
 
 function selectSubject(button) {
@@ -1233,6 +1633,9 @@ function saveStudySession() {
     };
     gameData.studyLogs.push(log);
 
+    // --- Check if Eraser Dust should be awarded ---
+    checkAndAwardEraserDust();
+
     // プレイヤーデータ更新
     const oldLevel = gameData.player.level;
     gameData.player.exp += earnedExp;
@@ -1260,6 +1663,54 @@ function saveStudySession() {
         </div>
     `;
     showMessageModal("STUDY COMPLETE", studyResultMessage);
+}
+
+// --- 消しゴムのカス（努力の証）出現チェック ---
+function checkAndAwardEraserDust() {
+    // 1. 全ての勉強ログから累計時間を計算
+    const totalMinutes = gameData.studyLogs.reduce((sum, log) => sum + log.minutes, 0);
+
+    // 2. 「10時間（600分）ごと」に1個もらえる計算
+    const expectedDustCount = Math.floor(totalMinutes / 600);
+
+    // gameDataに「これまでにカスをもらった回数」を記録する場所を作っておく
+    if (gameData.eraserDustAwardedCount === undefined) gameData.eraserDustAwardedCount = 0;
+
+    if (expectedDustCount > gameData.eraserDustAwardedCount) {
+        console.log(`✨ 努力の結晶判定: 今回=${expectedDustCount}個目 (累積${totalMinutes}分)`);
+
+        // 3. 消しゴムのカス(ID:16)をインベントリに追加
+        const eraserDust = ITEM_MASTER.find(item => item.id === 16);
+        if (eraserDust) {
+            // まずインベントリに加え、保存を優先する
+            const added = addItemToInventory(eraserDust);
+            if (added) {
+                // 保存が成功してからカウンターを同期
+                gameData.eraserDustAwardedCount++;
+                saveGameData();
+                console.log("✅ 努力の結晶を保存しました。現在のカウント:", gameData.eraserDustAwardedCount);
+            } else {
+                console.error("❌ 努力の結晶の追加に失敗しました。カバンがいっぱいの可能性があります。");
+            }
+
+            // 4. 特別な演出呼び出し（保存のあとに実行）
+            // 勉強完了モーダルと被る可能性があるため、少しディレイを入れる
+            setTimeout(() => {
+                console.log("演出を呼び出します！ (Eraser Dust)");
+
+                // 既存のモーダルを閉じる（重なり防止）
+                closeMessageModal();
+
+                // ID:16の時だけ、演出用の特別データを一時的に作る
+                const specialDisplay = { ...eraserDust };
+                specialDisplay.name = "努力の結晶"; // 演出用タイトル
+                specialDisplay.isSpecialEraser = true; // 分引用フラグ
+
+                // 演出表示
+                showGachaResult(specialDisplay);
+            }, 1000);
+        }
+    }
 }
 
 function checkLevelUp(oldLevel) {
@@ -1459,7 +1910,7 @@ function addItemToInventory(item) {
     const currentTotal = gameData.inventory.reduce((sum, item) => sum + item.count, 0);
     if (currentTotal >= ITEM_CONFIG.maxCapacity) return false;
 
-    const existing = gameData.inventory.find(inv => inv.id === item.id);
+    const existing = gameData.inventory.find(inv => String(inv.id) === String(item.id));
 
     if (existing) {
         existing.count++;
@@ -1472,10 +1923,16 @@ function addItemToInventory(item) {
             count: 1
         });
     }
+    console.log("🎒 Inventory Updated:", JSON.parse(JSON.stringify(gameData.inventory)));
     return true;
 }
 
 function showGachaResult(item) {
+    if (!item) {
+        console.error("showGachaResult called with null item");
+        return;
+    }
+    console.log("★演出開始！ showGachaResult called for item:", item);
     const iconElement = document.getElementById('result-icon');
     const textIconElement = document.getElementById('result-text-icon');
 
@@ -1488,9 +1945,11 @@ function showGachaResult(item) {
     iconElement.style.display = 'block';
     iconElement.innerHTML = '';
     iconElement.style.backgroundImage = style.backgroundImage;
-    iconElement.style.backgroundPosition = style.backgroundPosition;
-    iconElement.style.backgroundSize = style.backgroundSize;
+    iconElement.style.backgroundPosition = style.backgroundPosition || 'center';
+    iconElement.style.backgroundSize = style.backgroundSize || 'contain';
+    iconElement.style.backgroundRepeat = 'no-repeat';
     iconElement.classList.add('image-sprite');
+    iconElement.style.imageRendering = 'pixelated';
 
     document.getElementById('result-name').textContent = item.name;
     document.getElementById('result-rarity').textContent = '★'.repeat(item.rarity);
@@ -1503,14 +1962,26 @@ function showGachaResult(item) {
         iconElement.style.backgroundRepeat = "no-repeat";
         const resText = document.querySelector('.result-text-mvp');
         if (resText) resText.textContent = "ドラゴンの卵を手に入れた！";
+    } else if (item.isSpecialEraser || item.id === 16) {
+        // 消しゴムのカス（努力の証）
+        const resText = document.querySelector('.result-text-mvp');
+        if (resText) resText.textContent = "努力の結晶を手に入れた！";
     } else {
         const resText = document.querySelector('.result-text-mvp');
         if (resText) resText.textContent = "獲得！";
     }
 
     // Switch to use "show" class
-    document.getElementById('gacha-result').classList.remove('hidden'); // Ensure hidden is removed if present
-    document.getElementById('gacha-result').classList.add('show');
+    const resultModal = document.getElementById('gacha-result');
+    resultModal.classList.remove('hidden');
+    resultModal.classList.add('show');
+
+    // 演出を確実に見せるためにガチャ画面を表示する
+    showScreen('gacha-screen');
+
+    // Force visibility styles
+    resultModal.style.display = 'flex';
+    resultModal.style.zIndex = '30000'; // Ensure it's on top of everything
 
     // Update mini log in gacha screen
     updateGachaMiniLog(item);
@@ -1602,7 +2073,8 @@ function updateInventoryScreen() {
         const iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${style.backgroundImage} !important; background-position: ${style.backgroundPosition} !important; background-size: ${style.backgroundSize} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
 
         let actionBtn = '';
-        if (displayItem.type === 'weapon' || displayItem.type === 'armor' || displayItem.type === 'shield' || displayItem.type === 'accessory') {
+        const equippableTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot'];
+        if (equippableTypes.includes(displayItem.type)) {
             const btnText = isEquipped ? 'UNEQUIP' : 'EQUIP';
             const btnClass = isEquipped ? 'unequip' : 'equip';
             actionBtn = `<button class="item-action-btn ${btnClass}" onclick="toggleEquip(${item.id})">${btnText}</button>`;
@@ -1635,17 +2107,30 @@ function toggleEquip(itemId) {
     const item = ITEM_MASTER.find(mi => Number(mi.id) === Number(itemId));
     if (!item) return;
 
-    let slot = 'accessory';
-    if (item.type === 'weapon') slot = 'weapon';
-    else if (item.type === 'armor') slot = 'armor';
-    else if (item.type === 'shield') slot = 'shield';
-    else if (item.type === 'accessory') slot = 'accessory';
+    let targetSlot = 'accessory';
+    if (item.type === 'weapon') targetSlot = 'weapon';
+    else if (item.type === 'armor') targetSlot = 'armor';
+    else if (item.type === 'shield') targetSlot = 'shield';
+    else if (item.type === 'head') targetSlot = 'head';
+    else if (item.type === 'foot') targetSlot = 'foot';
+    else if (item.type === 'accessory') targetSlot = 'accessory';
 
-    if (gameData.player.equipment[slot] && Number(gameData.player.equipment[slot].id) === Number(itemId)) {
-        gameData.player.equipment[slot] = null;
+    // 全てのスロットを確認し、このアイテムがどこかに装備されていたら外す（重複防止）
+    let alreadyEquippedInSlot = null;
+    Object.keys(gameData.player.equipment).forEach(slotName => {
+        const eq = gameData.player.equipment[slotName];
+        if (eq && Number(eq.id) === Number(itemId)) {
+            alreadyEquippedInSlot = slotName;
+        }
+    });
+
+    if (alreadyEquippedInSlot) {
+        // すでに装備されている場合は外す
+        gameData.player.equipment[alreadyEquippedInSlot] = null;
         showMessageModal("EQUIPMENT", `${item.name}を外しました。`);
     } else {
-        gameData.player.equipment[slot] = { id: item.id, name: item.name };
+        // 装備されていない場合はターゲットスロットに装備（既存の装備は上書きされる）
+        gameData.player.equipment[targetSlot] = { id: item.id, name: item.name };
         const message = item.equipMessage || `${item.name}を装備した！`;
         showMessageModal("EQUIPMENT", message);
     }
@@ -1676,6 +2161,152 @@ function getCurrentStats() {
     return currentStats;
 }
 
+// Helper for Sparkle Effect
+function createSparkleEffect() {
+    console.log("✨ キラキラ生成開始！");
+
+    // 主人公（player-layers-container）の位置を必死に探す
+    const target = document.querySelector('.player-layers-container');
+    let centerX, centerY;
+
+    if (target && target.getBoundingClientRect().width > 0) {
+        const rect = target.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+    } else {
+        // もし主人公が見つからなかったら、画面の真ん中で出す（保険）
+        centerX = window.innerWidth / 2;
+        centerY = window.innerHeight / 2;
+    }
+
+    console.log("Sparkle Center:", centerX, centerY);
+
+    const colors = ['#FFD700', '#FF1493', '#00BFFF', '#ADFF2F', '#FF4500', '#DA70D6', '#FA8072'];
+
+    for (let i = 0; i < 40; i++) { // 40粒に増量！
+        const p = document.createElement('div');
+        p.className = 'sparkle-particle';
+        document.body.appendChild(p);
+
+        p.style.left = centerX + 'px';
+        p.style.top = centerY + 'px';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 60 + Math.random() * 150;
+        const tx = Math.cos(angle) * dist + 'px';
+        const ty = Math.sin(angle) * dist + 'px';
+
+        p.style.setProperty('--tx', tx);
+        p.style.setProperty('--ty', ty);
+
+        setTimeout(() => p.remove(), 1000);
+    }
+}
+
+// Helper for Ultra Rare Effect (Holy Light)
+function createUltraRareEffect() {
+    console.log("🌟 EXTRAORDINARY EFFECT TRIGGERED! 🌟");
+
+    // 1. Apply Holy Glow to character
+    const characterSprite = document.querySelector('.player-sprite');
+    if (characterSprite) {
+        characterSprite.classList.add('holy-glow');
+        setTimeout(() => characterSprite.classList.remove('holy-glow'), 1500);
+    }
+
+    // 2. Center coordinates (Reuse logic or recalculate)
+    // Reuse logic slightly modified for bigger spread
+    const target = document.querySelector('.player-layers-container');
+    let centerX, centerY;
+
+    if (target && target.getBoundingClientRect().width > 0) {
+        const rect = target.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+    } else {
+        centerX = window.innerWidth / 2;
+        centerY = window.innerHeight / 2;
+    }
+
+    // 3. Create Holy Ring (expanding circle)
+    const ring = document.createElement('div');
+    ring.className = 'holy-ring'; // We will add CSS for this
+    document.body.appendChild(ring);
+    ring.style.left = centerX + 'px';
+    ring.style.top = centerY + 'px';
+    setTimeout(() => ring.remove(), 1000);
+
+    // 4. Large Particles (Rising up)
+    const colors = ['#FFD700', '#FFFFFF', '#FFFFE0', '#FFFACD']; // Golds and Whites
+
+    for (let i = 0; i < 50; i++) {
+        const p = document.createElement('div');
+        p.className = 'sparkle-particle'; // Reuse basic class
+        document.body.appendChild(p);
+
+        // Random offset near center
+        p.style.left = centerX + 'px';
+        p.style.top = centerY + 'px';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.width = (Math.random() * 6 + 6) + 'px'; // Bigger: 6-12px
+        p.style.height = p.style.width;
+        p.style.boxShadow = "0 0 10px white"; // Glowing particles
+
+        // Movement: Mostly UP, slightly spreading
+        const angle = -Math.PI / 2 + (Math.random() - 0.5); // Upward cone
+        const dist = 100 + Math.random() * 200; // Higher rise
+        const tx = Math.cos(angle) * dist + 'px';
+        const ty = Math.sin(angle) * dist + 'px';
+
+        p.style.setProperty('--tx', tx);
+        p.style.setProperty('--ty', ty);
+
+        // Slower animation for majesty
+        p.style.animationDuration = (1.0 + Math.random() * 1.0) + 's';
+
+        setTimeout(() => p.remove(), 2000);
+    }
+}
+
+// Helper for Floating Text
+function showFloatingText(text, color = '#ffd700') {
+    const charWrapper = document.querySelector('.character-wrapper');
+    let rect;
+    if (charWrapper && charWrapper.offsetParent !== null) {
+        rect = charWrapper.getBoundingClientRect();
+    } else {
+        rect = {
+            left: window.innerWidth / 2 - 20,
+            top: window.innerHeight / 2 - 20,
+            width: 40,
+            height: 40
+        };
+    }
+
+    if (rect.width === 0) {
+        rect = {
+            left: window.innerWidth / 2 - 20,
+            top: window.innerHeight / 2 - 20,
+            width: 40,
+            height: 40
+        };
+    }
+
+    const el = document.createElement('div');
+    el.className = 'floating-text';
+    el.textContent = text;
+    el.style.color = color;
+
+    document.body.appendChild(el);
+
+    // Position above character
+    el.style.left = (rect.left + rect.width / 2) + 'px';
+    el.style.top = (rect.top) + 'px';
+
+    setTimeout(() => el.remove(), 1500);
+}
+
 function useItem(itemId) {
     const inventoryItem = gameData.inventory.find(i => Number(i.id) === Number(itemId));
     if (!inventoryItem || inventoryItem.count <= 0) return;
@@ -1685,11 +2316,48 @@ function useItem(itemId) {
         const message = masterItem.useMessage || `${masterItem.name}を使用した！`;
         showMessageModal("ITEM USED", message);
 
+        // Reserve Effects for Home Screen
+        const floatTexts = [];
+
         // Apply effects if any (consumables can have effects too)
         if (masterItem.effects) {
             Object.keys(masterItem.effects).forEach(stat => {
                 if (gameData.player.stats[stat] !== undefined) {
-                    gameData.player.stats[stat] += masterItem.effects[stat];
+                    const amount = masterItem.effects[stat];
+                    gameData.player.stats[stat] += amount;
+
+                    // Prepare Floating Text data
+                    let label = stat.toUpperCase();
+                    if (stat === 'intellect') label = 'INT';
+                    if (stat === 'strength') label = 'STR';
+                    if (stat === 'focus') label = 'FCS';
+
+                    floatTexts.push({ text: `+${amount} ${label}`, color: '#ffd700' });
+                }
+            });
+        }
+
+        // Set Pending Effect Flag (CRITICAL: active must be true)
+        const pendingMessage = masterItem.useMessage || masterItem.equipMessage || `${masterItem.name}を使った！`;
+
+        gameData.pendingEffect = {
+            active: true,
+            rarity: masterItem.rarity || 1, // Store rarity
+            // Item-specific message
+            message: pendingMessage,
+            floatTexts: floatTexts
+        };
+
+        // --- 強制保存とログ確認 ---
+        saveGameData();
+        console.log("Flag set:", gameData.pendingEffect);
+
+        // If it was equipped, unequip it (e.g., Spirit Dress converted to infinite)
+        const eq = gameData.player.equipment;
+        if (eq) {
+            Object.keys(eq).forEach(slot => {
+                if (eq[slot] && Number(eq[slot].id) === Number(itemId)) {
+                    eq[slot] = null;
                 }
             });
         }
@@ -1703,7 +2371,7 @@ function useItem(itemId) {
         }
     }
 
-    saveGameData();
+    saveGameData(); // Save again for inventory changes (redundant but safe)
     updateInventoryScreen();
     updateHomeScreen();
 }
