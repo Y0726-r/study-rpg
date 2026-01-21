@@ -53,10 +53,10 @@ const BASE_CHARACTER_SIZE = 64; // 主人公スプライトの基準キャンバ
 
 // 勉強科目の定義（カスタマイズ可能）
 const STUDY_SUBJECTS = [
-    { id: 'subject-qualification', label: '資格', type: 'qualification' },
-    { id: 'subject-language', label: '語学', type: 'language' },
-    { id: 'subject-business', label: 'ビジネス', type: 'business' },
-    { id: 'subject-other', label: 'その他', type: 'other' }
+    { id: 'subject-qualification', label: localStorage.getItem('subject_qualification_label') || '資格', type: 'qualification' },
+    { id: 'subject-language', label: localStorage.getItem('subject_language_label') || '語学', type: 'language' },
+    { id: 'subject-business', label: localStorage.getItem('subject_business_label') || 'ビジネス', type: 'business' },
+    { id: 'subject-other', label: localStorage.getItem('subject_other_label') || 'その他', type: 'other' }
 ];
 
 let gameData = {
@@ -1442,17 +1442,129 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+// --- 科目名カスタムシステム（ナノの特別設定ボックス） ---
+
+// 1. 設定メニューを開く (どの科目を変えるか選ぶ)
+window.openSubjectSettings = function () {
+    let html = `
+        <div style="text-align:center; padding:10px;">
+            <p style="margin-bottom:20px; font-size:14px; color:#fdf6e3; line-height:1.6; font-family: 'DotGothic16', sans-serif;">
+                次の冒険に向けて、どの作戦会議をする？<br>
+                ナノが記録を書き換えてあげるね！
+            </p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+    `;
+
+    // 現在の科目リストをボタンとして並べる
+    STUDY_SUBJECTS.forEach((subj) => {
+        html += `
+            <button class="settings-btn" style="position:static; transform:none; width:100%; height:55px; font-size:16px; color:#fff;" 
+                onclick="this.style.filter='brightness(0.7)'; setTimeout(() => window.startRenamingSubject('${subj.id}', '${subj.label}'), 400)">
+                ${subj.label}
+            </button>
+        `;
+    });
+
+    html += `
+            </div>
+            <button class="settings-btn" style="position:static; transform:none; margin-top:40px; width:80%; height:50px; font-size:16px; filter: sepia(0.5); color:#eee;" onclick="closeMessageModal()">今はやめておく</button>
+        </div>
+    `;
+
+    showMessageModal("📖 冒険の作戦会議室", html);
+};
+
+// 2. 入力画面を表示する
+window.startRenamingSubject = function (id, currentName) {
+    let html = `
+        <div style="text-align:center; padding:10px;">
+            <p style="margin-bottom:15px; font-size:15px; color:#fff; line-height:1.6; font-weight:bold;">
+                「${currentName}」の章だね！
+            </p>
+            <p style="margin-bottom:20px; font-size:13px; color:#ddd;">
+                この予言書に、新しい名前を刻み込んで！<br>
+                どんな名前に書き換える？
+            </p>
+            <input type="text" id="subject-rename-input" value="${currentName}" autocomplete="off"
+                style="width:90%; padding:15px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #fdf6e3; color:#fdf6e3; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:30px; text-align:center; outline:none; border-radius:0;">
+            <div style="display:flex; gap:15px; justify-content:center;">
+                <button class="settings-btn" style="position:static; transform:none; padding:15px 30px; font-size:16px;" onclick="window.saveSubjectRename('${id}')">これで決定！</button>
+                <button class="settings-btn" style="position:static; transform:none; padding:15px 30px; font-size:16px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">考え直す</button>
+            </div>
+        </div>
+    `;
+
+    showMessageModal("✒️ 聖なる命名式", html);
+
+    // 入力欄に自動フォーカス
+    setTimeout(() => {
+        const input = document.getElementById('subject-rename-input');
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }, 150);
+};
+
+// 3. 保存してUIに反映する
+window.saveSubjectRename = function (id) {
+    const input = document.getElementById('subject-rename-input');
+    if (!input) return;
+
+    const newName = input.value.trim();
+    if (!newName) {
+        showMessageModal("勇者へのツッコミ", "名前がないと寂しいよ！<br>何か素敵な名前をつけてあげて？");
+        return;
+    }
+
+    // データの保存
+    const key = id.replace(/-/g, '_') + '_label';
+    localStorage.setItem(key, newName);
+
+    // メモリ上の構成データも更新（リロードなしで反映するため）
+    const subjIndex = STUDY_SUBJECTS.findIndex(s => s.id === id);
+    if (subjIndex !== -1) {
+        STUDY_SUBJECTS[subjIndex].label = newName;
+    }
+
+    // UIを即座に再描画
+    generateSubjectButtons();
+
+    // 演出：キラキラ
+    createSparkleEffect();
+
+    // 成功メッセージ
+    showMessageModal("✨ 冒険の成功！", `
+        <div style="text-align:center; padding:10px;">
+            <div style="font-size:40px; margin-bottom:15px;">📜</div>
+            <p style="font-size:16px; line-height:1.7; color:#fdf6e3; font-family: 'DotGothic16', sans-serif;">
+                よし！新しい歴史が刻まれたよ！<br>
+                これできっと冒険も上手くいくはずだね。
+            </p>
+            <button class="settings-btn" style="position:static; transform:none; margin-top:35px; padding:15px 50px; font-size:18px;" onclick="closeMessageModal()">いざ、出発！</button>
+        </div>
+    `);
+};
+
+// 互換性のためのエイリアス
+window.updateSubjectLabel = window.startRenamingSubject;
+
 // Helper to generate Subject Buttons dynamically
 function generateSubjectButtons() {
-    const container = document.querySelector('.subject-selection-mvp');
+    const container = document.querySelector('.subject-selector-mvp');
     if (!container) return;
 
     // Clear existing static buttons
     container.innerHTML = '';
 
     STUDY_SUBJECTS.forEach((subj) => {
+        // 元のデザイン通り、ラッパー要素を作成する
+        const wrapper = document.createElement('div');
+        wrapper.className = 'subject-item-wrapper';
+
         const btn = document.createElement('button');
-        btn.className = 'subject-btn-mvp';
+        btn.type = 'button';
+        btn.className = `subject-btn-mvp ${subj.type}`;
         btn.id = subj.id;
         btn.dataset.subject = subj.label;
         btn.onclick = () => selectSubject(btn);
@@ -1463,14 +1575,18 @@ function generateSubjectButtons() {
         else if (subj.type === 'business') iconClass = 'science';
         else if (subj.type === 'other') iconClass = 'other';
 
-        btn.innerHTML = `
-            <div class="subject-icon-wrapper">
-                <div class="subject-icon ${iconClass}"></div>
-            </div>
-            <span class="subject-label">${subj.label}</span>
-        `;
+        btn.innerHTML = `<div class="subject-icon ${iconClass}"></div>`;
 
-        container.appendChild(btn);
+        const label = document.createElement('span');
+        label.className = 'subject-label-mvp';
+        label.textContent = subj.label;
+
+        // ボタンとラベルをラッパーに追加
+        wrapper.appendChild(btn);
+        wrapper.appendChild(label);
+
+        // ラッパーをコンテナに追加
+        container.appendChild(wrapper);
     });
 }
 
@@ -2858,6 +2974,12 @@ function showMessageModal(title, content) {
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
         modal.style.zIndex = '20000';
+
+        // デバッグ用：背景画像のパスを確認
+        const contentContainer = modal.querySelector('.modal-content');
+        if (contentContainer) {
+            console.log("背景画像のパス:", getComputedStyle(contentContainer).backgroundImage);
+        }
     }
 }
 

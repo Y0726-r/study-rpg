@@ -18,7 +18,7 @@
     <div id="celestial-layer" class="celestial-overlay" style="z-index: 100 !important;">
         <img id="sun-element" src="./assets/sun.png" class="celestial-body sun sky-element hidden"
             style="background: transparent !important;">
-        <img id="moon-element" src="./assets/moon.png" class="celestial-body moon sky-element hidden"
+        <img id="moon-element" src="./assets/moon2.png" class="celestial-body moon sky-element hidden"
             style="background: transparent !important; z-index: 120 !important; position: relative;">
         <img id="cloud-element-1" src="assets/cloud2.png" style="position: absolute; top: 15%; left: -150px; width: 120px; z-index: 110 !important; 
             pointer-events: none; animation: cloudFlow1 40s linear infinite;">
@@ -128,6 +128,7 @@
         <div class="screen-header">
             <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
             <h2 class="screen-title-mvp">STUDY TIMER</h2>
+            <button id="study-settings-btn" class="settings-btn" onclick="openSubjectSettings()">⚙️</button>
         </div>
 
         <div class="timer-container-mvp">
@@ -420,7 +421,6 @@
         </div>
     </div>
 
-    <!-- アイテム使用・汎用メッセージモーダル -->
     <div id="message-modal" class="modal hidden">
         <div class="modal-content rpg-window" style="text-align: center;">
             <h2 id="message-modal-title" class="screen-title-mvp"
@@ -429,8 +429,6 @@
             <p id="message-modal-content" style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
                 メッセージ
             </p>
-            <button class="ok-button" onclick="closeMessageModal()"
-                style="width: 100%; padding: 12px; background: #6b4400; color: white;">CLOSE</button>
         </div>
     </div>
 

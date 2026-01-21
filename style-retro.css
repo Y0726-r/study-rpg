@@ -1869,8 +1869,24 @@ textarea {
     text-align: center;
 }
 
+.subject-btn-mvp.qualification {
+    background: hsl(38, 78%, 70%) !important;
+}
+
+.subject-btn-mvp.language {
+    background: hsl(38, 78%, 70%) !important;
+}
+
+.subject-btn-mvp.business {
+    background: hsl(38, 78%, 70%) !important;
+}
+
+.subject-btn-mvp.other {
+    background: hsl(38, 78%, 70%) !important;
+}
+
 .subject-btn-mvp.active {
-    background: #ffd43b;
+    background: #ffd43b !important;
     border-color: #6b4400;
     color: #4a2c00;
     box-shadow: 0 2px #6b4400;
@@ -2460,13 +2476,33 @@ textarea {
 
 /* Modal Content Adjustment */
 .modal-content.rpg-window {
-    background: #fdf6e3;
-    /* Cream/Retro Paper color */
-    border: 6px solid #6b4400;
-    padding: 24px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    background-image: url('assets/menu_settings.png') !important;
+    background-size: 100% 100% !important;
+    /* 要素に合わせて画像を伸縮 */
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-color: transparent !important;
+    border: none !important;
+
+    /* 要素のサイズを大きく調整 */
+    width: 95% !important;
+    max-width: 650px !important;
+    /* さらに広く */
+    min-height: 550px !important;
+
+    /* 文字が巻物の端（棒の部分）に被らないようにパディングを調整 */
+    padding: 85px 60px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+
+    box-shadow: none !important;
     position: relative;
-    color: #2c1810;
+    color: #fdf6e3 !important;
+    font-family: 'DotGothic16', sans-serif !important;
+    line-height: 1.6 !important;
 }
 
 
@@ -4373,4 +4409,65 @@ img,
     height: 65px !important;
     /* 黄色〜オレンジの光(255, 200, 100)にして温かみを出す */
     filter: drop-shadow(0 0 15px rgba(255, 220, 100, 0.9)) brightness(1.2) !important;
+}
+
+/* 月のサイズを画像に1ミリの狂いもなく合わせる */
+#moon-element {
+    /* 1. 箱のサイズをミツキさんの画像比率に固定 */
+    width: 58px !important;
+    height: 58px !important;
+
+    /* 2. 画像を箱いっぱいに広げてフィットさせる（重要！） */
+    object-fit: contain !important;
+
+    /* 3. 余計な余白（パディング）を徹底的に排除 */
+    padding: 0 !important;
+    margin: 0 !important;
+
+    /* 4. 丸く切り抜く範囲を画像の外周に合わせる */
+    border-radius: 50% !important;
+
+    /* 昨日の「白い箱」の残党を許さない設定 */
+    background: transparent !important;
+    border: none !important;
+
+    /* ミツキさん指定の温かい光 */
+    filter: drop-shadow(0 0 15px rgba(255, 220, 100, 0.9)) brightness(1.2) !important;
+}
+
+/* 設定ボタン（スタディ画面右上） */
+.settings-btn {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background-image: url('./assets/ui/wood_btn.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-color: #5d4037;
+    /* Fallback */
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    /* 大きく変更 */
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 4px #22150c;
+    transition: all 0.1s;
+    line-height: 1;
+    text-shadow: 1.5px 1.5px 2px #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DotGothic16', sans-serif;
+}
+
+.settings-btn:active {
+    box-shadow: 0 0 0 #000;
+    transform: translateY(-50%) translate(0, 4px);
+}
+
+.settings-btn:hover {
+    filter: brightness(1.1);
 }
