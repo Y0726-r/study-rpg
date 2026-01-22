@@ -1290,6 +1290,12 @@ textarea {
     filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
     pointer-events: none;
     /* 透明な余白部分のクリックを無効化 */
+
+    /* 🔥 透過画像を活かすため、背景を完全削除 */
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 /* 内部のクリック可能な要素だけ復活させる */
@@ -1418,6 +1424,9 @@ textarea {
     object-fit: contain;
     image-rendering: pixelated;
     background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     mix-blend-mode: normal !important;
     /* 勇者の待機モーション：足元を固定して前髪が弾むような動き */
     transform-origin: bottom center;
@@ -1440,6 +1449,22 @@ textarea {
     /* 極めて微細な「ピョコン」 */
 }
 
+/* forelockBounceクラス - 透過を活かす */
+.forelockBounce {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* base-bodyクラス - 主人公の基本スプライト */
+.base-body {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 .character-motion {
     position: relative;
     z-index: 10;
@@ -1452,6 +1477,12 @@ textarea {
     transform-origin: bottom center;
     pointer-events: none;
     /* コンテナ自体はクリック透過 */
+
+    /* 🔥 透過画像を活かすため、背景を完全削除 */
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .character-motion.jump-active {
@@ -4124,8 +4155,12 @@ body.gacha-mode {
     mix-blend-mode: normal !important;
 }
 
-.player-layers-container {
+.player-layers-container,
+#equipment-layers {
     background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 /* Timer Cheer/Pause Message */
@@ -4573,6 +4608,9 @@ img,
     transform: translateY(-50%) translate(0, 4px);
 }
 
+
 .settings-btn:hover {
     filter: brightness(1.1);
 }
+
+/* ガチャ結果の黄色い枠と白背景を消滅させる */
