@@ -668,9 +668,9 @@ const ITEM_MASTER = [
     // ★1 (Rarity 1)
     // visuals: { x: 横位置(%), y: 縦位置(%), scale: 拡大率, width: 幅(任意, 指定なければ100%でscale適用) }
     { id: 0, name: "木の剣", rarity: 1, file: "小さな剣.png", type: "weapon", effects: { focus: 2 }, description: "冒険の始まりといえばこれ。", equipMessage: "木の剣を構えた！少し攻撃的な気分になった！", visuals: { x: 30, y: 35, width: 15 }, equipImage: "./assets/player_sword_fixed.png" },
-    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。", visuals: { x: 0, y: 0, width: 64 } },
-    { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "foot", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。", visuals: { x_L: 38, x_R: 58, y: 83.5, width: 16 }, equipImage: "./assets/item/gacha_equipment/Boots2M.png", equipImageR: "./assets/item/gacha_equipment/Boots2M.png" },
-    { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。", visuals: { x: 35, y: 35, width: 16 }, equipImage: "./assets/item/gacha_items/小さな盾_equipped.png" },
+    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。", visuals: { x: 0, y: -1.3, width: 100, origin: "left" }, equipImage: "assets/item/gacha_equipment/布の服.png" },
+    { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "foot", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。", visuals: { x_L: 38, x_R: 58, y: 87.5, width: 16 }, equipImage: "./assets/item/gacha_equipment/Boots2M.png", equipImageR: "./assets/item/gacha_equipment/Boots2M.png" },
+    { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。", visuals: { x: 25, y: 70, width: 30 }, equipImage: "./assets/item/gacha_items/小さな盾_equipped.png" },
     { id: 4, name: "ポーション", rarity: 1, file: "ポーション.png", type: "consumable", useMessage: "ポーションを使った！", description: "疲れが少し取れる魔法の薬。" },
     { id: 5, name: "パン", rarity: 1, file: "パン.png", type: "consumable", useMessage: "お腹いっぱい！", description: "腹が減っては勉強ができぬ。" },
     { id: 12, name: "集中キャンディ", rarity: 1, file: "集中キャンディ.png", type: "consumable", useMessage: "レモンの酸味で、集中力が研ぎ澄まされた！", description: "レモン味でリフレッシュ！" },
@@ -682,25 +682,25 @@ const ITEM_MASTER = [
 
     // ★2 (Rarity 2)
     { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！", visuals: { x: 0, y: 0, scale: 1.0 } },
-    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。", visuals: { x: 0, y: 0, scale: 1.0 } },
-    { id: 8, name: "魔法の杖", rarity: 2, file: "魔法の杖.png", type: "weapon", effects: { intellect: 10 }, description: "閃きを呼び起こす不思議な杖。", equipMessage: "魔法の杖を握った。知恵が溢れ出してくる...！", visuals: { x: 50, y: 38, scale: 0.3 }, equipImage: "./assets/item/gacha_items/魔法の杖_equipped.png" },
+    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。", visuals: { x: 0, y: 0, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の鎧.png" },
+    { id: 8, name: "魔法の杖", rarity: 2, file: "魔法の杖.png", type: "weapon", effects: { intellect: 10 }, description: "閃きを呼び起こす不思議な杖。", equipMessage: "魔法の杖を握った。知恵が溢れ出してくる...！", visuals: { x: 37, y: 15, scale: 0.3 }, equipImage: "assets/item/gacha_equipment/魔法の杖.png" },
     { id: 9, name: "魔法の本", rarity: 2, file: "魔法の本.png", type: "accessory", effects: { intellect: 5 }, description: "難しい知識が詰まっている。", equipMessage: "魔法の本を開いた！未知の知識が頭に流れ込む。", visuals: { x: 0, y: 0, scale: 1.0 } },
     { id: 18, name: "癒やしのマカロン", rarity: 2, file: "癒しのマカロン.png", type: "consumable", useMessage: "お腹いっぱい！", description: "食べるのがもったいない可愛さ。" },
-    { id: 19, name: "星屑のコンペイトウ", rarity: 2, file: "星屑のコンペイトウ.png", type: "consumable", useMessage: "お腹いっぱい！", description: "噛むとキラキラした音がする。" },
+    { id: 19, name: "星屑のコンペイトウ", rarity: 2, file: "stardust_konnpeitou.png", type: "consumable", useMessage: "お腹いっぱい！", description: "噛むとキラキラした音がする。" },
     { id: 20, name: "情熱のドーナツ", rarity: 2, file: "情熱のドーナツ.png", type: "consumable", useMessage: "お腹いっぱい！", description: "燃えるようなやる気が湧く（気がする）。" },
-    { id: 21, name: "銀のヘアピン", rarity: 2, file: "銀のヘアピン.png", type: "accessory", effects: { intellect: 3, strength: 3 }, description: "前髪を留めるのにちょうどいい。", equipMessage: "銀のヘアピンで髪を留めた。清潔感がアップした！", visuals: { x: 55, y: 20, scale: 0.25 }, equipImage: "./assets/item/gacha_items/銀のヘアピン_equipped.png" },
-    { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！", visuals: { x: 50, y: 10, scale: 0.35 }, equipImage: "./assets/item/gacha_items/赤いリボン_equipped.png" },
+    { id: 21, name: "銀のヘアピン", rarity: 2, file: "銀のヘアピン.png", type: "accessory", effects: { intellect: 3, strength: 3 }, description: "前髪を留めるのにちょうどいい。", equipMessage: "銀のヘアピンで髪を留めた。清潔感がアップした！", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/銀のヘアピン.png" },
+    { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/赤いリボン.png" },
     { id: 23, name: "賢者の羽ペン", rarity: 2, file: "賢者の羽ペン.png", type: "accessory", effects: { intellect: 15 }, description: "スラスラと答えが書ける不思議なペン。", equipMessage: "賢者の羽ペンを構えた。思考の速度が加速する！", visuals: { x: 0, y: 0, scale: 1.0 } },
     { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "accessory", effects: { focus: 15 }, description: "周りの音が聞こえなくなる魔法の耳栓。", equipMessage: "静寂の耳栓を装着。深い没入状態に入った...。", visuals: { x: 0, y: 0, scale: 1.0 } },
     { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "幸運のコインを使った！", description: "ガチャ運が上がるという噂がある。" },
 
     // ★3 (Rarity 3)
-    { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！", visuals: { x: 0, y: 0, scale: 1.0 } },
-    { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！", visuals: { x: 50, y: 9, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/伝説の剣.png" },
+    { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！", visuals: { x: -3, y: 30, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/ドラゴンの盾.png" },
     { id: 26, name: "王家のショートケーキ", rarity: 3, file: "王家のショートケーキ.png", type: "consumable", useMessage: "究極の美味！今この瞬間、全能力が極限まで解放された！", description: "今日一番頑張った自分へのご褒美！" },
-    { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 50, y: 5, scale: 0.4 }, equipImage: "./assets/item/gacha_items/聖なる宝冠_equipped.png" },
+    { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/聖なる宝冠.png" },
     { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "infinite", effects: { intellect: 100 }, description: "まるで光を纏っているような服。", useMessage: "聖なる光に包まれた…！" },
-    { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 7, y: -4, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/全知の眼鏡.png" },
     { id: 30, name: "虹色の鱗", rarity: 3, file: "虹色の鱗.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" }
 ];
 
@@ -1225,13 +1225,10 @@ function updateCharacterAppearance() {
                     const cacheBuster = `?t=${new Date().getTime()}`;
                     img.src = part.src + cacheBuster;
 
-                    img.style.setProperty('box-shadow', 'none', 'important');
-                    img.style.setProperty('outline', 'none', 'important');
-
                     // アニメーション適用（全装備共通で勇者と一緒に跳ねる）
                     img.classList.add('forelockBounce');
 
-                    // クラス設定（特別なクラスは廃止し、共通のスタイルを適用）
+                    // クラス設定（.equipment-sprite-onlyで透過設定済み）
                     img.className += ' equipment-sprite-only';
 
                     // 配置設定
@@ -1246,6 +1243,11 @@ function updateCharacterAppearance() {
                     img.style.position = 'absolute';
                     img.style.zIndex = order.zIndex;
                     img.style.pointerEvents = 'none';
+                    img.style.zIndex = order.zIndex;
+                    img.style.pointerEvents = 'none';
+                    // ここから追加！
+                    img.style.transformOrigin = 'left center';
+                    img.style.transform = `scale(${visuals.scale || 1})`;
 
                     // 読み込み監視
                     img.onload = () => console.log(`✅ Gear [${order.slot}] Loaded: ${img.src}`);
@@ -1523,23 +1525,23 @@ window.openSubjectSettings = function () {
 window.startRenamingSubject = function (id, currentName) {
     let html = `
         <div style="text-align:center; padding:10px;">
-            <p style="margin-bottom:15px; font-size:15px; color:#fff; line-height:1.6; font-weight:bold;">
+            <p style="margin-bottom:15px; font-size:15px; color:#2c1810; line-height:1.6; font-weight:bold;">
                 「${currentName}」の章だね！
             </p>
-            <p style="margin-bottom:20px; font-size:13px; color:#ddd;">
+            <p style="margin-bottom:20px; font-size:13px; color:#2c1810;">
                 この予言書に、新しい名前を刻み込んで！<br>
                 どんな名前に書き換える？
             </p>
             <input type="text" id="subject-rename-input" value="${currentName}" autocomplete="off"
                 style="width:90%; padding:15px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #fdf6e3; color:#fdf6e3; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:30px; text-align:center; outline:none; border-radius:0;">
             <div style="display:flex; gap:15px; justify-content:center;">
-                <button class="settings-btn" style="position:static; transform:none; padding:15px 30px; font-size:16px;" onclick="window.saveSubjectRename('${id}')">これで決定！</button>
-                <button class="settings-btn" style="position:static; transform:none; padding:15px 30px; font-size:16px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">考え直す</button>
+                <button class="settings-btn" style="position:static; transform:none; padding:12px 24px; font-size:16px;" onclick="window.saveSubjectRename('${id}')">これで決定！</button>
+                <button class="settings-btn" style="position:static; transform:none; padding:12px 24px; font-size:16px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">考え直す</button>
             </div>
         </div>
     `;
 
-    showMessageModal("✒️ 聖なる命名式", html, true);
+    showMessageModal("-聖なる命名式-", html, true);
 
     // 入力欄に自動フォーカス
     setTimeout(() => {
