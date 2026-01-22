@@ -1492,18 +1492,18 @@ document.addEventListener('visibilitychange', () => {
 // 1. 設定メニューを開く (どの科目を変えるか選ぶ)
 window.openSubjectSettings = function () {
     let html = `
-        <div style="text-align:center; padding:10px;">
-            <p style="margin-bottom:20px; font-size:14px; color:#fdf6e3; line-height:1.6; font-family: 'DotGothic16', sans-serif;">
+        <div style="text-align:center; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <p style="margin-bottom:30px; font-size:14px; color:#2c1810; line-height:1.8; font-family: 'DotGothic16', sans-serif; font-weight:bold;">
                 次の冒険に向けて、どの作戦会議をする？<br>
-                ナノが記録を書き換えてあげるね！
+                記録を書き換えよう！
             </p>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; row-gap:15px; column-gap:2px; width:100%; max-width:400px; margin-bottom:35px; justify-items:center;">
     `;
 
     // 現在の科目リストをボタンとして並べる
     STUDY_SUBJECTS.forEach((subj) => {
         html += `
-            <button class="settings-btn" style="position:static; transform:none; width:100%; height:55px; font-size:16px; color:#fff;" 
+            <button class="settings-btn" style="position:static; transform:none; width:80%; height:50px; font-size:20px; color:#fff;" 
                 onclick="this.style.filter='brightness(0.7)'; setTimeout(() => window.startRenamingSubject('${subj.id}', '${subj.label}'), 400)">
                 ${subj.label}
             </button>
@@ -1512,11 +1512,11 @@ window.openSubjectSettings = function () {
 
     html += `
             </div>
-            <button class="settings-btn" style="position:static; transform:none; margin-top:40px; width:80%; height:50px; font-size:16px; filter: sepia(0.5); color:#eee;" onclick="closeMessageModal()">今はやめておく</button>
+            <button class="scroll-cancel-btn" onclick="this.style.transform='scale(0.95)'; setTimeout(() => closeMessageModal(), 200)">〜今はやめておく〜</button>
         </div>
     `;
 
-    showMessageModal("📖 冒険の作戦会議室", html, true);
+    showMessageModal("-冒険の作戦会議室-", html, true);
 };
 
 // 2. 入力画面を表示する

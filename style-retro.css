@@ -2500,7 +2500,7 @@ textarea {
     max-width: 650px !important;
     min-height: 550px !important;
 
-    padding: 85px 60px !important;
+    padding: 100px 80px !important;
 
     display: flex !important;
     flex-direction: column !important;
@@ -2509,10 +2509,47 @@ textarea {
 
     box-shadow: none !important;
     position: relative;
-    color: #fdf6e3 !important;
+    color: #2c1810 !important;
     font-family: 'DotGothic16', sans-serif !important;
     line-height: 1.6 !important;
 }
+
+/* 巻物モーダルの「今はやめておく」ボタン */
+.scroll-cancel-btn {
+    background: transparent;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #4a2c2a;
+    font-family: 'DotGothic16', sans-serif;
+    cursor: pointer;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+    transition: all 0.2s ease;
+}
+
+.scroll-cancel-btn:hover {
+    color: #6b4400;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    text-decoration: underline;
+}
+
+.scroll-cancel-btn:active {
+    color: #3a1c1a;
+    transform: scale(0.95);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+}
+
+/* 巻物モーダルのタイトル（RPG風フォント） */
+.rpg-scroll-window .screen-title-mvp {
+    font-family: 'DotGothic16', sans-serif !important;
+    font-size: 20px !important;
+    color: #3a1c1a !important;
+    letter-spacing: 1px !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
 
 
 /* ========================================
@@ -4517,8 +4554,8 @@ img,
     background-color: #5d4037;
     border: none;
     color: #fff;
-    font-size: 18px;
-    padding: 10px 15px;
+    font-size: 10px;
+    padding: 6px 6px;
     cursor: pointer;
     border-radius: 4px;
     box-shadow: 0 4px #22150c;
