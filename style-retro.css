@@ -18,7 +18,7 @@
     /* screenクラスの枠線を解除 */
     transform: none !important;
     background: #000;
-    z-index: 99999;
+    z-index: 99999 !important;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -31,6 +31,8 @@
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
+    display: none !important;
+    /* 物理的に消去してクリックを妨げないようにする */
     transition: opacity 1.5s ease-out;
 }
 
@@ -2474,23 +2476,30 @@ textarea {
     color: white;
 }
 
-/* Modal Content Adjustment */
+/* Standard RPG Window (Classic Box) */
 .modal-content.rpg-window {
+    background: #fdf6e3;
+    /* Cream/Retro Paper color */
+    border: 6px solid #6b4400;
+    padding: 24px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+    color: #2c1810;
+}
+
+/* Special Parchment Scroll (Subject Settings Only) */
+.rpg-scroll-window {
     background-image: url('assets/menu_settings.png') !important;
     background-size: 100% 100% !important;
-    /* 要素に合わせて画像を伸縮 */
     background-repeat: no-repeat !important;
     background-position: center !important;
     background-color: transparent !important;
     border: none !important;
 
-    /* 要素のサイズを大きく調整 */
     width: 95% !important;
     max-width: 650px !important;
-    /* さらに広く */
     min-height: 550px !important;
 
-    /* 文字が巻物の端（棒の部分）に被らないようにパディングを調整 */
     padding: 85px 60px !important;
 
     display: flex !important;
@@ -4338,6 +4347,58 @@ img,
     }
 }
 
+/* --- ドラゴン伏線演出：レベル milestones --- */
+
+/* Lv60+: 勇者の周りを舞う光のパーティクル */
+.dragon-aura {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 64px;
+    height: 64px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.aura-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    filter: blur(1px) drop-shadow(0 0 5px #fff2a8);
+    animation: particleOrbit 2s linear infinite;
+    opacity: 0;
+}
+
+@keyframes particleOrbit {
+    0% {
+        transform: translate(32px, 32px) rotate(0deg) translateX(25px) scale(0);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+        scale: 1;
+    }
+
+    80% {
+        opacity: 1;
+        scale: 0.8;
+    }
+
+    100% {
+        transform: translate(32px, 32px) rotate(360deg) translateX(30px) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Lv30+: 羽のような雲 */
+.feather-cloud {
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
 /* --- 天体と画面の重なり調整 --- */
 
 /* ホーム画面（フィールド）は透明にして後ろの太陽・月を見せる */
@@ -4372,70 +4433,79 @@ img,
     /* 雲(110)より手前 */
 }
 
-/* --- 最終レイヤー調整 --- */
+/* --- Final Layering & Background Cleanup (Simplified Hierarchy) --- */
 
-/* --- 最終：夜のホラー演出を幻想的に変える --- */
-
-/* 1. 夜の色を「不気味な青」から「深い紺色」へ、透明度を下げて明るく */
-.time-night {
-    background-color: rgba(15, 15, 50, 0.3) !important;
-    /* 0.35から0.3へ下げて透過度アップ */
-    backdrop-filter: brightness(0.8) contrast(1.05) !important;
-    /* 強すぎる暗さを緩和 */
-}
-
-/* 2. 時間フィルターを勇者(10)やUI(1000)より「後ろ」に完全に下げる */
+/* 1. 時間フィルター (Time Effect) */
 .time-overlay {
     z-index: 2 !important;
-    /* 背景(0)のすぐ上、太陽・月(5)のすぐ上に配置 */
 }
 
-/* 3. 勇者やUIをクッキリ見せるための z-index 優先順位 */
+/* 2. 天体 (Sun / Moon) */
+.celestial-overlay {
+    z-index: 5 !important;
+}
+
+/* 3. 勇者キャラクター (Hero) */
 .character-wrapper {
     z-index: 100 !important;
-    /* 勇者はフィルターより前 */
 }
 
+/* 4. メインUI / 各画面 (Screens) */
 .screen {
     z-index: 1000 !important;
-    /* UI枠やボタンは一番手前 */
 }
 
-/* 4. 自作の月を「枠」から救出し、温かい光にする */
-#moon-element {
-    top: 25% !important;
-    /* 位置をさらに少し下げて、枠に被らないように */
-    width: 65px !important;
-    height: 65px !important;
-    /* 黄色〜オレンジの光(255, 200, 100)にして温かみを出す */
-    filter: drop-shadow(0 0 15px rgba(255, 220, 100, 0.9)) brightness(1.2) !important;
+/* 5. モーダル / 通知 (Modals) */
+.modal {
+    z-index: 20000 !important;
 }
 
-/* 月のサイズを画像に1ミリの狂いもなく合わせる */
+/* --- 背景の隔離と透明化 --- */
+
+/* 全ての画面を一旦透明にする */
+#home-screen,
+#study-screen,
+#gacha-screen,
+#status-screen,
+#menu-screen,
+#log-screen {
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
+/* 全ての画面を透明に維持（巻物背景は使用しない） */
+#home-screen,
+#study-screen,
+#gacha-screen,
+#status-screen,
+#menu-screen,
+#log-screen {
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
+/* --- タイマーコントロールのz-index調整 (残骸の消去) --- */
+.timer-controls-mvp {
+    z-index: 1001 !important;
+    /* UI(.screen)の少し上 */
+    pointer-events: auto !important;
+}
+
+/* --- 月の最終調整 --- */
 #moon-element {
-    /* 1. 箱のサイズをミツキさんの画像比率に固定 */
     width: 58px !important;
     height: 58px !important;
-
-    /* 2. 画像を箱いっぱいに広げてフィットさせる（重要！） */
     object-fit: contain !important;
-
-    /* 3. 余計な余白（パディング）を徹底的に排除 */
     padding: 0 !important;
     margin: 0 !important;
-
-    /* 4. 丸く切り抜く範囲を画像の外周に合わせる */
     border-radius: 50% !important;
-
-    /* 昨日の「白い箱」の残党を許さない設定 */
     background: transparent !important;
     border: none !important;
-
-    /* ミツキさん指定の温かい光 */
+    top: 25% !important;
     filter: drop-shadow(0 0 15px rgba(255, 220, 100, 0.9)) brightness(1.2) !important;
 }
 
-/* 設定ボタン（スタディ画面右上） */
+/* --- 設定ボタン（スタディ画面右上） --- */
 .settings-btn {
     position: absolute;
     top: 50%;
@@ -4445,11 +4515,9 @@ img,
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-color: #5d4037;
-    /* Fallback */
     border: none;
     color: #fff;
     font-size: 18px;
-    /* 大きく変更 */
     padding: 10px 15px;
     cursor: pointer;
     border-radius: 4px;

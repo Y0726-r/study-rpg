@@ -11,15 +11,13 @@
 </head>
 
 <body>
-    <!-- タイムエフェクト・オーバーレイ（時間連動背景システム） -->
-    <div id="time-effect-layer" class="time-overlay"></div>
+    <div id="time-effect-layer" class="time-overlay" style="z-index: 1 !important; pointer-events: none;"></div>
 
-    <!-- 天体サイクル（太陽と月） -->
-    <div id="celestial-layer" class="celestial-overlay" style="z-index: 100 !important;">
+    <div id="celestial-layer" class="celestial-overlay" style="z-index: 5 !important; pointer-events: none;">
         <img id="sun-element" src="./assets/sun.png" class="celestial-body sun sky-element hidden"
             style="background: transparent !important;">
         <img id="moon-element" src="./assets/moon2.png" class="celestial-body moon sky-element hidden"
-            style="background: transparent !important; z-index: 120 !important; position: relative;">
+            style="background: transparent !important; z-index: 120 !important;">
         <img id="cloud-element-1" src="assets/cloud2.png" style="position: absolute; top: 15%; left: -150px; width: 120px; z-index: 110 !important; 
             pointer-events: none; animation: cloudFlow1 40s linear infinite;">
         <img id="cloud-element-2" src="assets/cloud2.png" style="position: absolute; top: 25%; left: 100%; width: 100px; z-index: 110 !important; 
@@ -27,7 +25,7 @@
     </div>
 
     <!-- オープニングムービー・オーバーレイ -->
-    <div id="opening-movie" class="opening-overlay screen active" onclick="skipOpening()">
+    <div id="opening-movie" class="opening-overlay screen active">
         <div class="movie-scene">
             <div class="movie-bg-layer"></div>
             <div class="movie-cloud-layer cloud-far"></div>
@@ -40,7 +38,7 @@
             <div class="movie-title-layer">
                 <h1 class="movie-title">StudyQuest</h1>
                 <p class="movie-subtitle">～ 勉強と共に伝説へ ～</p>
-                <div class="movie-start-text">PRESS START</div>
+                <div class="movie-start-text" onclick="skipOpening()">PRESS START</div>
             </div>
             <button class="movie-skip-btn" onclick="skipOpening()">SKIP &raquo;</button>
         </div>
@@ -429,6 +427,8 @@
             <p id="message-modal-content" style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
                 メッセージ
             </p>
+            <button class="ok-button" onclick="closeMessageModal()"
+                style="width: 100%; padding: 12px; background: #4a5568;">CLOSE</button>
         </div>
     </div>
 

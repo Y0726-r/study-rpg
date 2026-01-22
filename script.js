@@ -81,6 +81,9 @@ let gameData = {
         hatched: false,
         type: null // 'red', 'blue', 'green', 'gold'
     },
+    dragonMilestones: {
+        scaleAwarded: false
+    },
     // NEW: Pending effect for item usage
     pendingEffect: null // { active: boolean, message: string, floatTexts: [{text, color}] }
 };
@@ -324,6 +327,21 @@ function updateCelestialCycle() {
     moonEl.style.setProperty('box-shadow', 'none', 'important');
     moonEl.style.setProperty('border', 'none', 'important');
     moonEl.style.setProperty('outline', 'none', 'important');
+
+    // --- ☁️ 雲の伏線演出 (Lv30+) ---
+    const cloud1 = document.getElementById('cloud-element-1');
+    const cloud2 = document.getElementById('cloud-element-2');
+    if (cloud1 && cloud2 && gameData.player.level >= 30) {
+        // 10%の確率で羽の形の雲にする（定期更新のタイミングで判定）
+        if (Math.random() < 0.1) {
+            cloud1.src = 'assets/feather_cloud.png';
+            cloud1.classList.add('feather-cloud');
+            console.log("🐲 Rare Event: Feather Cloud appeared!");
+        } else if (minute % 15 === 0) { // 15分ごとに通常に戻るチャンス
+            cloud1.src = 'assets/cloud2.png';
+            cloud1.classList.remove('feather-cloud');
+        }
+    }
 
     console.log(`🌙 Celestial cycle updated: hour=${hour}, minute=${minute}`);
 }
@@ -682,7 +700,8 @@ const ITEM_MASTER = [
     { id: 26, name: "王家のショートケーキ", rarity: 3, file: "王家のショートケーキ.png", type: "consumable", useMessage: "究極の美味！今この瞬間、全能力が極限まで解放された！", description: "今日一番頑張った自分へのご褒美！" },
     { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 50, y: 5, scale: 0.4 }, equipImage: "./assets/item/gacha_items/聖なる宝冠_equipped.png" },
     { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "infinite", effects: { intellect: 100 }, description: "まるで光を纏っているような服。", useMessage: "聖なる光に包まれた…！" },
-    { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 0, y: 0, scale: 1.0 } }
+    { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 30, name: "虹色の鱗", rarity: 3, file: "虹色の鱗.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" }
 ];
 
 /**
@@ -839,11 +858,20 @@ function initGame() {
     // 勉強ログの更新
     updateLogScreen();
 
-    // Dragon UIの更新
-    updateDragonUI();
-
     // Timer Controlsの初期化を念押し
-    initTimerControls()
+    initTimerControls();
+
+    // --- Legacy check for Dragon Milestones ---
+    if (gameData.player.level >= 45 && (!gameData.dragonMilestones || !gameData.dragonMilestones.scaleAwarded)) {
+        if (!gameData.dragonMilestones) gameData.dragonMilestones = { scaleAwarded: false };
+        const hasIt = gameData.inventory.some(inv => inv.id === 30);
+        if (!hasIt) {
+            awardRainbowScale();
+        } else {
+            gameData.dragonMilestones.scaleAwarded = true;
+            saveGameData();
+        }
+    }
 
     console.log("Game initialized!");
 }
@@ -892,6 +920,9 @@ function loadGameData() {
                 stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 },
                 equipment: { head: null, armor: null, weapon: null, accessory: null, shield: null }
             };
+        }
+        if (!gameData.dragonMilestones) {
+            gameData.dragonMilestones = { scaleAwarded: false };
         }
         if (!gameData.player.stats) {
             gameData.player.stats = { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 };
@@ -1139,6 +1170,20 @@ function updateCharacterAppearance() {
 
     const equipment = gameData.player.equipment;
     if (!equipment) return;
+
+    // --- ✨ Lv60+ ドラゴンの気配エフェクト ---
+    if (gameData.player.level >= 60) {
+        const aura = document.createElement('div');
+        aura.className = 'dragon-aura';
+        // パーティクルを数個生成
+        for (let i = 0; i < 5; i++) {
+            const p = document.createElement('div');
+            p.className = 'aura-particle';
+            p.style.animationDelay = `${i * 0.4}s`;
+            aura.appendChild(p);
+        }
+        layerContainer.appendChild(aura);
+    }
 
     // Define Render Order (Z-Index equivalent)
     // Armor (Body) -> Shield (Back/Hand) -> Weapon (Hand) -> Accessory (Misc) -> Head (Top)
@@ -1471,7 +1516,7 @@ window.openSubjectSettings = function () {
         </div>
     `;
 
-    showMessageModal("📖 冒険の作戦会議室", html);
+    showMessageModal("📖 冒険の作戦会議室", html, true);
 };
 
 // 2. 入力画面を表示する
@@ -1494,7 +1539,7 @@ window.startRenamingSubject = function (id, currentName) {
         </div>
     `;
 
-    showMessageModal("✒️ 聖なる命名式", html);
+    showMessageModal("✒️ 聖なる命名式", html, true);
 
     // 入力欄に自動フォーカス
     setTimeout(() => {
@@ -1543,7 +1588,7 @@ window.saveSubjectRename = function (id) {
             </p>
             <button class="settings-btn" style="position:static; transform:none; margin-top:35px; padding:15px 50px; font-size:18px;" onclick="closeMessageModal()">いざ、出発！</button>
         </div>
-    `);
+    `, true);
 };
 
 // 互換性のためのエイリアス
@@ -1852,11 +1897,29 @@ function checkLevelUp(oldLevel) {
         }
     }
 
-    // レベルが上がった場合のみチェック
     if (newLevel > oldLevel) {
         gameData.player.level = newLevel;
 
         console.log(`🆙 レベル判定: 新レベル=${newLevel}, 以前=${oldLevel}, 卵所持=${gameData.dragon.obtained}`);
+
+        // --- ドラゴン伏線：特定レベルのイベント ---
+
+        // Milestone: Lv45 (Rainbow Scale) - 一旦コメントアウト
+        /*
+        if (newLevel >= 45 && oldLevel < 45 && !gameData.dragonMilestones.scaleAwarded) {
+            awardRainbowScale();
+        }
+        */
+
+        // Milestone: Lv60 (Aura Reveal) - 一旦コメントアウト
+        /*
+        if (newLevel >= 60 && oldLevel < 60) {
+            setTimeout(() => {
+                showMessageModal("不思議な兆し", "勇者の周りに、温かな光が舞い始めた……。<br>「すぐ近くに誰かいる気がする……温かくて、優しい気配だ」");
+                createSparkleEffect();
+            }, 2000);
+        }
+        */
 
         // --- 【アンチへの念押し：本番演出フロー】 ---
 
@@ -1876,6 +1939,25 @@ function checkLevelUp(oldLevel) {
     }
 }
 
+/**
+ * Lv45お祝いギフト：虹色の鱗
+ */
+function awardRainbowScale() {
+    console.log("🐲 ドラゴンの伏線：虹色の鱗を授与します");
+    const scaleItem = ITEM_MASTER.find(it => it.id === 30);
+    if (scaleItem) {
+        addItemToInventory(scaleItem);
+        if (!gameData.dragonMilestones) gameData.dragonMilestones = {};
+        gameData.dragonMilestones.scaleAwarded = true;
+        saveGameData();
+
+        setTimeout(() => {
+            // 他の演出と重ならないよう配慮
+            showGachaResult({ ...scaleItem, name: "ドラゴンの贈り物" });
+            showMessageModal("伝説の予兆", "どこからか「虹色の鱗」が舞い降りてきた！<br><br>「いつか、大きな力が必要な時に道を示してくれるだろう」");
+        }, 1500);
+    }
+}
 
 function showLevelUpModal(oldLevel, newLevel) {
     document.getElementById('old-level').textContent = oldLevel;
@@ -2963,10 +3045,11 @@ function showItemDescription(itemId) {
 /* ========================================
    汎用メッセージモーダル制御
    ======================================== */
-function showMessageModal(title, content) {
+function showMessageModal(title, content, useScrollWindow = false) {
     const modal = document.getElementById('message-modal');
     const titleEl = document.getElementById('message-modal-title');
     const contentEl = document.getElementById('message-modal-content');
+    const closeBtn = modal ? modal.querySelector('.ok-button') : null;
 
     if (modal && titleEl && contentEl) {
         titleEl.textContent = title;
@@ -2975,10 +3058,20 @@ function showMessageModal(title, content) {
         modal.style.display = 'flex';
         modal.style.zIndex = '20000';
 
-        // デバッグ用：背景画像のパスを確認
+        // 科目設定の時だけ巻物背景を適用し、CLOSEボタンを非表示
         const contentContainer = modal.querySelector('.modal-content');
         if (contentContainer) {
-            console.log("背景画像のパス:", getComputedStyle(contentContainer).backgroundImage);
+            if (useScrollWindow) {
+                contentContainer.classList.add('rpg-scroll-window');
+                contentContainer.classList.remove('rpg-window');
+                // CLOSEボタンを非表示（「今はやめておく」ボタンがあるため）
+                if (closeBtn) closeBtn.style.display = 'none';
+            } else {
+                contentContainer.classList.remove('rpg-scroll-window');
+                contentContainer.classList.add('rpg-window');
+                // CLOSEボタンを表示
+                if (closeBtn) closeBtn.style.display = 'block';
+            }
         }
     }
 }
@@ -2988,6 +3081,16 @@ function closeMessageModal() {
     if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
+
+        // クラスとCLOSEボタンをリセット
+        const contentContainer = modal.querySelector('.modal-content');
+        const closeBtn = modal.querySelector('.ok-button');
+        if (contentContainer) {
+            contentContainer.classList.remove('rpg-scroll-window');
+            contentContainer.classList.add('rpg-window');
+        }
+        // CLOSEボタンを表示状態に戻す
+        if (closeBtn) closeBtn.style.display = 'block';
     }
 }
 
@@ -3129,6 +3232,16 @@ function updateCharacterMessage(force = false) {
     const isSpecial = ["あれ？ 卵に変化が……", "なんか最近、卵が割れそう・・・・？"].includes(messageEl.textContent);
 
     if (!isSpecial || force) {
+        // レベルに応じた追加メッセージ
+        const lv = gameData.player.level;
+        if (lv >= 60) {
+            messages.push("すぐ近くに誰かいる気がする……温かくて、優しい気配だ");
+            messages.push("この光……何かボクを まもってくれてるみたい");
+        } else if (lv >= 30) {
+            messages.push("この地には、勉強を頑張る人を助ける『知恵の竜』が眠っているらしいよ");
+            messages.push("たまに 空に ふしぎな形の雲が 流れていくんだ");
+        }
+
         const randomIndex = Math.floor(Math.random() * messages.length);
         messageEl.textContent = messages[randomIndex];
     }
