@@ -691,7 +691,7 @@ const ITEM_MASTER = [
     { id: 21, name: "銀のヘアピン", rarity: 2, file: "銀のヘアピン.png", type: "accessory", effects: { intellect: 3, strength: 3 }, description: "前髪を留めるのにちょうどいい。", equipMessage: "銀のヘアピンで髪を留めた。清潔感がアップした！", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/銀のヘアピン.png" },
     { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/赤いリボン.png" },
     { id: 23, name: "賢者の羽ペン", rarity: 2, file: "pen_of_genius.png", type: "consumable", effects: { intellect: 20 }, description: "スラスラと答えが書ける不思議なペン。", useMessage: "賢者の羽ペンで書いた！思考の速度が加速する…知力が大幅に上昇した！" },
-    { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "accessory", effects: { focus: 15 }, description: "周りの音が聞こえなくなる魔法の耳栓。", equipMessage: "静寂の耳栓を装着。深い没入状態に入った...。", visuals: { x: 0, y: 0, scale: 1.0 } },
+    { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "consumable", effects: { focus: 20 }, description: "周りの音が聞こえなくなる魔法の耳栓。", useMessage: "静寂の耳栓を装着。深い没入状態に入った...世界が静まり返る。", specialEffect: "silence" },
     { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "幸運のコインを使った！", description: "ガチャ運が上がるという噂がある。" },
 
     // ★3 (Rarity 3)
@@ -2527,9 +2527,71 @@ function createUltraRareEffect() {
         // Slower animation for majesty
         p.style.animationDuration = (1.0 + Math.random() * 1.0) + 's';
 
-        setTimeout(() => p.remove(), 2000);
     }
 }
+
+/**
+ * 静寂の耳栓エフェクト：キャラクターを完全保護（背景分離版）
+ */
+function applySilenceEffect() {
+    console.log("🎧 静寂の耳栓エフェクト：背景分離モード発動");
+
+    const duration = 8000;
+    const charWrapper = document.querySelector('.character-wrapper');
+    const homeScreen = document.getElementById('home-screen');
+    const statusScreen = document.getElementById('status-screen');
+
+    // 1. キャラクターを含まない背景レイヤーのみにblurをかける
+    const bgElements = document.querySelectorAll('#time-effect-layer, #celestial-layer');
+    bgElements.forEach(el => {
+        el.style.transition = 'filter 1s ease-out';
+        el.style.filter = 'blur(10px) saturate(40%)';
+    });
+
+    // 2. home-screen全体を暗くして静寂感を出す（blurは使わない）
+    if (homeScreen) {
+        homeScreen.style.transition = 'background-color 1s ease-out';
+        homeScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+    }
+
+    // 2-2. status-screenも一緒に暗くする（巻物を柔らかく）
+    if (statusScreen) {
+        statusScreen.style.transition = 'background-color 1s ease-out';
+        statusScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+    }
+
+    // 3. キャラクターを明るく強調
+    if (charWrapper) {
+        const charImages = charWrapper.querySelectorAll('img');
+        charImages.forEach(img => {
+            img.style.transition = 'filter 1s ease-out';
+            img.style.filter = 'brightness(1.3) drop-shadow(0 0 15px rgba(255, 255, 255, 0.9))';
+        });
+        charWrapper.style.zIndex = "1000";
+    }
+
+    const msgEl = document.getElementById("characterMessage");
+    if (msgEl) msgEl.textContent = "全集中...";
+
+    // 4. 8秒後にリセット
+    setTimeout(() => {
+        bgElements.forEach(el => el.style.filter = '');
+        if (homeScreen) {
+            homeScreen.style.backgroundColor = '';
+        }
+        if (statusScreen) {
+            statusScreen.style.backgroundColor = '';
+        }
+        if (charWrapper) {
+            const charImages = charWrapper.querySelectorAll('img');
+            charImages.forEach(img => img.style.filter = '');
+            charWrapper.style.zIndex = "";
+        }
+        updateCharacterMessage(true);
+        console.log("🎧 エフェクト終了：キャラクター完全保護成功");
+    }, duration);
+}
+
 
 // Helper for Floating Text
 function showFloatingText(text, color = '#ffd700') {
@@ -2575,6 +2637,14 @@ function useItem(itemId) {
 
     const masterItem = ITEM_MASTER.find(mi => Number(mi.id) === Number(itemId));
     if (masterItem && (masterItem.type === 'consumable' || masterItem.type === 'infinite')) {
+
+        // --- A. 特殊演出の実行（pendingEffectより先に実行） ---
+        if (masterItem.specialEffect === 'silence') {
+            applySilenceEffect();
+            // 演出のために一度ホーム画面に戻すとより効果的
+            showScreen('home-screen');
+        }
+
         const message = masterItem.useMessage || `${masterItem.name}を使用した！`;
         showMessageModal("ITEM USED", message);
 
