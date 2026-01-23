@@ -1018,9 +1018,11 @@ textarea {
 
 /* Lv.の部分だけ小さく */
 .lv-prefix {
-    font-size: 12px;
+    font-size: 18px;
     color: #ffd700;
     /* 輝く黄色（ゴールド） */
+    font-weight: bold;
+    /* 太字 */
     text-shadow:
         0 0 5px #ffff00,
         /* 黄色の光 */
@@ -1312,7 +1314,7 @@ textarea {
 
 .character-wrapper {
     position: absolute;
-    bottom: 0px;
+    bottom: -20px;
     left: 50%;
     transform: translateX(-50%);
     width: 140px !important;
