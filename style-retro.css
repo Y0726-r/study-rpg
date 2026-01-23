@@ -1004,18 +1004,38 @@ textarea {
 
 .shield-text {
     font-family: "Press Start 2P", cursive;
-    font-size: 16px;
+    font-size: 18px;
     /* Stable size within the centered container */
+
+    /* 数値を変える：正=右、負=左 */
+
     font-weight: bold;
     color: white;
     text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
-    transform: translateX(4%) translateY(8px);
+    transform: translateX(-18%) translateY(15px);
     /* ← 文字だけ右に寄せたい時 */
+}
+
+/* Lv.の部分だけ小さく */
+.lv-prefix {
+    font-size: 12px;
+    color: #ffd700;
+    /* 輝く黄色（ゴールド） */
+    text-shadow:
+        0 0 5px #ffff00,
+        /* 黄色の光 */
+        0 0 10px #ffd700,
+        /* ゴールドの光 */
+        2px 2px 0 #000,
+        /* 黒い縁取り */
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000;
 }
 
 .exp-bar-group {
     position: absolute;
-    top: 29%;
+    top: 34%;
     left: 43%;
     right: 30%;
     width: 40%;
@@ -1051,16 +1071,18 @@ textarea {
     font-size: 9px;
     color: #ffd700;
     text-shadow: 1px 1px 2px black;
+    transform: translateY(7px);
+    /* 下に5px移動 */
 }
 
 .exp-text {
     font-family: "Press Start 2P", cursive;
-    font-size: 8px;
+    font-size: 7px;
     color: white;
     text-shadow: 1px 1px 2px black;
     position: absolute;
-    right: 3%;
-    top: 50%;
+    right: -15%;
+    top: 35%;
     transform: translateY(-50%);
 }
 
@@ -1078,10 +1100,26 @@ textarea {
 
 #coin-count {
     font-family: "Press Start 2P", cursive;
-    font-size: 10px;
+    font-size: 9px;
     color: white;
     text-shadow: 2px 2px 0 #000;
-    transform: translateY(4%);
+    transform: translateX(80%) translateY(4%);
+}
+
+/* コイン画像（数字の下、コンテナの上） */
+.coin-bg-image {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+    z-index: 0;
+    /* コンテナの上、数字の下 */
+}
+
+#coin-count {
+    position: relative;
+    z-index: 1;
+    /* 画像の上に表示 */
 }
 
 /* ステータス画面（専用背景画像リメイク） */

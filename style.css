@@ -1065,3 +1065,86 @@ body::before {
 
     transition: filter 2s ease-in-out;
 }
+
+/* --- ここからスマホ重なり防止ガード --- */
+
+/* 全ての画面を「まずは完全に消す」設定 */
+.screen {
+    display: none !important;
+    /* 物理的な存在を消す */
+    opacity: 0;
+    pointer-events: none;
+    /* クリックも通さない */
+}
+
+/* 今見ている画面（active）だけを「最優先で出す」設定 */
+.screen.active {
+    display: flex !important;
+    /* activeな時だけ復活 */
+    opacity: 1;
+    pointer-events: auto;
+    position: absolute;
+    /* 座標のズレを防ぐ */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* --- ここまで --- */
+/* --- 📱 みつきさん専用：11:21の黄金バランススマホ対応 --- */
+@media screen and (max-width: 768px) {
+
+    /* 1. 勇者：着地位置と2倍ズームを固定 */
+    .character-wrapper {
+        width: 64px !important;
+        height: 64px !important;
+        bottom: 80px !important;
+        left: 50% !important;
+        transform: translateX(-50%) scale(2.0) !important;
+        transform-origin: bottom center !important;
+    }
+
+    /* 2. 吹き出し：頭上のベストポジション */
+    #characterMessage {
+        width: 160px !important;
+        bottom: 240px !important;
+        left: 50% !important;
+        transform: translateX(-50%) scale(0.85) !important;
+        padding: 10px !important;
+        line-height: 1.4 !important;
+    }
+
+    /* 3. 【最重要】Lv.13 横並び・中央固定 */
+    .player-level-container {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        padding-top: 8px !important;
+        /* 紋章の真ん中に落とす */
+    }
+
+    #player-level {
+        font-size: 14px !important;
+        /* みつきさん指定のベストサイズ */
+        white-space: nowrap !important;
+        line-height: 1 !important;
+    }
+
+    /* 4. EXPとコイン：枠の中央に配置 */
+    .exp-text-container,
+    .coin-count-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 100% !important;
+    }
+
+    .exp-text,
+    #coin-count {
+        padding-top: 4px !important;
+        line-height: 1 !important;
+    }
+}
