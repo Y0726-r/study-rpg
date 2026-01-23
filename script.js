@@ -364,6 +364,15 @@ const TIMER_MESSAGES = {
         "目指せ、レベルアップ！",
         "集中、集中！ゾーンに入ろう。",
         "その調子！応援してるよ！"
+    ],
+    STOP: [
+        "お疲れ様でした！よく頑張ったね！",
+        "素晴らしい集中力だった！",
+        "今日も一歩前進！お疲れ様！",
+        "ナイスファイト！休憩しよう。",
+        "よく頑張った！自分を褒めてあげて。",
+        "お疲れ様！着実に成長してるよ。",
+        "今日もお疲れ様でした！"
     ]
 };
 
@@ -382,8 +391,8 @@ function showTimerMessage(type) {
     // Set text
     msgBox.textContent = msg;
 
-    // For RESUME, hide after few seconds
-    if (type === 'RESUME') {
+    // For RESUME and STOP, hide after 5 seconds
+    if (type === 'RESUME' || type === 'STOP') {
         // Clear previous timeout if any
         if (msgBox.hideTimeout) clearTimeout(msgBox.hideTimeout);
 
@@ -449,7 +458,7 @@ function startTimer() {
 
             // Push Notification
             if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("StudyQuest", { body: "45分が経過しました。まだ続けますか？" });
+                new Notification("StudyQuest", { body: "連続45分経過しました。まだ続けますか？" });
             }
 
             // On-screen Confirm Modal (YES/NO)
@@ -457,7 +466,7 @@ function startTimer() {
             // NO -> Stop (Pause)
             showConfirmModal(
                 "TIME CHECK",
-                "45分が経過しました。<br>まだ続けますか？<br><br><small>※あと1分で自動停止します</small>",
+                "連続45分経過しました。<br>まだ続けますか？<br><br><small>※あと1分で自動停止します</small>",
                 () => { // YES
                     extendSession();
                 },
@@ -1749,6 +1758,9 @@ function stopTimer() {
     elapsedSeconds = 0;
     elapsedBeforePause = 0;
     renderTimer(0);
+
+    // お疲れ様メッセージを表示
+    showTimerMessage('STOP');
 
     // UI更新
     updateStudyScreenUI();
