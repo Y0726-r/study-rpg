@@ -706,7 +706,7 @@ const ITEM_MASTER = [
     { id: 32, name: "革のズボン", rarity: 2, file: "革ズボン.png", type: "legs", effects: { strength: 8 }, description: "擦れに強い革製。足元が安定して、集中が途切れにくくなる。", equipMessage: "革のズボンを装着した。足さばきが良い…安定して集中できる。", visuals: { x: 6, y: 37, width: 97 }, equipImage: "assets/item/gacha_equipment/革ズボン.png" },
 
     // ★3 (Rarity 3)
-    { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！", visuals: { x: 50, y: 9, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/伝説の剣.png" },
+    { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！", visuals: { x: 44, y: 9, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/伝説の剣.png" },
     { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！", visuals: { x: -3, y: 30, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/ドラゴンの盾.png" },
     { id: 26, name: "王家のショートケーキ", rarity: 3, file: "王家のショートケーキ.png", type: "consumable", useMessage: "究極の美味！今この瞬間、全能力が極限まで解放された！", description: "今日一番頑張った自分へのご褒美！" },
     { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/聖なる宝冠.png" },
@@ -3322,24 +3322,45 @@ function updateCharacterMessage(force = false) {
         "あせらなくて だいじょうぶ"
     ];
     const messageEl = document.getElementById("characterMessage");
-    if (!messageEl) return;
+    if (!messageEl) {
+        console.warn("⚠️ characterMessage 要素が見つかりません");
+        return;
+    }
 
     // 現在がレベル上げイベント用のセリフでない場合、または強制リセットの場合のみ更新
     const isSpecial = ["あれ？ 卵に変化が……", "なんか最近、卵が割れそう・・・・？"].includes(messageEl.textContent);
 
     if (!isSpecial || force) {
-        // レベルに応じた追加メッセージ
-        const lv = gameData.player.level;
+        // レベルに応じた龍の噂話を追加
+        const lv = gameData?.player?.level || 1;
+        console.log(`🎮 現在のレベル: ${lv}`);
+
+        // ★ Lv60以上：龍がすぐ近くにいる雰囲気
         if (lv >= 60) {
             messages.push("すぐ近くに誰かいる気がする……温かくて、優しい気配だ");
             messages.push("この光……何かボクを まもってくれてるみたい");
-        } else if (lv >= 30) {
+            messages.push("君のレベルなら、もしかしたら『あの存在』に会えるかもしれないね…");
+            console.log("✨ Lv60+ 龍メッセージ追加");
+        }
+        // ★ Lv45以上：龍の存在がより具体的に
+        else if (lv >= 45) {
+            messages.push("最近、空に巨大な影が飛んでいるのを見た冒険者がいるらしい…");
+            messages.push("『虹色に輝く鱗』を持つ者だけが、龍と出会えるという伝説があるんだ。");
+            messages.push("この地には、勉強を頑張る人を助ける『知恵の竜』が眠っているらしいよ");
+            console.log("✨ Lv45+ 龍メッセージ追加");
+        }
+        // ★ Lv30以上：龍の噂が聞こえ始める
+        else if (lv >= 30) {
             messages.push("この地には、勉強を頑張る人を助ける『知恵の竜』が眠っているらしいよ");
             messages.push("たまに 空に ふしぎな形の雲が 流れていくんだ");
+            messages.push("古い書物に『試練を乗り越えし者に、龍は姿を現す』って書いてあったよ。");
+            console.log("✨ Lv30+ 龍メッセージ追加");
         }
 
+        console.log(`📝 メッセージ候補数: ${messages.length}`);
         const randomIndex = Math.floor(Math.random() * messages.length);
         messageEl.textContent = messages[randomIndex];
+        console.log(`💬 選ばれたメッセージ: "${messages[randomIndex]}"`);
     }
 }
 
