@@ -1504,17 +1504,17 @@ document.addEventListener('visibilitychange', () => {
 window.openSubjectSettings = function () {
     let html = `
         <div style="text-align:center; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <p style="margin-bottom:30px; font-size:14px; color:#2c1810; line-height:1.8; font-family: 'DotGothic16', sans-serif; font-weight:bold;">
+            <p style="margin-bottom:30px; font-size:12.5px; color:#2c1810; line-height:1.8; font-family: 'DotGothic16', sans-serif; font-weight:bold;">
                 次の冒険に向けて、どの作戦会議をする？<br>
                 記録を書き換えよう！
             </p>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; row-gap:15px; column-gap:2px; width:100%; max-width:400px; margin-bottom:35px; justify-items:center;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; row-gap:8px; column-gap:2px; width:100%; max-width:200px; margin-bottom:35px; justify-items:center;">
     `;
 
     // 現在の科目リストをボタンとして並べる
     STUDY_SUBJECTS.forEach((subj) => {
         html += `
-            <button class="settings-btn" style="position:static; transform:none; width:80%; height:50px; font-size:20px; color:#fff;" 
+            <button class="settings-btn" style="position:static; transform:none; width:85px; height:42px; font-size:16px; color:#fff;" 
                 onclick="this.style.filter='brightness(0.7)'; setTimeout(() => window.startRenamingSubject('${subj.id}', '${subj.label}'), 400)">
                 ${subj.label}
             </button>
@@ -1534,18 +1534,18 @@ window.openSubjectSettings = function () {
 window.startRenamingSubject = function (id, currentName) {
     let html = `
         <div style="text-align:center; padding:10px;">
-            <p style="margin-bottom:15px; font-size:15px; color:#2c1810; line-height:1.6; font-weight:bold;">
+            <p style="margin-bottom:15px; font-size:13px; color:#2c1810; line-height:1.6; font-weight:bold;">
                 「${currentName}」の章だね！
             </p>
-            <p style="margin-bottom:20px; font-size:13px; color:#2c1810;">
+            <p style="margin-bottom:20px; font-size:12px; color:#2c1810;">
                 この予言書に、新しい名前を刻み込んで！<br>
                 どんな名前に書き換える？
             </p>
             <input type="text" id="subject-rename-input" value="${currentName}" autocomplete="off"
                 style="width:90%; padding:15px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #fdf6e3; color:#fdf6e3; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:30px; text-align:center; outline:none; border-radius:0;">
             <div style="display:flex; gap:15px; justify-content:center;">
-                <button class="settings-btn" style="position:static; transform:none; padding:12px 24px; font-size:16px;" onclick="window.saveSubjectRename('${id}')">これで決定！</button>
-                <button class="settings-btn" style="position:static; transform:none; padding:12px 24px; font-size:16px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">考え直す</button>
+                <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px;" onclick="window.saveSubjectRename('${id}')">これで決定！</button>
+                <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">考え直す</button>
             </div>
         </div>
     `;
@@ -1593,11 +1593,11 @@ window.saveSubjectRename = function (id) {
     showMessageModal("✨ 冒険の成功！", `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;">📜</div>
-            <p style="font-size:16px; line-height:1.7; color:#fdf6e3; font-family: 'DotGothic16', sans-serif;">
+            <p style="font-size:13px; line-height:1.7; color:#2c1810; font-family: 'DotGothic16', sans-serif;">
                 よし！新しい歴史が刻まれたよ！<br>
                 これできっと冒険も上手くいくはずだね。
             </p>
-            <button class="settings-btn" style="position:static; transform:none; margin-top:35px; padding:15px 50px; font-size:18px;" onclick="closeMessageModal()">いざ、出発！</button>
+            <button class="settings-btn" style="position:static; transform:none; margin:35px auto 0 auto; display:block; padding:10px 30px; font-size:15px;" onclick="closeMessageModal()">いざ、出発！</button>
         </div>
     `, true);
 };
