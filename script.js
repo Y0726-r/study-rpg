@@ -2348,7 +2348,7 @@ function updateInventoryScreen() {
             const iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${cleanBgImage} !important; background-position: ${style.backgroundPosition || 'center'} !important; background-size: ${style.backgroundSize || 'contain'} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
 
             let actionBtn = '';
-            const equippableTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot'];
+            const equippableTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot', 'legs'];
             if (equippableTypes.includes(safeType)) {
                 const btnText = isEquipped ? 'UNEQUIP' : 'EQUIP';
                 const btnClass = isEquipped ? 'unequip' : 'equip';
