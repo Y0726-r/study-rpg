@@ -677,7 +677,7 @@ const ITEM_MASTER = [
     // ★1 (Rarity 1)
     // visuals: { x: 横位置(%), y: 縦位置(%), scale: 拡大率, width: 幅(任意, 指定なければ100%でscale適用) }
     { id: 0, name: "木の剣", rarity: 1, file: "小さな剣.png", type: "weapon", effects: { focus: 2 }, description: "冒険の始まりといえばこれ。", equipMessage: "木の剣を構えた！少し攻撃的な気分になった！", visuals: { x: 30, y: 35, width: 15 }, equipImage: "./assets/player_sword_fixed.png" },
-    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。", visuals: { x: 0, y: -1.3, width: 100, origin: "left" }, equipImage: "assets/item/gacha_equipment/布の服.png" },
+    { id: 1, name: "布の服", rarity: 1, file: "布の服.png", type: "armor", effects: { strength: 2 }, description: "軽くて動きやすい。", equipMessage: "布の服を身に纏った。防御力がわずかに上がった。", visuals: { x: 5, y: 24, width: 100, origin: "left" }, equipImage: "assets/item/gacha_equipment/布の服.png" },
     { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "foot", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。", visuals: { x_L: 38, x_R: 58, y: 87.5, width: 16 }, equipImage: "./assets/item/gacha_equipment/Boots2M.png", equipImageR: "./assets/item/gacha_equipment/Boots2M.png" },
     { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。", visuals: { x: 25, y: 70, width: 30 }, equipImage: "./assets/item/gacha_items/小さな盾_equipped.png" },
     { id: 4, name: "ポーション", rarity: 1, file: "ポーション.png", type: "consumable", useMessage: "ポーションを使った！", description: "疲れが少し取れる魔法の薬。" },
@@ -691,7 +691,7 @@ const ITEM_MASTER = [
 
     // ★2 (Rarity 2)
     { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！", visuals: { x: 45, y: 10, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の剣.png" },
-    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。", visuals: { x: 5, y: 20, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の鎧.png" },
+    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。", visuals: { x: 5, y: 24, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の鎧.png" },
     { id: 8, name: "魔法の杖", rarity: 2, file: "魔法の杖.png", type: "weapon", effects: { intellect: 10 }, description: "閃きを呼び起こす不思議な杖。", equipMessage: "魔法の杖を握った。知恵が溢れ出してくる...！", visuals: { x: 37, y: 15, scale: 0.3 }, equipImage: "assets/item/gacha_equipment/魔法の杖.png" },
     { id: 9, name: "魔法の本", rarity: 2, file: "魔法の本.png", type: "consumable", effects: { intellect: 10, focus: 10, strength: 10 }, description: "難しい知識が詰まっている。", useMessage: "魔法の本を読んだ！未知の知識が頭に流れ込む…全能力が上昇した！" },
     { id: 18, name: "癒やしのマカロン", rarity: 2, file: "癒しのマカロン.png", type: "consumable", useMessage: "お腹いっぱい！", description: "食べるのがもったいない可愛さ。" },
