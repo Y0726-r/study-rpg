@@ -1298,13 +1298,11 @@ function updateDragonUI() {
     // --- 1. 状態フラグの同期 ---
     if (level < 70) {
         dragon.hatched = false;
-    } else if (level === 99) {
-        dragon.obtained = true;
+        // 自動で obtained = false にする処理も、セーブデータの整合性のために削除するか慎重に扱う。
+        // ここでは、Lv70未満で孵化しているのはおかしいので戻すだけに留める。
     }
 
     // --- 2. クラス管理（ここが重要！） ---
-    // CSSの「.dragon-active」が効くように、ここでクラスを付け替えます。
-    // JS側での style.width や style.bottom の直接指定はすべて削除しました。
     if (wrapper) {
         if (level >= 99 && dragon.hatched) {
             wrapper.classList.add('dragon-active');
@@ -1314,16 +1312,25 @@ function updateDragonUI() {
     }
 
     // --- 3. ビジュアル基本設定 ---
-    if (playerSprite) {
+    const layersContainer = document.querySelector('.player-layers-container');
+
+    if (layersContainer) {
         if (level >= 99 && dragon.hatched) {
-            playerSprite.classList.add('hidden');
+            layersContainer.classList.add('hidden');
         } else {
-            playerSprite.classList.remove('hidden');
+            layersContainer.classList.remove('hidden');
         }
     }
 
-    // --- 4. 各レベル帯の表示ロジック（高い順に判定） ---
+    // --- 4. 各レベル帯の表示ロジック ---
     if (level >= 99) {
+        // dragon.obtained のチェックを確実にする
+        if (!dragon.obtained) {
+            // 万が一持っていないままLv99になった場合の救済
+            dragon.obtained = true;
+        }
+
+        companion.classList.remove('hidden');
         if (!dragon.hatched) {
             executeDragonBirthAnimation();
             return;
@@ -1332,12 +1339,22 @@ function updateDragonUI() {
         dragonImg.src = `./assets/opening_movie/${type}_dragon.png`;
     }
     else if (level >= 90) {
-        dragonImg.src = './assets/opening_movie/egg2.png';
-        if (messageEl) messageEl.textContent = "なんか最近、卵が割れそう・・・・？";
+        if (dragon.obtained) {
+            dragonImg.src = './assets/opening_movie/egg2.png';
+            companion.classList.remove('hidden');
+            if (messageEl) messageEl.textContent = "なんか最近、卵が割れそう・・・・？";
+        } else {
+            companion.classList.add('hidden');
+        }
     }
     else if (level >= 80) {
-        dragonImg.src = './assets/opening_movie/egg2.png';
-        if (messageEl) messageEl.textContent = "あれ？ 卵に変化が……";
+        if (dragon.obtained) {
+            dragonImg.src = './assets/opening_movie/egg2.png';
+            companion.classList.remove('hidden');
+            if (messageEl) messageEl.textContent = "あれ？ 卵に変化が……";
+        } else {
+            companion.classList.add('hidden');
+        }
     }
     else if (level >= 70) {
         if (dragon.obtained) {
@@ -1349,7 +1366,7 @@ function updateDragonUI() {
     }
     else {
         companion.classList.add('hidden');
-        updateCharacterMessage(true);
+        // updateCharacterMessage(true); // 元のコードにあったが、無限ループの危険があるので一旦除去検討
     }
 }
 
@@ -1429,6 +1446,11 @@ function executeDragonBirthAnimation() {
         companion.classList.remove('birth-shake');
 
         if (playerSprite) playerSprite.classList.add('hidden');
+
+        // 勇者のコンテナごと非表示にする（装備や靴が残らないように）
+        const layersContainer = document.querySelector('.player-layers-container');
+        if (layersContainer) layersContainer.classList.add('hidden');
+
         const wrapper = document.querySelector('.character-wrapper');
         if (wrapper) wrapper.classList.add('dragon-active');
 
@@ -3335,8 +3357,17 @@ function updateCharacterMessage(force = false) {
         const lv = gameData?.player?.level || 1;
         console.log(`🎮 現在のレベル: ${lv}`);
 
+        // ★ Lv99：伝説のドラゴンライダー
+        if (lv >= 99 && gameData.dragon.hatched) {
+            // 普通のメッセージはクリアして、特別なセリフだけに絞る（確実に出すため）
+            messages.length = 0;
+            messages.push("風が...ボクたちを祝ってくれているみたいだね！");
+            messages.push("君と共にここまで来られたこと、誇りに思うよ。");
+            messages.push("この広い空のどこまでも、君と一緒に行こう！");
+            console.log("✨ Lv99 ドラゴンライダー専用メッセージモード");
+        }
         // ★ Lv60以上：龍がすぐ近くにいる雰囲気
-        if (lv >= 60) {
+        else if (lv >= 60) {
             messages.push("すぐ近くに誰かいる気がする……温かくて、優しい気配だ");
             messages.push("この光……何かボクを まもってくれてるみたい");
             messages.push("君のレベルなら、もしかしたら『あの存在』に会えるかもしれないね…");
