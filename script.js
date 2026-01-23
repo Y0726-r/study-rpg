@@ -1542,7 +1542,7 @@ window.startRenamingSubject = function (id, currentName) {
                 どんな名前に書き換える？
             </p>
             <input type="text" id="subject-rename-input" value="${currentName}" autocomplete="off"
-                style="width:90%; padding:15px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #fdf6e3; color:#fdf6e3; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:30px; text-align:center; outline:none; border-radius:0;">
+                style="width:90%; padding:15px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:30px; text-align:center; outline:none; border-radius:0;">
             <div style="display:flex; gap:15px; justify-content:center;">
                 <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px;" onclick="window.saveSubjectRename('${id}')">これで決定！</button>
                 <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">考え直す</button>
@@ -1597,7 +1597,7 @@ window.saveSubjectRename = function (id) {
                 よし！新しい歴史が刻まれたよ！<br>
                 これできっと冒険も上手くいくはずだね。
             </p>
-            <button class="settings-btn" style="position:static; transform:none; margin:35px auto 0 auto; display:block; padding:10px 30px; font-size:15px;" onclick="closeMessageModal()">いざ、出発！</button>
+            <button class="settings-btn" style="position:static; transform:none; margin:35px auto 0 auto; display:block; padding:10px 30px; font-size:15px;" onclick="window.executeDisintegrateEffect()">いざ、出発！</button>
         </div>
     `, true);
 };
@@ -3166,12 +3166,18 @@ function closeMessageModal() {
         modal.classList.add('hidden');
         modal.style.display = 'none';
 
-        // クラスとCLOSEボタンをリセット
+        // クラスとスタイルをリセット
         const contentContainer = modal.querySelector('.modal-content');
         const closeBtn = modal.querySelector('.ok-button');
         if (contentContainer) {
             contentContainer.classList.remove('rpg-scroll-window');
+            contentContainer.classList.remove('dissolve-anim'); // 演出用クラス削除
             contentContainer.classList.add('rpg-window');
+
+            // 演出で上書きされたスタイルを強制リセット
+            contentContainer.style.filter = '';
+            contentContainer.style.opacity = '';
+            contentContainer.style.transform = '';
         }
         // CLOSEボタンを表示状態に戻す
         if (closeBtn) closeBtn.style.display = 'block';
@@ -3387,3 +3393,59 @@ window.restoreBackupCode = function (code) {
         return false;
     }
 };
+
+// ========================================
+// 演出：魔法の粉となって出発
+// ========================================
+window.executeDisintegrateEffect = function () {
+    const scroll = document.querySelector('.rpg-scroll-window');
+    if (!scroll) return closeMessageModal();
+
+    const rect = scroll.getBoundingClientRect();
+
+    // 1. 巻物を消滅させる（CSSクラス追加）
+    scroll.classList.add('dissolve-anim');
+
+    // 2. 粒子（魔法の粉）を大量発生
+    const particleCount = 50;
+    for (let i = 0; i < particleCount; i++) {
+        setTimeout(() => createMagicDust(rect), i * 8);
+    }
+
+    // 3. 演出が終わる頃に画面を閉じて、主人公を喜ばせる
+    setTimeout(() => {
+        closeMessageModal();
+
+        // 背景の主人公がジャンプ
+        const charWrapper = document.querySelector('.character-wrapper');
+        if (charWrapper) {
+            charWrapper.animate([
+                { transform: 'translateX(-50%) translateY(0)' },
+                { transform: 'translateX(-50%) translateY(-60px)' },
+                { transform: 'translateX(-50%) translateY(0)' }
+            ], { duration: 500, easing: 'cubic-bezier(0.18, 0.89, 0.32, 1.28)' });
+        }
+    }, 850);
+};
+
+function createMagicDust(rect) {
+    const el = document.createElement('div');
+    el.className = 'magic-particle';
+    const startX = rect.left + Math.random() * rect.width;
+    const startY = rect.top + Math.random() * rect.height;
+
+    el.style.left = startX + 'px';
+    el.style.top = startY + 'px';
+    document.body.appendChild(el);
+
+    const destX = startX + (Math.random() - 0.5) * 200;
+    const destY = startY - 300 - Math.random() * 200;
+
+    el.animate([
+        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+        { transform: `translate(${destX - startX}px, ${destY - startY}px) scale(0)`, opacity: 0 }
+    ], {
+        duration: 800 + Math.random() * 800,
+        easing: 'ease-out'
+    }).onfinish = () => el.remove();
+}

@@ -4653,4 +4653,41 @@ img,
     filter: brightness(1.1);
 }
 
-/* ガチャ結果の黄色い枠と白背景を消滅させる */
+/* ========================================
+   魔法の粉（金色の砂）演出
+   ======================================== */
+.magic-particle {
+    position: fixed;
+    width: 4px;
+    height: 4px;
+    background: #ffd700;
+    /* ゴールド */
+    box-shadow: 0 0 5px #fff, 0 0 10px #ffd700;
+    pointer-events: none;
+    z-index: 10001;
+    border-radius: 50%;
+}
+
+@keyframes scrollDissolve {
+    0% {
+        transform: scale(1);
+        filter: brightness(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.02);
+        filter: brightness(2);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(0.95);
+        filter: brightness(5);
+        opacity: 0;
+    }
+}
+
+.dissolve-anim {
+    animation: scrollDissolve 0.8s ease-in forwards !important;
+}
