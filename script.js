@@ -65,7 +65,7 @@ let gameData = {
         exp: 0,
         coins: 0,
         stats: { hp: 100, maxHp: 100, atk: 10, def: 5, focus: 10, intellect: 10, strength: 10 },
-        equipment: { weapon: null, armor: null, accessory: null }
+        equipment: { weapon: null, armor: null, accessory: null, legs: null, head: null, foot: null, shield: null }
     },
     studyLogs: [],
     inventory: [],
@@ -688,6 +688,7 @@ const ITEM_MASTER = [
     { id: 15, name: "三色団子", rarity: 1, file: "３色団子.png", type: "consumable", useMessage: "お腹いっぱい！", description: "彩りが可愛い、和みのスイーツ。" },
     { id: 16, name: "消しゴムのカス", rarity: 3, file: "消しゴムのカス.png", type: "consumable", useMessage: "これは君の努力の結晶だ。試験合格へ一歩近づいたよ！", description: "沢山の勉強を積み重ねた証。光り輝いている。", effects: { focus: 50, intellect: 50, strength: 50 } },
     { id: 17, name: "使い古したノート", rarity: 1, file: "使い古したノート.png", type: "consumable", useMessage: "これまでの努力が思い出される…よし、もう一踏ん張り！", description: "読み返すとやる気が湧いてくる。" },
+    { id: 31, name: "布のズボン", rarity: 1, file: "布ズボン.png", type: "legs", effects: { strength: 2 }, description: "素朴で動きやすい旅人用ズボン。まずは“続ける力”を支えてくれる。", equipMessage: "布のズボンを装着した。準備完了。さあ、クエスト（勉強）に出発だ。", visuals: { x: 10, y: 35, width: 97 }, equipImage: "assets/item/gacha_equipment/布ズボン.png" },
 
     // ★2 (Rarity 2)
     { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！", visuals: { x: 45, y: 10, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の剣.png" },
@@ -702,6 +703,7 @@ const ITEM_MASTER = [
     { id: 23, name: "賢者の羽ペン", rarity: 2, file: "pen_of_genius.png", type: "consumable", effects: { intellect: 20 }, description: "スラスラと答えが書ける不思議なペン。", useMessage: "賢者の羽ペンで書いた！思考の速度が加速する…知力が大幅に上昇した！" },
     { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "consumable", effects: { focus: 20 }, description: "周りの音が聞こえなくなる魔法の耳栓。", useMessage: "静寂の耳栓を装着。深い没入状態に入った...世界が静まり返る。", specialEffect: "silence" },
     { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "幸運のコインを使った！", description: "ガチャ運が上がるという噂がある。" },
+    { id: 32, name: "革のズボン", rarity: 2, file: "革ズボン.png", type: "legs", effects: { strength: 8 }, description: "擦れに強い革製。足元が安定して、集中が途切れにくくなる。", equipMessage: "革のズボンを装着した。足さばきが良い…安定して集中できる。", visuals: { x: 6, y: 37, width: 97 }, equipImage: "assets/item/gacha_equipment/革ズボン.png" },
 
     // ★3 (Rarity 3)
     { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！", visuals: { x: 50, y: 9, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/伝説の剣.png" },
@@ -710,7 +712,8 @@ const ITEM_MASTER = [
     { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/聖なる宝冠.png" },
     { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "infinite", effects: { intellect: 100 }, description: "まるで光を纏っているような服。", useMessage: "聖なる光に包まれた…！" },
     { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 7, y: -4, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/全知の眼鏡.png" },
-    { id: 30, name: "虹色の鱗", rarity: 3, file: "虹色の鱗.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" }
+    { id: 30, name: "虹色の鱗", rarity: 3, file: "虹色の鱗.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" },
+    { id: 33, name: "竜鱗の脚当て（金縁）", rarity: 3, file: "竜鱗の脚当て.png", type: "legs", effects: { strength: 40, focus: 20 }, description: "竜の鱗を編み上げた脚当て。揺るがない集中と、伝説級の格を与える。", equipMessage: "竜鱗の脚当てを装着した。伝説の装備だ。ここからが本番。", visuals: { x: 8, y: 40, width: 98 }, equipImage: "assets/item/gacha_equipment/竜鱗の脚当て.png" }
 ];
 
 /**
@@ -954,7 +957,8 @@ function loadGameData() {
                 armor: gameData.player.equipment.armor || null,
                 shield: gameData.player.equipment.shield || null,
                 accessory: gameData.player.equipment.accessory || null,
-                foot: gameData.player.equipment.foot || null
+                foot: gameData.player.equipment.foot || null,
+                legs: gameData.player.equipment.legs || null
             };
         }
         if (!gameData.inventory || !Array.isArray(gameData.inventory)) {
@@ -1198,18 +1202,19 @@ function updateCharacterAppearance() {
     // Armor (Body) -> Shield (Back/Hand) -> Weapon (Hand) -> Accessory (Misc) -> Head (Top)
     const renderOrder = [
         { slot: 'foot', zIndex: 2 },
-        { slot: 'armor', zIndex: 3 },
-        { slot: 'shield', zIndex: 4 },
-        { slot: 'weapon', zIndex: 5 },
-        { slot: 'accessory', zIndex: 6 },
-        { slot: 'head', zIndex: 7 }
+        { slot: 'legs', zIndex: 3 },
+        { slot: 'armor', zIndex: 4 },
+        { slot: 'shield', zIndex: 5 },
+        { slot: 'weapon', zIndex: 6 },
+        { slot: 'accessory', zIndex: 7 },
+        { slot: 'head', zIndex: 8 }
     ];
 
     renderOrder.forEach(order => {
         const equippedItem = equipment[order.slot];
         if (equippedItem) {
             const masterItem = ITEM_MASTER.find(mi => mi.id === Number(equippedItem.id));
-            const validTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot'];
+            const validTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot', 'legs'];
 
             if (masterItem && validTypes.includes(masterItem.type)) {
                 const visuals = masterItem.visuals || { x: 0, y: 0, width: BASE_CHARACTER_SIZE };
@@ -2387,6 +2392,7 @@ function toggleEquip(itemId) {
     else if (item.type === 'shield') targetSlot = 'shield';
     else if (item.type === 'head') targetSlot = 'head';
     else if (item.type === 'foot') targetSlot = 'foot';
+    else if (item.type === 'legs') targetSlot = 'legs';
     else if (item.type === 'accessory') targetSlot = 'accessory';
 
     // 全てのスロットを確認し、このアイテムがどこかに装備されていたら外す（重複防止）
