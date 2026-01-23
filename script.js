@@ -691,7 +691,7 @@ const ITEM_MASTER = [
 
     // ★2 (Rarity 2)
     { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！", visuals: { x: 45, y: 10, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の剣.png" },
-    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。", visuals: { x: 5, y: 24, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の鎧.png" },
+    { id: 7, name: "鎖の鎧", rarity: 2, file: "鎖の鎧.png", type: "armor", effects: { strength: 10 }, description: "集中力を守るための頑丈な鎧。", equipMessage: "鎖の鎧を装着した。守備がガッチリ固まった。", visuals: { x: 5, y: 16, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の鎧.png" },
     { id: 8, name: "魔法の杖", rarity: 2, file: "魔法の杖.png", type: "weapon", effects: { intellect: 10 }, description: "閃きを呼び起こす不思議な杖。", equipMessage: "魔法の杖を握った。知恵が溢れ出してくる...！", visuals: { x: 37, y: 15, scale: 0.3 }, equipImage: "assets/item/gacha_equipment/魔法の杖.png" },
     { id: 9, name: "魔法の本", rarity: 2, file: "魔法の本.png", type: "consumable", effects: { intellect: 10, focus: 10, strength: 10 }, description: "難しい知識が詰まっている。", useMessage: "魔法の本を読んだ！未知の知識が頭に流れ込む…全能力が上昇した！" },
     { id: 18, name: "癒やしのマカロン", rarity: 2, file: "癒しのマカロン.png", type: "consumable", useMessage: "お腹いっぱい！", description: "食べるのがもったいない可愛さ。" },
