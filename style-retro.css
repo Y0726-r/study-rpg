@@ -1909,6 +1909,436 @@ textarea {
     overflow: hidden;
 }
 
+/* ========================================
+   Monster Encounter System (Study Screen)
+   ======================================== */
+.monster-stage {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 5px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 2px solid #5d4037;
+    border-bottom: 2px solid #5d4037;
+    position: relative;
+    /* 重ね合わせの基準 */
+}
+
+.monster-stage.rank-ex {
+    background: radial-gradient(circle, rgba(46, 10, 60, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%);
+    min-height: 280px;
+    /* 重ねた時に崩れないように高さを確保 */
+}
+
+.monster-stage.hidden {
+    display: none !important;
+}
+
+/* --- EX Rank Overlay Logic --- */
+.rank-ex .ex-hourglass-container {
+    position: absolute;
+    top: 32%;
+    /* 手の高さ（上寄り） */
+    left: 38%;
+    /* 手の位置（左寄り） */
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+    animation: monsterFloat 3s ease-in-out infinite;
+}
+
+.rank-ex .hourglass-hp-display {
+    width: 100px;
+    height: 100px;
+    margin: 0;
+}
+
+.rank-ex .hourglass-frame {
+    width: 100px;
+    height: 100px;
+    display: none;
+    /* ボス画像自体の砂時計を活かす */
+}
+
+.rank-ex .sand-container {
+    width: 100px;
+    height: 100px;
+}
+
+.rank-ex .sand-upper,
+.rank-ex .sand-lower {
+    width: 190px;
+    height: 140px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: hue-rotate(250deg) brightness(1.2) drop-shadow(0 0 5px #9b4dff);
+}
+
+.rank-ex .sand-upper {
+    top: 50%;
+    /* 上の砂の位置 */
+}
+
+.rank-ex .sand-lower {
+    top: 68%;
+    /* 下の砂の位置（下に移動） */
+    width: 210px;
+    /* 下の砂だけ大きく */
+    height: 160px;
+    /* 下の砂だけ大きく */
+}
+
+.rank-ex .sand-stream {
+    background: #9b4dff;
+    box-shadow: 0 0 8px #9b4dff;
+    width: 1px;
+    top: 25%;
+    height: 50%;
+}
+
+.rank-ex .hourglass-label {
+    display: none;
+}
+
+.rank-ex .monster-sprite {
+    transform: scale(1.2);
+    /* ボスを少し大きくして迫力を出す */
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.monster-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.rank-badge {
+    padding: 2px 8px;
+    background: #2c1810;
+    color: #ffd700;
+    font-size: 11px;
+    border: 1px solid #ffd700;
+    font-family: 'Press Start 2P', cursive;
+}
+
+.monster-name {
+    font-size: 16px;
+    color: #fff;
+    text-shadow: 2px 2px #000;
+    font-weight: bold;
+}
+
+.monster-graphic-container {
+    position: relative;
+    width: 260px;
+    /* 200px -> 260px に拡大 */
+    height: 240px;
+    /* 180px -> 240px に拡大 */
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    /* 下端合わせに変更 */
+    margin: 10px 0;
+}
+
+.monster-sprite {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    /* ドット絵をくっきり表示 */
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+    animation: monsterFloat 3s ease-in-out infinite;
+    z-index: 2;
+}
+
+@keyframes monsterFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.monster-aura {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.3) 0%, transparent 70%);
+    filter: blur(15px);
+    z-index: 1;
+    animation: auraPulse 2s ease-in-out infinite;
+    opacity: 0;
+}
+
+@keyframes auraPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: scale(1.3);
+        opacity: 0.6;
+    }
+}
+
+.monster-weakness {
+    font-size: 12px;
+    color: #ffccbc;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px #000;
+}
+
+/* HP Bar Styles */
+.monster-hp-container {
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+}
+
+.hp-label {
+    font-size: 10px;
+    color: #ff5252;
+    font-family: 'Press Start 2P', cursive;
+    text-align: left;
+    margin-bottom: 2px;
+}
+
+.hp-bar-frame {
+    width: 100%;
+    height: 12px;
+    background: #333;
+    border: 2px solid #555;
+    padding: 1px;
+    box-sizing: content-box;
+}
+
+.hp-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(to right, #f44336, #4caf50);
+    transition: width 0.5s ease;
+}
+
+.hp-text {
+    font-size: 11px;
+    color: #ccc;
+    margin-top: 3px;
+    font-family: 'Press Start 2P', cursive;
+}
+
+/* Hourglass HP Display (Image based) */
+.hourglass-hp-display {
+    position: relative;
+    width: 128px;
+    height: 128px;
+    margin: 10px auto;
+}
+
+.hourglass-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 128px;
+    height: 128px;
+    z-index: 4;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+.sand-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 128px;
+    height: 128px;
+    z-index: 2;
+}
+
+.sand-upper,
+.sand-lower {
+    position: absolute;
+    top: 30;
+    left: 0;
+    width: 128px;
+    height: 128px;
+    transition: clip-path 0.5s ease;
+    image-rendering: pixelated;
+}
+
+/* 🆕 砂の流れ（タイマー稼働中のみ表示） */
+.sand-stream {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    width: 2px;
+    height: 50%;
+    background: #ffd700;
+    transform: translateX(-50%);
+    opacity: 0;
+    z-index: 3;
+    box-shadow: 0 0 5px #ffd700;
+}
+
+.timer-active .sand-stream {
+    opacity: 0.8;
+    animation: sandFlowAnim 0.6s linear infinite;
+}
+
+@keyframes sandFlowAnim {
+    0% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 0.8;
+    }
+
+    80% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateX(-50%) translateY(30px);
+        opacity: 0;
+    }
+}
+
+.hourglass-label {
+    margin-top: 5px;
+    font-size: 11px;
+    color: #ffd700;
+    font-family: 'Press Start 2P', cursive;
+    text-shadow: 1px 1px #000;
+}
+
+
+
+
+.hourglass-label {
+    margin-top: 5px;
+    font-size: 10px;
+    color: #ffd700;
+    font-family: 'Press Start 2P', cursive;
+    letter-spacing: 2px;
+    animation: blinker 2s infinite;
+}
+
+/* EX Rank Aura Overrides */
+.rank-ex .monster-aura {
+    background: radial-gradient(circle, rgba(138, 43, 226, 0.4) 0%, transparent 80%);
+    opacity: 0.8;
+    filter: blur(20px);
+}
+
+/* Monster Interaction Animations */
+.monster-retreat {
+    animation: monsterRetreat 1s forwards ease-in;
+}
+
+@keyframes monsterRetreat {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+}
+
+.monster-defeat {
+    animation: monsterDefeat 1.2s forwards;
+}
+
+@keyframes monsterDefeat {
+    0% {
+        filter: brightness(1) white-space;
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    20% {
+        filter: brightness(10);
+        transform: scale(1.1);
+    }
+
+    40% {
+        filter: brightness(1);
+        transform: scale(0.9);
+    }
+
+    100% {
+        filter: brightness(20);
+        opacity: 0;
+        transform: scale(1.5);
+    }
+}
+
+/* Result Screen Chest */
+.reward-chest {
+    font-size: 60px;
+    margin: 20px 0;
+    animation: chestBounce 1s infinite alternate;
+}
+
+@keyframes chestBounce {
+    from {
+        transform: translateY(0) scale(1);
+    }
+
+    to {
+        transform: translateY(-10px) scale(1.1);
+    }
+}
+
+.result-rewards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 15px 0;
+    text-align: left;
+    width: 100%;
+}
+
+.reward-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #2c1810;
+    font-weight: bold;
+}
+
+.reward-icon {
+    font-size: 20px;
+}
+
+.result-title-banner {
+    background: #4e342e;
+    color: #ffd700;
+    padding: 5px 20px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-family: 'Press Start 2P', cursive;
+}
+
+
 
 
 

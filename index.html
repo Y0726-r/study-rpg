@@ -131,6 +131,43 @@
             <button id="study-settings-btn" class="settings-btn" onclick="openSubjectSettings()">⚙️</button>
         </div>
 
+        <!-- Monster Stage Area -->
+        <div id="monster-stage" class="monster-stage hidden">
+            <div class="monster-info">
+                <span id="monster-rank-badge" class="rank-badge">RANK -</span>
+                <span id="monster-name" class="monster-name">モンスター出現中...</span>
+            </div>
+            <div class="monster-graphic-container">
+                <div id="monster-aura" class="monster-aura"></div>
+                <img id="monster-sprite" src="" alt="Monster" class="monster-sprite">
+            </div>
+            <div id="monster-weakness-box" class="monster-weakness">
+                弱点: <span id="monster-weakness-text">-</span>
+            </div>
+
+            <!-- Health Bar (Standard) -->
+            <div id="monster-hp-container" class="monster-hp-container">
+                <div class="hp-label">BOSS HP</div>
+                <div class="hp-bar-frame">
+                    <div id="monster-hp-fill" class="hp-bar-fill"></div>
+                </div>
+                <div id="monster-hp-text" class="hp-text">0 / 0</div>
+            </div>
+
+            <!-- Hourglass (EX Rank Only) -->
+            <div id="ex-hourglass-container" class="ex-hourglass-container hidden">
+                <div class="hourglass-hp-display">
+                    <div class="sand-container">
+                        <img src="assets/monster/sand_upper.png" class="sand-upper" id="sandUpper" alt="">
+                        <img src="assets/monster/sand_lower.png" class="sand-lower" id="sandLower" alt="">
+                    </div>
+                    <img src="assets/monster/hourglass_empty.png" class="hourglass-frame" alt="砂時計">
+                    <div class="sand-stream"></div> <!-- Keep the stream for animation -->
+                </div>
+                <p class="hourglass-label">TIME ABYSS</p>
+            </div>
+        </div>
+
         <div class="timer-container-mvp">
             <div class="timer-frame">
                 <div class="timer-display-lcd" id="timer-display">00:00:00</div>

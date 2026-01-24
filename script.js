@@ -53,11 +53,50 @@ const BASE_CHARACTER_SIZE = 64; // 主人公スプライトの基準キャンバ
 
 // 勉強科目の定義（カスタマイズ可能）
 const STUDY_SUBJECTS = [
-    { id: 'subject-qualification', label: localStorage.getItem('subject_qualification_label') || '資格', type: 'qualification' },
-    { id: 'subject-language', label: localStorage.getItem('subject_language_label') || '語学', type: 'language' },
-    { id: 'subject-business', label: localStorage.getItem('subject_business_label') || 'ビジネス', type: 'business' },
-    { id: 'subject-other', label: localStorage.getItem('subject_other_label') || 'その他', type: 'other' }
+    { id: 'subject-qualification', label: localStorage.getItem('subject_qualification_label') || '資格', targetMinutes: parseInt(localStorage.getItem('subject_qualification_target') || '0'), currentDamage: parseInt(localStorage.getItem('subject_qualification_damage') || '0'), type: 'qualification' },
+    { id: 'subject-language', label: localStorage.getItem('subject_language_label') || '語学', targetMinutes: parseInt(localStorage.getItem('subject_language_target') || '0'), currentDamage: parseInt(localStorage.getItem('subject_language_damage') || '0'), type: 'language' },
+    { id: 'subject-business', label: localStorage.getItem('subject_business_label') || 'ビジネス', targetMinutes: parseInt(localStorage.getItem('subject_business_target') || '0'), currentDamage: parseInt(localStorage.getItem('subject_business_damage') || '0'), type: 'business' },
+    { id: 'subject-other', label: localStorage.getItem('subject_other_label') || 'その他', targetMinutes: parseInt(localStorage.getItem('subject_other_target') || '0'), currentDamage: parseInt(localStorage.getItem('subject_other_damage') || '0'), type: 'other' }
 ];
+
+const RANK_REWARDS = {
+    'F-ERANK': { coins: 100, exp: 500, medal: "初心者の証" },
+    'D-CRANK': { coins: 300, exp: 1500, medal: "努力の勲章" },
+    'B-ARANK': { coins: 1000, exp: 3000, medal: "継続の証", title: "修行者" },
+    'SRANK': { coins: 3000, exp: 8000, medal: "超越の勲章", title: "求道者" },
+    'SSRANK': { coins: 8000, exp: 15000, medal: "伝説の勲章", title: "不屈の戦士" },
+    'EXRANK': { coins: 20000, exp: 30000, medal: "刻喰い征服者", title: "時の支配者", isSpecial: true }
+};
+
+const MONSTER_MASTER = {
+    'F-ERANK': [
+        { name: "刻蝕のヒトガタ", weakness: "なし", desc: "怠け心を囁く低級存在" },
+        { name: "時腐りスライム", weakness: "光属性", desc: "やる気が吸い取られる腐泥" },
+        { name: "時空ネズミ", weakness: "火", desc: "書類やタスクをかじる不吉な獣" }
+    ],
+    'D-CRANK': [
+        { name: "怠惰のエテイン", weakness: "意志バフ", desc: "「今じゃなくてもいい」と唱える巨人" },
+        { name: "時間喰いコボルト", weakness: "一撃の集中", desc: "時間を金貨のように盗む小鬼" },
+        { name: "刻裂のカラス", weakness: "無属性攻撃", desc: "気が散る幻を見せる魔鳥" }
+    ],
+    'B-ARANK': [
+        { name: "進捗断ちの番犬フェンリル", weakness: "連続作業", desc: "連続性を噛み砕く獣" },
+        { name: "時溺れの魔書", weakness: "記録", desc: "積み上げが滞ると閉じる呪本" },
+        { name: "迷刻のミノタウロス", weakness: "優先順位づけ", desc: "やることを迷わせる牛頭の魔人" }
+    ],
+    'SRANK': [
+        { name: "焦燥の魔女ヘルミナ", weakness: "深呼吸", desc: "未来への不安を煽る女魔導士" },
+        { name: "刻界のガーディアン・グラディウス", weakness: "短い集中乱打", desc: "巨大な砂時計を盾に戦う守護者" },
+        { name: "時廻竜アークバーン", weakness: "小さな成功体験", desc: "時を逆流させる古代竜" }
+    ],
+    'SSRANK': [
+        { name: "刻喰い皇妃メリアノス", weakness: "目的への回帰", desc: "努力や記録を美酒として嗜む女王" },
+        { name: "終刻の騎士レクイエム", weakness: "進捗の炎", desc: "剣は諦めの形をしている亡霊騎士" }
+    ],
+    'EXRANK': [
+        { name: "刻喰い王ゼロ＝クロノス", weakness: "継続", desc: "全てを無に還す時の王", isEX: true }
+    ]
+};
 
 let gameData = {
     player: {
@@ -65,7 +104,9 @@ let gameData = {
         exp: 0,
         coins: 0,
         stats: { hp: 100, maxHp: 100, atk: 10, def: 5, focus: 10, intellect: 10, strength: 10 },
-        equipment: { weapon: null, armor: null, accessory: null, legs: null, head: null, foot: null, shield: null }
+        equipment: { weapon: null, armor: null, accessory: null, legs: null, head: null, foot: null, shield: null },
+        titles: [],
+        medals: []
     },
     studyLogs: [],
     inventory: [],
@@ -76,6 +117,13 @@ let gameData = {
         elapsedBeforePause: 0
     },
     hasSeenOpening: false,
+    // NEW: Monster Quest System
+    activeQuest: null, // { rank: string, monster: object, targetMinutes: number, currentDamage: number }
+    dailySession: {
+        targetMinutes: 0,
+        remainingSeconds: 0,
+        isCompleted: false
+    },
     dragon: {
         obtained: false,
         hatched: false,
@@ -405,150 +453,208 @@ function showTimerMessage(type) {
     }
 }
 
+function selectMonsterForQuest() {
+    console.log("Selecting monster for:", gameData.currentSubject);
+    const subj = STUDY_SUBJECTS.find(s => s.label === gameData.currentSubject);
+
+    // Safety check: if subject not found, use default target or 60m
+    const target = (subj && subj.targetMinutes > 0) ? subj.targetMinutes : 60;
+
+    let rank = 'F-ERANK';
+    if (target >= 6000) rank = 'EXRANK';
+    else if (target >= 4800) rank = 'SSRANK';
+    else if (target >= 3000) rank = 'SRANK';
+    else if (target >= 1800) rank = 'B-ARANK';
+    else if (target >= 600) rank = 'D-CRANK';
+
+    console.log("Rank determined:", rank, "Target:", target);
+    const pool = MONSTER_MASTER[rank] || MONSTER_MASTER['F-ERANK'];
+    const monster = pool[Math.floor(Math.random() * pool.length)];
+
+    gameData.activeQuest = {
+        rank: rank,
+        monster: monster,
+        targetMinutes: target,
+        currentDamage: (subj && subj.currentDamage) ? subj.currentDamage : 0
+    };
+    saveGameData();
+    updateMonsterUI();
+}
+
+function updateMonsterUI() {
+    const stage = document.getElementById('monster-stage');
+    if (!stage || !gameData.activeQuest) return;
+
+    stage.classList.remove('hidden');
+    const { rank, monster, targetMinutes, currentDamage } = gameData.activeQuest;
+
+    // Display basic info
+    document.getElementById('monster-rank-badge').textContent = rank;
+    document.getElementById('monster-name').textContent = monster.name;
+    document.getElementById('monster-weakness-text').textContent = monster.weakness;
+
+    // Set image path
+    const sprite = document.getElementById('monster-sprite');
+    if (sprite) {
+        sprite.src = `assets/monster/${rank}_${monster.name}.png`;
+        sprite.classList.remove('monster-defeat', 'monster-retreat');
+        console.log(`👾 Monster Loaded: ${rank}_${monster.name}`);
+    }
+
+    // Handle EX rank special UI
+    const hpContainer = document.getElementById('monster-hp-container');
+    const hourglassContainer = document.getElementById('ex-hourglass-container');
+
+    if (monster.isEX) {
+        if (hpContainer) hpContainer.classList.add('hidden');
+        if (hourglassContainer) {
+            hourglassContainer.classList.remove('hidden');
+            hourglassContainer.style.display = 'flex';
+        }
+        stage.classList.add('rank-ex');
+        updateHourglassUI();
+    } else {
+        if (hpContainer) hpContainer.classList.remove('hidden');
+        if (hourglassContainer) {
+            hourglassContainer.classList.add('hidden');
+            hourglassContainer.style.display = 'none'; // 明示的に隠す
+        }
+        stage.classList.remove('rank-ex');
+        updateHPBarUI();
+    }
+}
+
+function updateHPBarUI() {
+    if (!gameData.activeQuest) return;
+    const { targetMinutes, currentDamage } = gameData.activeQuest;
+    const sessionEarnedSeconds = gameData.dailySession.targetMinutes * 60 - gameData.dailySession.remainingSeconds;
+    const totalCurrentMinutes = currentDamage + (sessionEarnedSeconds / 60);
+
+    const progress = Math.min(1, totalCurrentMinutes / targetMinutes);
+    const hpPercent = (1 - progress) * 100;
+
+    const fill = document.getElementById('monster-hp-fill');
+    if (fill) fill.style.width = `${hpPercent}%`;
+
+    const hpText = document.getElementById('monster-hp-text');
+    if (hpText) {
+        const remainingMin = Math.max(0, targetMinutes - totalCurrentMinutes);
+        hpText.textContent = `${Math.ceil(remainingMin)} / ${targetMinutes} min`;
+    }
+}
+
+function updateHourglassUI() {
+    if (!gameData.activeQuest) return;
+    const { targetMinutes, currentDamage } = gameData.activeQuest;
+
+    // sessionEarnedSeconds の計算を安全にする
+    const targetSec = (gameData.dailySession && gameData.dailySession.targetMinutes) ? gameData.dailySession.targetMinutes * 60 : 0;
+    const remainSec = (gameData.dailySession && gameData.dailySession.remainingSeconds) ? gameData.dailySession.remainingSeconds : 0;
+    const sessionEarnedSeconds = Math.max(0, targetSec - remainSec);
+
+    const totalCurrentMinutes = (currentDamage || 0) + (sessionEarnedSeconds / 60);
+    const progress = Math.min(1, totalCurrentMinutes / (targetMinutes || 1));
+
+    console.log(`Hourglass Progress: ${progress.toFixed(4)} (TotalMin: ${totalCurrentMinutes})`);
+
+    // 砂時計の画像を更新
+    updateHourglassHP(totalCurrentMinutes, targetMinutes);
+
+    // タイマーが動いている時だけ「砂の流れ」クラスを付与
+    const container = document.querySelector('.ex-hourglass-container');
+    if (container) {
+        if (gameData.timer.isRunning && progress < 1) {
+            container.classList.add('timer-active');
+        } else {
+            container.classList.remove('timer-active');
+        }
+    }
+}
+
+// 砂時計HP更新関数 (User Request)
+function updateHourglassHP(consumedMinutes, totalMinutes) {
+    const sandUpper = document.getElementById('sandUpper');
+    const sandLower = document.getElementById('sandLower');
+
+    if (!sandUpper || !sandLower) return;
+
+    // 残りHP％と消費HP％を計算
+    const remainingPercent = ((totalMinutes - consumedMinutes) / totalMinutes) * 100;
+    const consumedPercent = (consumedMinutes / totalMinutes) * 100;
+
+    // 上の砂：上から切り取る（残りだけ表示）
+    // clip-path: inset(top right bottom left)
+    // 100 - remainingPercent = 
+    //   remaining=100 -> inset(0% ...) -> full
+    //   remaining=0 -> inset(100% ...) -> empty
+    sandUpper.style.clipPath = `inset(${100 - remainingPercent}% 0 0 0)`;
+
+    // 下の砂：下から積み上げる（消費分だけ表示）
+    //   consumed=0 -> inset(100% ...) -> empty
+    //   consumed=100 -> inset(0% ...) -> full
+    sandLower.style.clipPath = `inset(${100 - consumedPercent}% 0 0 0)`;
+}
+
+
 function startTimer() {
     closeMessageModal(); // 再開時にメッセージを消す
     const msgBox = document.getElementById('timer-cheer-message');
     if (msgBox) msgBox.classList.add('hidden'); // 励ましメッセージも消す
-    console.log("🔥 タイムスタンプベースのタイマーを開始します");
+    console.log("🔥 カウントダウンタイマーを開始します");
 
     if (!gameData.timer) {
         gameData.timer = { isRunning: false, lastActionTime: null, elapsedBeforePause: 0 };
     }
 
     requestNotificationPermission();
-
     if (timerInterval) return;
 
     // Start/Resume Logic
     gameData.timer.isRunning = true;
-    gameData.timer.lastActionTime = Date.now(); // Start counting from NOW
-
-    // Store warning flag to prevent spamming notifications in one session
-    gameData.timer.hasWarned45 = false;
-
+    gameData.timer.lastActionTime = Date.now();
     saveGameData();
 
-    // Show Cheer Message only on RESUME (not fresh start)
-    if (gameData.timer.elapsedBeforePause > 0) {
+    // Show Cheer Message only on RESUME
+    if (gameData.dailySession.remainingSeconds < gameData.dailySession.targetMinutes * 60) {
         showTimerMessage('RESUME');
     }
 
     timerInterval = setInterval(() => {
         const now = Date.now();
+        const deltaMs = now - gameData.timer.lastActionTime;
+        gameData.timer.lastActionTime = now; // 次の計算用に更新
 
-        // Calculate validation delta
-        // Delta = duration since last "Resume" or "Start"
-        const sessionDelta = now - gameData.timer.lastActionTime;
+        // 経過分を秒単位で減らしていく
+        gameData.dailySession.remainingSeconds -= (deltaMs / 1000);
 
-        // Total Time = Previously Banked + Current Delta
-        const totalMs = gameData.timer.elapsedBeforePause + sessionDelta;
-        elapsedSeconds = Math.floor(totalMs / 1000);
-
-        renderTimer(elapsedSeconds);
-
-        // --- 45 Minutes Auto-Stop Logic ---
-        const minutesInSession = sessionDelta / 1000 / 60;
-
-        // 1. Warning at 45 minutes
-        if (minutesInSession >= 45 && !gameData.timer.hasWarned45) {
-            gameData.timer.hasWarned45 = true; // Set flag
-
-            // アラート音を再生
-            alertSound.play().catch(e => console.log('Audio play failed:', e));
-
-            // Push Notification
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("StudyQuest", { body: "連続45分経過しました。まだ続けますか？" });
-            }
-
-            // On-screen Confirm Modal (YES/NO)
-            // YES -> Continue (Bank this 45m and reset delta count so user can do another 45m block)
-            // NO -> Stop (Pause)
-            showConfirmModal(
-                "TIME CHECK",
-                "連続45分経過しました。<br>まだ続けますか？<br><br><small>※あと1分で自動停止します</small>",
-                () => { // YES
-                    extendSession();
-                },
-                () => { // NO
-                    // Finish study session ("お疲れ様でした")
-                    // stopTimer() handles saving the session, showing results, and resetting stats.
-                    stopTimer();
-                }
-            );
+        if (gameData.dailySession.remainingSeconds <= 0) {
+            gameData.dailySession.remainingSeconds = 0;
+            gameData.dailySession.isCompleted = true;
+            renderTimer(0);
+            stopTimer(true); // 完遂として停止
+            return;
         }
 
-        // 2. Auto Stop at 46 minutes (1 min grace) if no response
-        if (minutesInSession >= 46) {
-            console.log("🛑 45分超過のため自動停止しました");
-            // Force close modal if open
-            closeConfirmModal();
-            autoStopTimerAtLimit();
+        renderTimer(Math.ceil(gameData.dailySession.remainingSeconds));
+        updateHPBarUI(); // ダメージ連動
+
+        // 砂時計（EXランクのみ）
+        if (gameData.activeQuest && gameData.activeQuest.monster.isEX) {
+            updateHourglassUI();
         }
 
     }, 1000);
 
-    // Initial render
-    renderTimer(elapsedSeconds);
-
+    renderTimer(Math.ceil(gameData.dailySession.remainingSeconds));
     const timerDisplay = document.getElementById('timer-display');
     if (timerDisplay) timerDisplay.classList.add('timer-pulsing');
-
     updateStudyScreenUI();
 }
 
-// "Extend" the session (User clicked YES)
-function extendSession() {
-    // Bank the current time
-    const now = Date.now();
-    const sessionDelta = now - gameData.timer.lastActionTime;
-    gameData.timer.elapsedBeforePause += sessionDelta;
 
-    // Reset "Start" point to NOW (Start a new 45m block)
-    gameData.timer.lastActionTime = now;
-    gameData.timer.hasWarned45 = false; // Reset warning flag
-
-    saveGameData();
-    console.log("✅ Session Extended. New 45m block started.");
-}
-
-// Special Pause function that Caps credit at 45 minutes
-function autoStopTimerAtLimit() {
-    if (!timerInterval) return;
-    clearInterval(timerInterval);
-    timerInterval = null;
-
-    // Credit ONLY 45 minutes (plus previous bank)
-    // We discard the extra minute or hours
-    const cappedDelta = 45 * 60 * 1000;
-
-    // Update Bank
-    gameData.timer.elapsedBeforePause += cappedDelta;
-    gameData.timer.isRunning = false;
-    gameData.timer.lastActionTime = null; // Reset
-
-    // Sync global 'elapsedSeconds' for display
-    elapsedSeconds = Math.floor(gameData.timer.elapsedBeforePause / 1000);
-    renderTimer(elapsedSeconds);
-
-    saveGameData();
-
-    const timerDisplay = document.getElementById('timer-display');
-    if (timerDisplay) timerDisplay.classList.remove('timer-pulsing');
-
-    updateStudyScreenUI();
-
-    // Hide Timer Message immediately on auto-stop
-    const msgBox = document.getElementById('timer-cheer-message');
-    if (msgBox) msgBox.classList.add('hidden');
-
-    showMessageModal("AUTO STOP", "一定時間反応がなかったため、<br>45分でタイマーを停止しました。");
-}
-
-function updateTimer() {
-    // Legacy support if needed, but setInterval handles updates now.
-    renderTimer(elapsedSeconds);
-}
+// -----------------------------------------------------------------------------
+// Legacy Functions Removed (extendSession, autoStopTimerAtLimit, updateTimer)
+// -----------------------------------------------------------------------------
 
 function pauseTimer() {
     if (!timerInterval) return;
@@ -593,26 +699,24 @@ function updateStudyScreenUI() {
     const stopBtn = document.getElementById('stop-button');
     const pauseBtn = document.getElementById('pause-button');
 
-    // A. 【実行中】（タイマーが動いている）
+    // A. 【実行中】
     if (timerInterval) {
         if (startBtn) startBtn.classList.add('hidden');
         if (stopBtn) stopBtn.classList.remove('hidden');
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
             pauseBtn.textContent = 'ひとやすみ';
-            pauseBtn.classList.remove('is-paused'); // オレンジ
-            pauseBtn.style.pointerEvents = 'auto'; // クリック可能に
+            pauseBtn.classList.remove('is-paused');
         }
     }
-    // B. 【一時停止中】（タイマー停止中 且つ 経過時間がある）
-    else if (gameData.timer.elapsedBeforePause > 0) {
+    // B. 【一時停止中】
+    else if (gameData.dailySession.remainingSeconds > 0) {
         if (startBtn) startBtn.classList.add('hidden');
         if (stopBtn) stopBtn.classList.remove('hidden');
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
             pauseBtn.textContent = 'つづける';
-            pauseBtn.classList.add('is-paused'); // キャンプの緑
-            pauseBtn.style.pointerEvents = 'auto'; // クリック可能に
+            pauseBtn.classList.add('is-paused');
         }
     }
     // C. 【未開始・リセット後】
@@ -620,6 +724,10 @@ function updateStudyScreenUI() {
         if (startBtn) startBtn.classList.remove('hidden');
         if (stopBtn) stopBtn.classList.add('hidden');
         if (pauseBtn) pauseBtn.classList.add('hidden');
+
+        // モンスター表示を隠す
+        const stage = document.getElementById('monster-stage');
+        if (stage) stage.classList.add('hidden');
     }
 }
 
@@ -947,6 +1055,9 @@ function loadGameData() {
                 delete gameData.player.stats.spirit;
             }
         }
+        if (!gameData.player.titles) gameData.player.titles = [];
+        if (!gameData.player.medals) gameData.player.medals = [];
+
         if (!gameData.player.equipment) {
             gameData.player.equipment = { head: null, armor: null, weapon: null, accessory: null, shield: null };
         } else {
@@ -988,6 +1099,16 @@ function loadGameData() {
         if (gameData.hasSeenOpening === undefined) gameData.hasSeenOpening = false;
         if (!gameData.dragon) {
             gameData.dragon = { obtained: false, hatched: false, type: null };
+        }
+
+        // NEW: Monster Quest System initialization
+        if (!gameData.activeQuest) gameData.activeQuest = null;
+        if (!gameData.dailySession) {
+            gameData.dailySession = {
+                targetMinutes: 0,
+                remainingSeconds: 0,
+                isCompleted: false
+            };
         }
 
         console.log("Game data loaded:", gameData);
@@ -1157,7 +1278,6 @@ function updateHomeScreen() {
 
     // 装備の見た目更新 (着せ替え)
     updateCharacterAppearance();
-
 }
 
 /**
@@ -1559,17 +1679,31 @@ window.openSubjectSettings = function () {
 
 // 2. 入力画面を表示する
 window.startRenamingSubject = function (id, currentName) {
+    const subj = STUDY_SUBJECTS.find(s => s.id === id);
+    const currentTargetHours = subj ? (subj.targetMinutes / 60) : 0;
+
     let html = `
         <div style="text-align:center; padding:10px;">
             <p style="margin-bottom:15px; font-size:13px; color:#2c1810; line-height:1.6; font-weight:bold;">
                 「${currentName}」の章だね！
             </p>
-            <p style="margin-bottom:20px; font-size:12px; color:#2c1810;">
+            
+            <p style="margin-bottom:10px; font-size:12px; color:#2c1810;">
                 この予言書に、新しい名前を刻み込んで！<br>
                 どんな名前に書き換える？
             </p>
             <input type="text" id="subject-rename-input" value="${currentName}" autocomplete="off"
-                style="width:90%; padding:15px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:30px; text-align:center; outline:none; border-radius:0;">
+                style="width:90%; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:20px; text-align:center; outline:none; border-radius:0;">
+
+            <p style="margin-bottom:10px; font-size:12px; color:#2c1810;">
+                この章の最終目標（モンスターのHP）を教えて！
+            </p>
+            <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
+                <input type="number" id="subject-target-input" value="${currentTargetHours}" min="0" step="1"
+                    style="width:80px; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; text-align:center; outline:none; border-radius:0;">
+                <span style="font-size:14px; color:#2c1810; font-weight:bold;">時間</span>
+            </div>
+
             <div style="display:flex; gap:15px; justify-content:center;">
                 <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px;" onclick="window.saveSubjectRename('${id}')">これにする！</button>
                 <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">もどる</button>
@@ -1589,7 +1723,6 @@ window.startRenamingSubject = function (id, currentName) {
     }, 150);
 };
 
-// 3. 保存してUIに反映する
 window.saveSubjectRename = function (id) {
     const input = document.getElementById('subject-rename-input');
     if (!input) return;
@@ -1600,14 +1733,19 @@ window.saveSubjectRename = function (id) {
         return;
     }
 
+    const targetHours = document.getElementById('subject-target-input').value;
+    const targetMinutes = Math.max(0, parseInt(targetHours || '0') * 60);
+
     // データの保存
-    const key = id.replace(/-/g, '_') + '_label';
-    localStorage.setItem(key, newName);
+    const keyPrefix = id.replace(/-/g, '_');
+    localStorage.setItem(keyPrefix + '_label', newName);
+    localStorage.setItem(keyPrefix + '_target', targetMinutes.toString());
 
     // メモリ上の構成データも更新（リロードなしで反映するため）
     const subjIndex = STUDY_SUBJECTS.findIndex(s => s.id === id);
     if (subjIndex !== -1) {
         STUDY_SUBJECTS[subjIndex].label = newName;
+        STUDY_SUBJECTS[subjIndex].targetMinutes = targetMinutes;
     }
 
     // UIを即座に再描画
@@ -1706,19 +1844,69 @@ function selectSubject(button) {
     saveGameData();
 }
 
-// Old startTimer removed. New startTimer is defined at top.
-// Function to handle UI toggle when starting timer (if not handled in new startTimer)
 function activateTimerUI() {
-    // Subject selection check
+    console.log("Btn clicked: activateTimerUI. CurrentSubject:", gameData.currentSubject);
     if (!gameData.currentSubject) {
-        console.log("警告モーダルを表示します");
+        console.log("No subject selected, showing warning.");
         showSubjectWarningModal();
         return;
     }
 
-    startTimer();
-    updateStudyScreenUI();
+    // すでに進行中のセッションがあるならレジューム
+    if (gameData.dailySession && gameData.dailySession.remainingSeconds > 0) {
+        console.log("Resuming existing session.");
+        startTimer();
+        return;
+    }
+
+    console.log("Starting new session, showing goal modal.");
+    // 新規修行開始：目標時間入力モーダルを表示
+    showDailyGoalModal();
 }
+
+function showDailyGoalModal() {
+    const html = `
+        <div style="text-align:center; padding:10px;">
+            <p style="margin-bottom:15px; font-size:14px; color:#2c1810; font-weight:bold;">
+                「${gameData.currentSubject}」の修行を開始します
+            </p>
+            <p style="margin-bottom:20px; font-size:12px; color:#2c1810;">
+                今日は何分間、修行に励みますか？<br>
+                <small>(完遂すると特別な報酬がもらえます！)</small>
+            </p>
+            <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
+                <input type="number" id="daily-goal-input" value="60" min="1" step="5"
+                    style="width:80px; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:18px; text-align:center; outline:none;">
+                <span style="font-size:14px; color:#2c1810; font-weight:bold;">分</span>
+            </div>
+            <div style="display:flex; gap:15px; justify-content:center;">
+                <button class="settings-btn" style="position:static; transform:none; padding:10px 20px;" onclick="window.startQuestSession()">修行をはじめる！</button>
+                <button class="settings-btn" style="position:static; transform:none; padding:10px 20px; filter:grayscale(0.5);" onclick="closeMessageModal()">やめる</button>
+            </div>
+        </div>
+    `;
+    showMessageModal("- 聖なる誓い -", html, true);
+}
+
+window.startQuestSession = function () {
+    const input = document.getElementById('daily-goal-input');
+    const mins = parseInt(input.value || '0');
+    if (mins <= 0) {
+        alert("1分以上の時間をセットしてください！");
+        return;
+    }
+
+    gameData.dailySession = {
+        targetMinutes: mins,
+        remainingSeconds: mins * 60,
+        isCompleted: false
+    };
+
+    // モンスターを選出
+    selectMonsterForQuest();
+
+    startTimer();
+};
 
 
 // Jump Animation & Transition
@@ -1754,24 +1942,59 @@ function startStudyWithAnimation() {
 }
 
 
-function stopTimer() {
-    if (!timerInterval && elapsedSeconds === 0) return;
+function stopTimer(forcedComplete) {
+    const isComplete = (forcedComplete === true);
+    console.log("stopTimer called. isComplete:", isComplete);
+
+    if (!timerInterval && gameData.dailySession && gameData.dailySession.remainingSeconds === gameData.dailySession.targetMinutes * 60) return;
 
     if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
     }
 
-    // 記録を保存 (Save log if elapsed time is significant)
-    if (elapsedSeconds >= 60) {
-        saveStudySession();
+    const timerDisplay = document.getElementById('timer-display');
+    if (timerDisplay) timerDisplay.classList.remove('timer-pulsing');
+
+    // モンスターの退散・討伐演出
+    const monsterSprite = document.getElementById('monster-sprite');
+    if (monsterSprite) {
+        if (isComplete) {
+            monsterSprite.classList.add('monster-defeat');
+        } else {
+            monsterSprite.classList.add('monster-retreat');
+        }
     }
 
+    // 修行済みの時間を計算
+    const totalSetSeconds = gameData.dailySession.targetMinutes * 60;
+    const elapsedSecondsInSession = totalSetSeconds - gameData.dailySession.remainingSeconds;
+
+    // 少しディレイを置いてリザルトを表示
+    setTimeout(() => {
+        if (elapsedSecondsInSession >= 60) {
+            saveStudySession(elapsedSecondsInSession, isComplete);
+        } else {
+            // 1分未満で終了した場合も後片付けだけする
+            finishStudySessionCleanUp();
+        }
+    }, 1500);
+}
+
+function finishStudySessionCleanUp() {
     // Reset selection state
     gameData.currentSubject = null;
     document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
         btn.classList.remove('active');
     });
+
+    // Reset Daily Session
+    gameData.dailySession = {
+        targetMinutes: 0,
+        remainingSeconds: 0,
+        isCompleted: false
+    };
+    gameData.activeQuest = null;
 
     // Reset Persisted Timer State
     gameData.timer = {
@@ -1781,17 +2004,17 @@ function stopTimer() {
     };
     saveGameData();
 
-    // タイマーだけリセット
-    elapsedSeconds = 0;
-    elapsedBeforePause = 0;
+    // UIリセット
     renderTimer(0);
-
-    // お疲れ様メッセージを表示
     showTimerMessage('STOP');
-
-    // UI更新
     updateStudyScreenUI();
+
+    // ホーム画面に戻る
+    showScreen('home-screen');
+    updateHomeScreen();
 }
+
+
 
 function updateTimerDisplay() {
     const hours = Math.floor(elapsedSeconds / 3600);
@@ -1806,8 +2029,8 @@ function updateTimerDisplay() {
     document.getElementById('timer-display').textContent = display;
 }
 
-function saveStudySession() {
-    const minutes = Math.floor(elapsedSeconds / 60);
+function saveStudySession(actualSeconds, isComplete = false) {
+    const minutes = Math.floor(actualSeconds / 60);
     if (minutes === 0) return; // 1分未満は記録しない
 
     const earnedExp = minutes * 10;
@@ -1818,11 +2041,13 @@ function saveStudySession() {
     const statCap = 50 + (gameData.player.level * 10);
 
     // 科目に応じて上昇するステータスを決定
-    // 資格/語学 -> intellect, ビジネス -> focus, その他 -> strength
+    const subj = STUDY_SUBJECTS.find(s => s.label === gameData.currentSubject);
+    const subjType = subj ? subj.type : 'other';
+
     let statKey = 'strength';
-    if (gameData.currentSubject === '資格' || gameData.currentSubject === '語学') {
+    if (subjType === 'qualification' || subjType === 'language') {
         statKey = 'intellect';
-    } else if (gameData.currentSubject === 'ビジネス') {
+    } else if (subjType === 'business') {
         statKey = 'focus';
     }
 
@@ -1850,6 +2075,20 @@ function saveStudySession() {
     gameData.player.exp += earnedExp;
     gameData.player.coins += earnedCoins;
 
+    // ダメージ（累積時間）を科目データに保存
+    const subjIndexForDamage = STUDY_SUBJECTS.findIndex(s => s.label === gameData.currentSubject);
+    if (subjIndexForDamage !== -1) {
+        STUDY_SUBJECTS[subjIndexForDamage].currentDamage += minutes;
+        localStorage.setItem(STUDY_SUBJECTS[subjIndexForDamage].id.replace(/-/g, '_') + '_damage', STUDY_SUBJECTS[subjIndexForDamage].currentDamage.toString());
+    }
+
+    // 完遂時の特別報酬
+    if (isComplete) {
+        gameData.player.coins += 100; // ボーナスコイン
+        // ここにレアガチャ権付与ロジックなどを追加可能
+        console.log("🎁 修行完遂！特別報酬を付与しました");
+    }
+
     // レベルアップチェック
     checkLevelUp(oldLevel);
 
@@ -1857,24 +2096,77 @@ function saveStudySession() {
     saveGameData();
 
     // 画面更新
-    updateHomeScreen();
-    calculateTodayStats();
+    showQuestResult(minutes, isComplete);
 
-    // 確認メッセージ (レトロなメッセージモーダルへ変更)
-    const statNameMap = { focus: '集中力', intellect: '知力', strength: '筋力(STRENGTH)' };
-    const studyResultMessage = `
-        <div style="text-align: left; line-height: 1.6;">
-            📖 ${minutes}分勉強しました<br>
-            <br>
-            ✨ <span style="color:#ffd43b">+${earnedExp}</span> EXP<br>
-            💰 <span style="color:#ffd43b">+${earnedCoins}</span> コイン<br>
-            🆙 <span style="color:#ffd43b">+${statIncrease}</span> ${statNameMap[statKey]} (上限: ${statCap})
+    calculateTodayStats();
+    updateLogScreen();
+
+    // 最後にデータクリアなどの終了処理
+    finishStudySessionCleanUp();
+}
+
+function showQuestResult(minutes, isComplete) {
+    if (!gameData.activeQuest) return;
+    const { rank, monster } = gameData.activeQuest;
+    const rewards = RANK_REWARDS[rank];
+
+    let html = `
+        <div style="text-align:center; padding:10px;">
+            <div class="result-title-banner">${isComplete ? '討伐成功！' : '討伐はまだ遠いようだ'}</div>
+            
+            <p style="font-size:16px; color:#4e342e; font-weight:bold; margin-bottom:15px;">
+                ${isComplete ? monster.name + ' を討伐した！' : monster.name + ' は去っていった...'}
+            </p>
+
+            <div class="result-rewards">
+                <div class="reward-item">
+                    <span class="reward-icon">📖</span>
+                    <span>修行時間：${minutes} 分</span>
+                </div>
+                <div class="reward-item">
+                    <span class="reward-icon">✨</span>
+                    <span>獲得経験値：+${minutes * 10}${isComplete ? ' (+' + rewards.exp + ' Bonus!)' : ''} EXP</span>
+                </div>
+            </div>
+    `;
+
+    if (isComplete) {
+        html += `
+            <div class="reward-chest">🎁</div>
+            <p style="font-size:14px; color:#d32f2f; font-weight:bold; margin-bottom:10px;">完遂報酬をゲット！</p>
+            <div class="result-rewards" style="background: rgba(255,215,0,0.1); padding:10px; border-radius:8px;">
+                <div class="reward-item">
+                    <span class="reward-icon">💰</span>
+                    <span>コイン：+${rewards.coins}</span>
+                </div>
+                <div class="reward-item">
+                    <span class="reward-icon">🎖️</span>
+                    <span>勲章：${rewards.medal}</span>
+                </div>
+                ${rewards.title ? `
+                <div class="reward-item">
+                    <span class="reward-icon">👑</span>
+                    <span>称号：${rewards.title}</span>
+                </div>` : ''}
+            </div>
+        `;
+
+        // データの反映
+        gameData.player.exp += rewards.exp;
+        gameData.player.coins += rewards.coins;
+        if (!gameData.player.medals.includes(rewards.medal)) gameData.player.medals.push(rewards.medal);
+        if (rewards.title && !gameData.player.titles.includes(rewards.title)) gameData.player.titles.push(rewards.title);
+
+        createSparkleEffect();
+    }
+
+    html += `
+            <button class="settings-btn" style="position:static; transform:none; margin-top:25px; padding:10px 40px;" onclick="closeMessageModal()">里へもどる</button>
         </div>
     `;
-    showMessageModal("冒険完了！", studyResultMessage);
 
-    // ログ画面も即座に更新しておく
-    updateLogScreen();
+    showMessageModal("- 修行の成果 -", html, true);
+    saveGameData();
 }
 
 // --- 消しゴムのカス（努力の証）出現チェック ---
@@ -3505,3 +3797,62 @@ function createMagicDust(rect) {
         easing: 'ease-out'
     }).onfinish = () => el.remove();
 }
+
+// ========================================
+// 🛠️ デバッグ・演出テスト用コマンド
+// ========================================
+
+/**
+ * リザルト画面をテスト表示する
+ * window.testResult('EXRANK', 120, true)  // EXランク完遂
+ * window.testResult('SRANK', 60, false)  // Sランク中断
+ */
+window.testResult = function (rank, minutes, isComplete) {
+    const pool = MONSTER_MASTER[rank || 'F-ERANK'] || MONSTER_MASTER['F-ERANK'];
+    gameData.activeQuest = {
+        rank: rank || 'F-ERANK',
+        monster: pool[0],
+        targetMinutes: minutes || 60,
+        currentDamage: 0
+    };
+    showQuestResult(minutes || 60, isComplete);
+};
+
+/**
+ * 指定ランクのモンスターを出現させる
+ * window.testMonster('EXRANK')
+ */
+window.testMonster = function (rank) {
+    const pool = MONSTER_MASTER[rank || 'F-ERANK'] || MONSTER_MASTER['F-ERANK'];
+
+    // テスト用に修行時間をセット
+    gameData.dailySession = {
+        targetMinutes: 60,
+        remainingSeconds: 60 * 60,
+        isCompleted: false
+    };
+
+    gameData.activeQuest = {
+        rank: rank || 'F-ERANK',
+        monster: pool[0],
+        targetMinutes: 100,
+        currentDamage: 0
+    };
+
+    showScreen('study-screen');
+    updateMonsterUI();
+    console.log(`👾 ${rank} モンスター出現テスト開始（砂時計はEXランクのみ表示されます）`);
+};
+
+/**
+ * 経験値を一気に増やしてレベルアップを確認する
+ * window.addExp(5000)
+ */
+window.addExp = function (amount) {
+    const oldLevel = gameData.player.level;
+    gameData.player.exp += amount;
+    checkLevelUp(oldLevel);
+    saveGameData();
+    updateHomeScreen();
+    console.log(`✨ EXP +${amount} 加算完了`);
+};
