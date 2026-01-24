@@ -1848,7 +1848,8 @@ textarea {
     position: relative;
     /* 基準点にする */
     width: 100%;
-    max-width: 1200px;
+    max-width: 500px;
+    /* PCでも広がりすぎないように制限 */
     margin: 16px auto 0;
 
     background-image: url("./assets/ui_frame.png");
@@ -1866,7 +1867,8 @@ textarea {
     align-items: center;
     justify-content: center;
     image-rendering: pixelated;
-    padding: 20px;
+    padding: 15px;
+    /* 少し小さく調整 */
     margin-top: 10px !important;
 }
 
@@ -1880,8 +1882,8 @@ textarea {
     left: 50%;
     transform: translate(-50%, -50%);
 
-    /* サイズ指定：width: auto を消して、固定または％で指定 */
-    width: 72%;
+    /* サイズ指定：枠に対して安全なサイズに設定 */
+    width: 70%;
     height: 60%;
 
     background: rgba(52, 58, 51, 0.85);
@@ -1895,14 +1897,16 @@ textarea {
     align-items: center;
     justify-content: center;
 
-    /* 文字装飾 */
+    /* 文字装飾：vwを使って画面幅に合わせて縮小するように設定 */
     color: #b6ff7a;
-    font-size: 25px;
-    letter-spacing: 3px;
+    font-size: clamp(14px, 5vw, 24px);
+    letter-spacing: 2px;
     font-family: 'Press Start 2P', cursive !important;
     text-align: center;
     line-height: 1;
     text-shadow: 0 0 4px rgba(182, 255, 122, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 
@@ -2800,9 +2804,12 @@ textarea {
     }
 
     .timer-display-lcd {
-        font-size: 40px;
-        padding: 10px 20px;
-        font-family: 'Press Start 2P', cursive !important;
+        font-size: clamp(12px, 6vw, 22px) !important;
+        /* 40pxは大きすぎたため修正 */
+        width: 80%;
+        height: 65%;
+        padding: 5px;
+        letter-spacing: 1px;
     }
 
     .nav-button {
@@ -3701,7 +3708,7 @@ body.gacha-mode {
    Timer Polish
    ======================================== */
 .timer-pulsing {
-    animation: timerPulse 1s infinite alternate;
+    /* animation disabled to stop floating movement */
 }
 
 @keyframes timerPulse {
