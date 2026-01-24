@@ -1,3 +1,14 @@
+@font-face {
+    font-family: 'PixelMplus12';
+    src: url('./assets/PixelMplus-20130602/PixelMplus12-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'PixelMplus12';
+    font-weight: bold;
+    src: url('./assets/PixelMplus-20130602/PixelMplus12-Bold.ttf') format('truetype');
+}
+
 @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=VT323&display=swap');
 
 /* ========================================
@@ -378,7 +389,7 @@
 }
 
 .movie-subtitle {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     color: #fff;
     font-size: 16px;
     text-shadow: 2px 2px 4px #000;
@@ -387,9 +398,9 @@
 
 /* 点滅する PRESS START テキスト */
 .movie-start-text {
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'PixelMplus12', sans-serif;
     color: #fff;
-    font-size: 18px;
+    font-size: 20px;
     margin-top: 20px;
     text-shadow: 2px 2px 0 #000;
     letter-spacing: 2px;
@@ -687,7 +698,7 @@ body {
     background-position: bottom center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     /* Base font for Japanese/General text */
     color: #2c1810;
 }
@@ -860,19 +871,28 @@ body {
 
 .screen-title-mvp {
     margin: 0;
-    font-size: 18px;
+    font-size: 80px;
     text-align: center;
-    letter-spacing: 2px;
-    color: #e8e8e8;
-    font-family: "Press Start 2P", cursive;
+    letter-spacing: 4px;
+    /* RPGらしく少し広げる */
+    color: #ffffff;
+    font-family: 'PixelMplus12', sans-serif;
+    /* 日本語ドットフォント適用 */
     pointer-events: none;
-    /* 基本は絶対配置（画面上部中央） */
     position: absolute;
     left: 50%;
-    top: 5px;
+    top: -2px;
     transform: translateX(-50%);
     width: 100%;
+    text-align: center;
     white-space: nowrap;
+    /* RPG風の重厚な縁取り */
+    text-shadow:
+        2px 2px 0 #3d280a,
+        -1px -1px 0 #3d280a,
+        1px -1px 0 #3d280a,
+        -1px 1px 0 #3d280a,
+        0px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* モーダルの中では他の文字と重ならないように位置を戻す */
@@ -888,29 +908,37 @@ body {
 }
 
 
-/* タイマー画面のみ別で位置調整：右寄せにしてバックボタンとの被りを防ぐ */
-#study-screen .screen-title-mvp {
-    left: auto;
-    right: 40px;
-    transform: none;
-    width: auto;
-    text-align: right;
+/* 各画面のタイトル位置：個別に調整可能 */
+
+/* ITEM LIST（メニュー画面）のタイトル */
+#menu-screen .screen-title-mvp {
+    /* 位置を変えたい場合はここを編集 */
+    /* 例: left: 60%; や top: 10px; など */
+    /* 例: 右に寄せたい場合 */
+    left: 55%;
+    /* 例: 上に移動したい場合 */
+    top: 19px;
 }
 
-#menu-screen .screen-title-mvp {
-    left: auto;
-    right: 70px;
-    transform: none;
-    width: auto;
-    text-align: right;
+/* 刻の試練（勉強タイマー画面）のタイトル */
+/* 位置を変えたい場合はここを編集 */
+#study-screen .screen-title-mvp {
+    /* 例: 左に寄せたい場合 */
+    left: 55%;
+    top: -10px;
+}
+
+
+/* GACHA（ガチャ画面）のタイトル */
+#gacha-screen .screen-title-mvp {
+    /* 例: 下に移動したい場合 */
+    top: 20px;
 }
 
 #log-screen .screen-title-mvp {
-    left: auto;
-    right: 70px;
-    transform: none;
-    width: auto;
-    text-align: right;
+    /* 例: 中央から右にずらす */
+    left: 55%;
+    top: 20px;
 }
 
 .pixel-back-btn:active {
@@ -964,14 +992,14 @@ body {
 
 body {
     margin: 0;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
 }
 
 button,
 input,
 select,
 textarea {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     /* Use pixelated JP font as safe default for inputs */
 }
 
@@ -1194,7 +1222,7 @@ textarea {
     /* ブラウン系（インク色）に変更 */
     text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
     letter-spacing: 0.5px;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
 }
 
 .status-bar-wrapper {
@@ -1251,7 +1279,7 @@ textarea {
     color: #8d6e63;
     /* ブラウン系（インク色）に変更 */
     text-align: center;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     padding: 0 50px;
     font-style: italic;
 }
@@ -1303,6 +1331,7 @@ textarea {
 #message-modal-content {
     margin: 5px 0 15px 0 !important;
     /* 文字周りの隙間も最小限に */
+    font-family: 'PixelMplus12', 'DotGothic16', sans-serif;
 }
 
 .rpg-bg-img {
@@ -1618,7 +1647,7 @@ textarea {
 .save-button {
     flex: 1;
     padding: 10px;
-    font-family: "Press Start 2P", cursive;
+    font-family: "PixelMplus12", cursive;
     font-size: 8px;
     border: 3px solid #4a2c00;
     cursor: pointer;
@@ -1690,7 +1719,7 @@ textarea {
     width: 48px;
     /* Sprite size inside the box */
     height: 48px;
-    background-image: url('./assets/nav_icons.jpg');
+    background-image: url('./assets/nav_icons.png');
     background-size: 200% 200%;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
@@ -1792,14 +1821,14 @@ textarea {
 
 .pixel-back-btn {
     position: absolute;
-    left: 10px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    background: #040303;
-    border: 3px solid #fff;
+    background: #412709;
+    border: 1px solid #fff;
     padding: 6px 10px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
+    font-family: 'PixelMplus12', monospace;
+    font-size: 13px;
     color: #fff;
     border-radius: 4px;
     cursor: pointer;
@@ -1868,9 +1897,9 @@ textarea {
 
     /* 文字装飾 */
     color: #b6ff7a;
-    font-size: 56px;
+    font-size: 25px;
     letter-spacing: 3px;
-    font-family: 'VT323', monospace;
+    font-family: 'Press Start 2P', cursive !important;
     text-align: center;
     line-height: 1;
     text-shadow: 0 0 4px rgba(182, 255, 122, 0.5);
@@ -1926,7 +1955,7 @@ textarea {
     display: block;
     margin-top: 4px;
     font-size: 14px;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     color: #ffffff;
     /* White text */
     /* Strong black outline */
@@ -2055,8 +2084,8 @@ textarea {
     flex: 1;
     /* 同じ幅で分け合う */
     padding: 12px 0;
-    font-family: "Press Start 2P", cursive;
-    font-size: 11px;
+    font-family: 'PixelMplus12', sans-serif;
+    font-size: 18px;
     border-radius: 6px;
     cursor: pointer;
     transition: transform 0.1s;
@@ -2151,8 +2180,8 @@ textarea {
 }
 
 .today-stats-mvp .stats-value {
-    font-family: 'VT323', monospace;
-    font-size: 28px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 15px;
     /* Slightly larger for better readability with VT323 */
 }
 
@@ -2417,7 +2446,7 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-size: 140%;
+    background-size: cover;
     /* 枠いっぱいに広げる */
     background-repeat: no-repeat;
     background-position: center;
@@ -2435,7 +2464,7 @@ textarea {
    ======================================== */
 
 .card-title {
-    font-size: 14px;
+    font-size: 11px;
     font-weight: bold;
     color: #333d4f;
 }
@@ -2504,7 +2533,7 @@ textarea {
     padding: 12px;
     font-weight: bold;
     cursor: pointer;
-    font-family: "Press Start 2P", cursive;
+    font-family: "PixelMplus12", cursive;
     font-size: 10px;
     box-shadow: 0 4px #4b1919;
 }
@@ -2526,7 +2555,7 @@ textarea {
     /* パディングを増やして大きく */
     font-size: 11px;
     /* 押しボタン感を出すために少し調整 */
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'PixelMplus12', cursive;
     text-align: center;
     transition: 0.1s;
     box-shadow: 0 4px #111;
@@ -2581,7 +2610,7 @@ textarea {
     box-shadow: none !important;
     position: relative;
     color: #2c1810 !important;
-    font-family: 'DotGothic16', sans-serif !important;
+    font-family: 'PixelMplus12', sans-serif !important;
     line-height: 1.6 !important;
 }
 
@@ -2593,7 +2622,7 @@ textarea {
     font-size: 16px;
     font-weight: bold;
     color: #4a2c2a;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     cursor: pointer;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
     transition: all 0.2s ease;
@@ -2613,7 +2642,7 @@ textarea {
 
 /* 巻物モーダルのタイトル（RPG風フォント） */
 .rpg-scroll-window .screen-title-mvp {
-    font-family: 'DotGothic16', sans-serif !important;
+    font-family: 'PixelMplus12', sans-serif !important;
     font-size: 20px !important;
     color: #3a1c1a !important;
     letter-spacing: 1px !important;
@@ -2644,18 +2673,18 @@ textarea {
 }
 
 .stat-card-mvp .stat-label {
-    font-size: 9px;
+    font-size: 10px;
     color: #ffd700;
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'PixelMplus12', cursive;
     margin-bottom: 8px;
     text-transform: uppercase;
 }
 
 .stat-card-mvp .stat-value {
-    font-size: 32px;
+    font-size: 16px;
     font-weight: bold;
     color: #39FF14;
-    font-family: 'VT323', monospace;
+    font-family: 'Press Start 2P', monospace;
     text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
 }
 
@@ -2773,6 +2802,7 @@ textarea {
     .timer-display-lcd {
         font-size: 40px;
         padding: 10px 20px;
+        font-family: 'Press Start 2P', cursive !important;
     }
 
     .nav-button {
@@ -3129,7 +3159,7 @@ textarea {
 }
 
 .gacha-log-minimal p {
-    font-family: "DotGothic16", sans-serif;
+    font-family: "PixelMplus12", sans-serif;
     font-size: 14px;
     /* Slightly larger for visibility */
     color: #e2e8f0;
@@ -3331,7 +3361,7 @@ body.gacha-mode {
 .item-name-mvp {
     font-size: 16px;
     color: #1f2937;
-    font-family: "DotGothic16", sans-serif;
+    font-family: "PixelMplus12", sans-serif;
 }
 
 .item-rarity-mvp {
@@ -3378,15 +3408,16 @@ body.gacha-mode {
 }
 
 .opening-logo {
-    font-family: 'Press Start 2P', cursive;
-    font-size: 40px;
+    font-family: 'PixelMplus12', sans-serif;
+    font-size: 48px;
+    /* 美咲ゴシックに合わせて少し大きく */
     color: #ffd700;
     text-shadow: 4px 4px 0 #b38f00;
     margin-bottom: 20px;
 }
 
 .opening-subtitle {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     font-size: 18px;
     color: #ccc;
     margin-bottom: 60px;
@@ -3394,8 +3425,9 @@ body.gacha-mode {
 
 .touch-to-start {
     font-family: 'Press Start 2P', cursive;
-    font-size: 16px;
-    color: #fff;
+    font-family: 'PixelMplus12', sans-serif;
+    font-size: 24px;
+    /* スタートボタンを目立たせる */
     animation: blink 1s step-end infinite;
     cursor: pointer;
 }
@@ -3475,13 +3507,13 @@ body.gacha-mode {
 }
 
 .card-tier {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     font-size: 14px;
     font-weight: bold;
 }
 
 .card-date {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     font-size: 10px;
 }
 
@@ -3532,7 +3564,7 @@ body.gacha-mode {
 }
 
 .card-title {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     font-size: 16px;
     font-weight: bold;
     color: #2c1810;
@@ -3548,7 +3580,7 @@ body.gacha-mode {
 }
 
 .stat-item {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     font-size: 12px;
     color: #555;
     background: rgba(0, 0, 0, 0.05);
@@ -3611,6 +3643,9 @@ body.gacha-mode {
    Daily Summary Card
    ======================================== */
 .summary-card-today {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     background: linear-gradient(135deg, #2c1810, #4a2c00);
     border: 3px solid #ffd700;
     border-radius: 8px;
@@ -3631,7 +3666,7 @@ body.gacha-mode {
 }
 
 .summary-label {
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'PixelMplus12', cursive;
     font-size: 10px;
     color: #ffd700;
     text-align: center;
@@ -3647,17 +3682,18 @@ body.gacha-mode {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 10px;
 }
 
 .summary-stat-box .label {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     font-size: 10px;
     color: #ccc;
 }
 
 .summary-stat-box .value {
-    font-family: 'VT323', monospace;
-    font-size: 24px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 18px;
     color: #fff;
 }
 
@@ -3688,7 +3724,7 @@ body.gacha-mode {
     animation: gachaLogFloat 4s ease-out forwards;
     opacity: 0;
     margin-bottom: 8px;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     color: #fff;
     text-shadow: 1px 1px 2px #000;
 }
@@ -3757,7 +3793,7 @@ body.gacha-mode {
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'PixelMplus12', cursive !important;
     font-size: 10px;
     cursor: pointer;
 }
@@ -3768,7 +3804,7 @@ body.gacha-mode {
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'PixelMplus12', cursive !important;
     font-size: 10px;
     cursor: pointer;
 }
@@ -3788,9 +3824,9 @@ body.gacha-mode {
     color: #ffd700;
     border: 2px solid #6b4400;
     border-radius: 4px;
-    padding: 4px 8px;
+    padding: 4px 6px;
     font-family: 'Press Start 2P', cursive;
-    font-size: 8px;
+    font-size: 12px;
     cursor: pointer;
     box-shadow: 0 2px 0 #2c1810;
 }
@@ -3798,6 +3834,13 @@ body.gacha-mode {
 .item-action-btn:active {
     transform: translateY(1px);
     box-shadow: 0 1px 0 #2c1810;
+}
+
+/* 装備中のボタンの色を変更 */
+.item-action-btn.unequip {
+    background: #f2f213;
+    color: #6f7307;
+    border-color: #686d18;
 }
 
 .item-list-card.equipped {
@@ -3956,7 +3999,7 @@ body.gacha-mode {
 
 /* Cost Hint Text */
 .gacha-cost-hint {
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     color: #ffd700;
     font-size: 14px;
     text-shadow: 1px 1px 2px #000;
@@ -4067,7 +4110,7 @@ body.gacha-mode {
     z-index: 3000;
     font-size: 14px;
     font-weight: bold;
-    font-family: "DotGothic16", sans-serif;
+    font-family: "PixelMplus12", sans-serif;
     white-space: nowrap;
     animation: toastPop 1.8s ease-out forwards;
 }
@@ -4212,7 +4255,7 @@ body.gacha-mode {
     border: 3px solid #6b4423;
     border-radius: 8px;
     padding: 12px;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
     font-size: 14px;
     color: #4a2c0f;
     line-height: 1.5;
@@ -4640,7 +4683,7 @@ img,
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'DotGothic16', sans-serif;
+    font-family: 'PixelMplus12', sans-serif;
 }
 
 .settings-btn:active {

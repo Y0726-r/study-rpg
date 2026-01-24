@@ -599,7 +599,7 @@ function updateStudyScreenUI() {
         if (stopBtn) stopBtn.classList.remove('hidden');
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
-            pauseBtn.textContent = 'PAUSE';
+            pauseBtn.textContent = 'ひとやすみ';
             pauseBtn.classList.remove('is-paused'); // オレンジ
             pauseBtn.style.pointerEvents = 'auto'; // クリック可能に
         }
@@ -610,7 +610,7 @@ function updateStudyScreenUI() {
         if (stopBtn) stopBtn.classList.remove('hidden');
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
-            pauseBtn.textContent = 'RESUME';
+            pauseBtn.textContent = 'つづける';
             pauseBtn.classList.add('is-paused'); // キャンプの緑
             pauseBtn.style.pointerEvents = 'auto'; // クリック可能に
         }
@@ -1550,7 +1550,7 @@ window.openSubjectSettings = function () {
 
     html += `
             </div>
-            <button class="scroll-cancel-btn" onclick="this.style.transform='scale(0.95)'; setTimeout(() => closeMessageModal(), 200)">〜今はやめておく〜</button>
+            <button class="scroll-cancel-btn" onclick="this.style.transform='scale(0.95)'; setTimeout(() => closeMessageModal(), 200)">〜やめる〜</button>
         </div>
     `;
 
@@ -1571,8 +1571,8 @@ window.startRenamingSubject = function (id, currentName) {
             <input type="text" id="subject-rename-input" value="${currentName}" autocomplete="off"
                 style="width:90%; padding:15px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:30px; text-align:center; outline:none; border-radius:0;">
             <div style="display:flex; gap:15px; justify-content:center;">
-                <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px;" onclick="window.saveSubjectRename('${id}')">これで決定！</button>
-                <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">考え直す</button>
+                <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px;" onclick="window.saveSubjectRename('${id}')">これにする！</button>
+                <button class="settings-btn" style="position:static; transform:none; padding:8px 16px; font-size:13px; filter: grayscale(0.5);" onclick="window.openSubjectSettings()">もどる</button>
             </div>
         </div>
     `;
@@ -1871,7 +1871,7 @@ function saveStudySession() {
             🆙 <span style="color:#ffd43b">+${statIncrease}</span> ${statNameMap[statKey]} (上限: ${statCap})
         </div>
     `;
-    showMessageModal("STUDY COMPLETE", studyResultMessage);
+    showMessageModal("冒険完了！", studyResultMessage);
 
     // ログ画面も即座に更新しておく
     updateLogScreen();
@@ -2372,15 +2372,15 @@ function updateInventoryScreen() {
             let actionBtn = '';
             const equippableTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot', 'legs'];
             if (equippableTypes.includes(safeType)) {
-                const btnText = isEquipped ? 'UNEQUIP' : 'EQUIP';
+                const btnText = isEquipped ? 'はずす' : '装備する';
                 const btnClass = isEquipped ? 'unequip' : 'equip';
                 actionBtn = `<button class="item-action-btn ${btnClass}" onclick="toggleEquip(${item.id})">${btnText}</button>`;
             } else if (safeType === 'consumable' || safeType === 'infinite') {
-                actionBtn = `<button class="item-action-btn use" onclick="useItem(${item.id})">USE</button>`;
+                actionBtn = `<button class="item-action-btn use" onclick="useItem(${item.id})">つかう</button>`;
             }
 
             // Add Discard button
-            const discardBtn = `<button class="item-action-btn discard" onclick="confirmDiscard(${item.id})">DISCARD</button>`;
+            const discardBtn = `<button class="item-action-btn discard" onclick="confirmDiscard(${item.id})">すてる</button>`;
 
             card.innerHTML = `
                 ${iconHtml}
@@ -2429,12 +2429,12 @@ function toggleEquip(itemId) {
     if (alreadyEquippedInSlot) {
         // すでに装備されている場合は外す
         gameData.player.equipment[alreadyEquippedInSlot] = null;
-        showMessageModal("EQUIPMENT", `${item.name}を外しました。`);
+        showMessageModal("", `${item.name}を外しました。`);
     } else {
         // 装備されていない場合はターゲットスロットに装備（既存の装備は上書きされる）
         gameData.player.equipment[targetSlot] = { id: item.id, name: item.name };
         const message = item.equipMessage || `${item.name}を装備した！`;
-        showMessageModal("EQUIPMENT", message);
+        showMessageModal("", message);
     }
 
     saveGameData();
@@ -2686,7 +2686,7 @@ function useItem(itemId) {
         }
 
         const message = masterItem.useMessage || `${masterItem.name}を使用した！`;
-        showMessageModal("ITEM USED", message);
+        showMessageModal("", message);
 
         // Reserve Effects for Home Screen
         const floatTexts = [];
@@ -2750,36 +2750,27 @@ function useItem(itemId) {
 
 function confirmReset() {
     showConfirmModal(
-        "DATA RESET",
-        "いままでの　ぼうけんの　きろくを\nすべて　けして　しまいますか？\n（この　そうさは　とりけせません！）",
+        "⚠️！注意！⚠️",
+        "持っているアイテムを\nすべて消してしまいますか？\n（装備もすべて外れます）",
         () => {
-            localStorage.removeItem('studyQuestData');
-            // 完全な初期状態へリセット（dragonやtimerも含める）
-            gameData = {
-                player: {
-                    level: 1,
-                    exp: 0,
-                    coins: 0,
-                    stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 },
-                    equipment: { weapon: null, armor: null, accessory: null, shield: null }
-                },
-                studyLogs: [],
-                inventory: [],
-                currentSubject: null,
-                timer: { isRunning: false, startTime: null, elapsedBeforePause: 0 },
-                hasSeenOpening: false,
-                dragon: { obtained: false, hatched: false, type: null }
-            };
+            // アイテム（インベントリ）のみを空にする
+            gameData.inventory = [];
+            // 装備もすべて外す
+            gameData.player.equipment = { weapon: null, armor: null, accessory: null, shield: null, head: null, legs: null, foot: null };
+
             saveGameData();
-            showScreen('home-screen');
+            updateInventoryScreen();
+            updateHomeScreen();
 
             // 完了トースト
             const toast = document.createElement('div');
             toast.className = 'discard-toast';
-            toast.textContent = "✨ ぼうけんの きろくを しょきか しました";
+            toast.textContent = "✨ アイテムをすべて破棄しました";
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2000);
-        }
+        },
+        null,
+        "アイテムを消す"
     );
 }
 
@@ -2824,11 +2815,11 @@ function updateLogScreen() {
         const summaryCard = document.createElement('div');
         summaryCard.className = 'summary-card-today';
         summaryCard.innerHTML = `
-            <div class="summary-label">TODAY'S ACHIEVEMENT</div>
+            <div class="summary-label">今日の功績（こうせき）</div>
             <div class="summary-stats">
-                <div class="summary-stat-box"><span class="label">TIME</span><span class="value">${todayMinutes}m</span></div>
-                <div class="summary-stat-box"><span class="label">EXP</span><span class="value">+${todayExp}</span></div>
-                <div class="summary-stat-box"><span class="label">COINS</span><span class="value">+${todayCoins}</span></div>
+                <div class="summary-stat-box"><span class="label">修行時間</span><span class="value">${todayMinutes}m</span></div>
+                <div class="summary-stat-box"><span class="label">経験値</span><span class="value">+${todayExp}</span></div>
+                <div class="summary-stat-box"><span class="label">コイン</span><span class="value">+${todayCoins}</span></div>
             </div>
         `;
         container.appendChild(summaryCard);
@@ -2878,8 +2869,8 @@ function updateLogScreen() {
                 </div>
             </div>
             <div class="card-footer">
-                <button class="log-btn edit" onclick="openEditLogModal(${log.index})">EDIT</button>
-                <button class="log-btn delete" onclick="deleteLog(${log.index})">DEL</button>
+                <button class="log-btn edit" onclick="openEditLogModal(${log.index})">かきかえる</button>
+                <button class="log-btn delete" onclick="deleteLog(${log.index})">けす</button>
             </div>
         `;
         container.appendChild(logItem);
@@ -2976,7 +2967,7 @@ function closeCoinShortageModal() {
  * @param {Function} onConfirm - YES callback
  * @param {Function} [onCancel] - NO callback (optional)
  */
-function showConfirmModal(title, content, onConfirm, onCancel = null) {
+function showConfirmModal(title, content, onConfirm, onCancel = null, confirmButtonText = null, cancelButtonText = null) {
     const modal = document.getElementById('confirm-modal');
     const titleEl = document.getElementById('confirm-modal-title');
     const contentEl = document.getElementById('confirm-modal-content');
@@ -2985,7 +2976,14 @@ function showConfirmModal(title, content, onConfirm, onCancel = null) {
 
     if (modal && titleEl && contentEl && okBtn && cancelBtn) {
         titleEl.textContent = title;
+        titleEl.style.display = title ? 'block' : 'none'; // Show if title exists, else hide
         contentEl.innerHTML = content;
+
+        if (confirmButtonText) okBtn.textContent = confirmButtonText;
+        else okBtn.textContent = "すてる"; // Default
+
+        if (cancelButtonText) cancelBtn.textContent = cancelButtonText;
+        else cancelBtn.textContent = "やめる"; // Default
 
         // Reset and add new listener for YES
         const newOkBtn = okBtn.cloneNode(true);
@@ -3034,7 +3032,7 @@ function confirmDiscard(itemId) {
     if (!item) return;
 
     showConfirmModal(
-        "どうぐを すてる",
+        "",
         `${item.name}を　すててしまうのですか？`,
         () => discardItem(itemId)
     );

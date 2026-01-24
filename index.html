@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#4a4a4a">
     <title>StudyQuest - 勉強RPG</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style-retro.css">
 </head>
 
@@ -38,9 +39,9 @@
             <div class="movie-title-layer">
                 <h1 class="movie-title">StudyQuest</h1>
                 <p class="movie-subtitle">～ 勉強と共に伝説へ ～</p>
-                <div class="movie-start-text" onclick="skipOpening()">PRESS START</div>
+                <div class="movie-start-text" onclick="skipOpening()">- 冒険を始める -</div>
             </div>
-            <button class="movie-skip-btn" onclick="skipOpening()">SKIP &raquo;</button>
+            <button class="movie-skip-btn" onclick="skipOpening()">スキップ &raquo;</button>
         </div>
     </div>
     <!-- Flash Effect Overlay -->
@@ -51,7 +52,7 @@
         <div class="opening-content">
             <h1 class="opening-logo">StudyQuest</h1>
             <p class="opening-subtitle">勉強時間を冒険に変えよう</p>
-            <div class="touch-to-start">PRESS START</div>
+            <div class="touch-to-start">-冒険を始める-</div>
         </div>
     </div>
 
@@ -125,8 +126,8 @@
     <!-- 勉強タイマー画面 -->
     <div id="study-screen" class="screen">
         <div class="screen-header">
-            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
-            <h2 class="screen-title-mvp">STUDY TIMER</h2>
+            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
+            <h2 class="screen-title-mvp">刻（とき）の試練</h2>
             <button id="study-settings-btn" class="settings-btn" onclick="openSubjectSettings()">⚙️</button>
         </div>
 
@@ -164,13 +165,13 @@
         </div>
 
         <div class="reward-box-mvp">
-            <p>勉強すると +10 EXP, +5 Coins/分</p>
+            <p>勉強すると +10 EXP, +5 コイン/分</p>
         </div>
         <div class="timer-controls-mvp">
-            <button type="button" class="start-button-mvp" id="start-button" onclick="activateTimerUI()">START</button>
+            <button type="button" class="start-button-mvp" id="start-button" onclick="activateTimerUI()">冒険に出る</button>
             <button type="button" id="pause-button" class="pause-button-mvp hidden"
-                onclick="handlePauseResume()">PAUSE</button>
-            <button type="button" class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">STOP</button>
+                onclick="handlePauseResume()">ひとやすみ</button>
+            <button type="button" class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">おわる</button>
         </div>
 
         <!-- 応援・労いメッセージ表示エリア -->
@@ -178,7 +179,7 @@
 
 
         <div class="today-stats-mvp">
-            <p class="stats-label">TODAY'S STUDY TIME:</p>
+            <p class="stats-label">今日の冒険時間:</p>
             <p class="stats-value" id="today-stats-display">00H 00M</p>
         </div>
     </div>
@@ -192,7 +193,7 @@
             <div class="chest-centered" onclick="pullGacha()" style="cursor: pointer; pointer-events: auto;">
                 <div class="pull-tooltip" id="pull-tooltip">
                     <span class="finger-pointer">👆</span>
-                    <span class="tooltip-text">PULL?</span>
+                    <span class="tooltip-text">あける?</span>
                 </div>
                 <img src="./assets/item/chest/chest_wood.png" alt="Chest" class="chest-image-large" id="chest-display">
             </div>
@@ -201,14 +202,14 @@
         <!-- UI Layer: Interface Elements -->
         <div class="gacha-ui-layer">
             <div class="screen-header">
-                <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
-                <h2 class="screen-title-mvp">GACHA</h2>
+                <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
+                <h2 class="screen-title-mvp">たからばこの間</h2>
             </div>
 
             <div class="gacha-main-layout">
                 <!-- Top: Coin Pill -->
                 <div class="coin-pill-wrapper">
-                    COINS: <span id="gacha-coin-count">0</span> <span class="coin-icon">🟡</span>
+                    "コイン": <span id="gacha-coin-count">0</span> <span class="coin-icon">🟡</span>
                 </div>
 
                 <!-- Middle: Chest Stage (Chest in World Layer) -->
@@ -247,8 +248,8 @@
     <!-- ステータス画面 -->
     <div id="status-screen" class="screen">
         <div class="screen-header">
-            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
-            <h2 class="screen-title-mvp">STATUS</h2>
+            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
+            <h2 class="screen-title-mvp">けいけんち</h2>
         </div>
 
         <div class="status-scroll-container">
@@ -258,7 +259,7 @@
                     <div class="status-detail-item">
                         <div class="status-header-row">
                             <img src="./assets/focus.png" alt="" class="status-icon-large">
-                            <span class="status-label-large">FOCUS (集中力)</span>
+                            <span class="status-label-large">集中力（しゅうちゅう）</span>
                         </div>
                         <div class="status-bar-wrapper">
                             <div class="status-bar-frame-large">
@@ -274,7 +275,7 @@
                     <div class="status-detail-item">
                         <div class="status-header-row">
                             <img src="./assets/intelligence.png" alt="" class="status-icon-large">
-                            <span class="status-label-large">INTELLECT (知力)</span>
+                            <span class="status-label-large">知力（かしこさ）</span>
                         </div>
                         <div class="status-bar-wrapper">
                             <div class="status-bar-frame-large">
@@ -290,7 +291,7 @@
                     <div class="status-detail-item">
                         <div class="status-header-row">
                             <img src="./assets/strength.png" alt="" class="status-icon-large">
-                            <span class="status-label-large">STRENGTH (筋力)</span>
+                            <span class="status-label-large">筋力（にんたい）</span>
                         </div>
                         <div class="status-bar-wrapper">
                             <div class="status-bar-frame-large">
@@ -311,8 +312,8 @@
     <!-- メニュー画面 -->
     <div id="menu-screen" class="screen">
         <div class="screen-header">
-            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
-            <h2 class="screen-title-mvp">ITEM LIST</h2>
+            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
+            <h2 class="screen-title-mvp">コレクション</h2>
             <div class="capacity-badge">
                 <span id="current-inv-count">0</span>/<span id="max-inv-count">50</span>
             </div>
@@ -323,24 +324,24 @@
         </div>
 
         <div class="menu-footer-mvp">
-            <button class="reset-button-mvp" onclick="confirmReset()">DATA RESET</button>
+            <button class="reset-button-mvp" onclick="confirmReset()">アイテムをすべて消す</button>
         </div>
     </div>
 
     <!-- ログ画面 -->
     <div id="log-screen" class="screen">
         <div class="screen-header">
-            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ BACK</button>
-            <h2 class="screen-title-mvp">STUDY LOG</h2>
+            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
+            <h2 class="screen-title-mvp">冒険の記録</h2>
         </div>
 
         <div class="log-stats-mvp">
             <div class="stat-card-mvp">
-                <p class="stat-label">TOTAL TIME</p>
+                <p class="stat-label">累計（るいけい）修行時間</p>
                 <p class="stat-value"><span id="total-time">0</span> min</p>
             </div>
             <div class="stat-card-mvp">
-                <p class="stat-label">TOTAL EXP</p>
+                <p class="stat-label">累計（るいけい）経験値</p>
                 <p class="stat-value"><span id="total-exp">0</span></p>
             </div>
         </div>
@@ -353,7 +354,7 @@
     <!-- レベルアップモーダル -->
     <div id="levelup-modal" class="modal hidden">
         <div class="modal-content">
-            <h2 class="levelup-title">🎉 LEVEL UP！</h2>
+            <h2 class="levelup-title">レベルアップ！</h2>
             <div class="character-sprite large"><img src="./assets/player.png" alt="Player"></div>
             <p class="levelup-text">
                 Lv.<span id="old-level">1</span> → Lv.<span id="new-level">2</span>
@@ -365,10 +366,11 @@
     <!-- ログ編集モーダル -->
     <div id="edit-log-modal" class="modal hidden">
         <div class="modal-content rpg-window">
-            <h2 class="screen-title-mvp" style="color: #2c1810; font-size: 16px;">EDIT LOG</h2>
+            <h2 class="screen-title-mvp" style="color: #2c1810; font-size: 16px; display: none !important;">冒険の記録を書きかえる
+            </h2>
             <div class="edit-form">
                 <div class="form-group">
-                    <label>SUBJECT:</label>
+                    <label>科目:</label>
                     <select id="edit-log-subject">
                         <option value="資格">資格</option>
                         <option value="言語">言語</option>
@@ -377,12 +379,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>MINUTES:</label>
+                    <label>分:</label>
                     <input type="number" id="edit-log-minutes" min="1">
                 </div>
                 <div class="modal-controls">
-                    <button class="cancel-button" onclick="closeEditLogModal()">CANCEL</button>
-                    <button class="save-button" onclick="saveEditedLog()">SAVE</button>
+                    <button class="cancel-button" onclick="closeEditLogModal()">やめる</button>
+                    <button class="save-button" onclick="saveEditedLog()">これにする！</button>
                 </div>
             </div>
         </div>
@@ -408,14 +410,14 @@
     <div id="confirm-modal" class="modal hidden">
         <div class="modal-content rpg-window" style="text-align: center;">
             <h2 id="confirm-modal-title" class="screen-title-mvp"
-                style="color: #e53e3e; font-size: 16px; margin-bottom: 10px;">
+                style="color: #e53e3e; font-size: 16px; margin-bottom: 10px; display: none;">
                 CONFIRM</h2>
             <p id="confirm-modal-content" style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
                 本当に実行しますか？
             </p>
             <div class="modal-controls">
-                <button class="cancel-button" onclick="closeConfirmModal()">NO</button>
-                <button id="confirm-modal-ok" class="save-button" style="background: #e53e3e;">YES</button>
+                <button class="cancel-button" onclick="closeConfirmModal()">やめる</button>
+                <button id="confirm-modal-ok" class="save-button" style="background: #e53e3e;">すてる</button>
             </div>
         </div>
     </div>
@@ -425,11 +427,11 @@
             <h2 id="message-modal-title" class="screen-title-mvp"
                 style="color: #6b4400; font-size: 16px; margin-bottom: 10px;">
                 MESSAGE</h2>
-            <p id="message-modal-content" style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
+            <p id="message-modal-content" style="font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
                 メッセージ
             </p>
             <button class="ok-button" onclick="closeMessageModal()"
-                style="width: 100%; padding: 12px; background: #4a5568;">CLOSE</button>
+                style="width: 100%; padding: 12px; background: #4a5568;">とじる</button>
         </div>
     </div>
 
@@ -437,7 +439,7 @@
     <div id="subject-warning-modal" class="modal hidden">
         <div class="modal-content rpg-window" style="text-align: center;">
             <h2 class="screen-title-mvp" style="color: #ecc94b; font-size: 16px; margin-bottom: 10px;">
-                WARNING</h2>
+                ！ちゅうい！</h2>
             <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
                 科目を選択してください！<br>
                 勉強する科目を選ばないと<br>
