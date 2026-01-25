@@ -717,9 +717,13 @@ function startTimer() {
         showTimerMessage('RESUME');
     }
 
-    timerInterval = setInterval(() => {
+    // タイマー更新ループ (requestAnimationFrameでスムーズに)
+    const timerLoop = () => {
+        if (!gameData.timer.isRunning) return;
         updateTimerFromElapsed();
-    }, 1000);
+        requestAnimationFrame(timerLoop);
+    };
+    requestAnimationFrame(timerLoop);
 
     updateTimerFromElapsed(); // 即座に表示更新
     const timerDisplay = document.getElementById('timer-display');
@@ -941,7 +945,7 @@ const ITEM_MASTER = [
     { id: 19, name: "星屑のコンペイトウ", rarity: 2, file: "stardust_konnpeitou.png", type: "consumable", useMessage: "お腹いっぱい！", description: "噛むとキラキラした音がする。" },
     { id: 20, name: "情熱のドーナツ", rarity: 2, file: "情熱のドーナツ.png", type: "consumable", useMessage: "お腹いっぱい！", description: "燃えるようなやる気が湧く（気がする）。" },
     { id: 21, name: "銀のヘアピン", rarity: 2, file: "銀のヘアピン.png", type: "accessory", effects: { intellect: 3, strength: 3 }, description: "前髪を留めるのにちょうどいい。", equipMessage: "銀のヘアピンで髪を留めた。清潔感がアップした！", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/銀のヘアピン.png" },
-    { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/赤いリボン.png" },
+    { id: 22, name: "赤いリボン", rarity: 2, file: "赤いリボン.png", type: "accessory", effects: { strength: 8 }, description: "装備すると気分が華やぐ。", equipMessage: "赤いリボンを結んだ。パワーがみなぎってくる！", visuals: { x: -10, y: -30, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/赤いリボン.png" },
     { id: 23, name: "賢者の羽ペン", rarity: 2, file: "pen_of_genius.png", type: "consumable", effects: { intellect: 20 }, description: "スラスラと答えが書ける不思議なペン。", useMessage: "賢者の羽ペンで書いた！思考の速度が加速する…知力が大幅に上昇した！" },
     { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "consumable", effects: { focus: 20 }, description: "周りの音が聞こえなくなる魔法の耳栓。", useMessage: "静寂の耳栓を装着。深い没入状態に入った...世界が静まり返る。", specialEffect: "silence" },
     { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "幸運のコインを使った！", description: "ガチャ運が上がるという噂がある。" },
@@ -1848,10 +1852,21 @@ window.startRenamingSubject = function (id, currentName) {
                 style="width:90%; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:20px; text-align:center; outline:none; border-radius:0;">
 
             <p style="margin-bottom:10px; font-size:12px; color:#2c1810;">
-                この章の最終目標（モンスターのHP）を教えて！
+                この章のボスはどれくらい強そう？
             </p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:20px;">
+                <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: hue-rotate(90deg);" 
+                    onclick="window.setTargetByRank(10)">🌿 はぐれ系 (10h)</button>
+                <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: hue-rotate(180deg);" 
+                    onclick="window.setTargetByRank(30)">⚔️ 中ボス級 (30h)</button>
+                <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: hue-rotate(280deg);" 
+                    onclick="window.setTargetByRank(100)">🐉 大魔王級 (100h)</button>
+                <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: grayscale(0.8);" 
+                    onclick="window.setTargetByRank(0)">❓ 正体不明 (0h〜)</button>
+            </div>
+
             <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
-                <input type="number" id="subject-target-input" value="${currentTargetHours}" min="0" step="1"
+                <input type="number" id="subject-target-input" value="" placeholder="${currentTargetHours}" min="0" step="1"
                     style="width:80px; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; text-align:center; outline:none; border-radius:0;">
                 <span style="font-size:14px; color:#2c1810; font-weight:bold;">時間</span>
             </div>
@@ -1875,6 +1890,26 @@ window.startRenamingSubject = function (id, currentName) {
     }, 150);
 };
 
+// 補助：ランクボタンで数値をセットする
+window.setDailyGoalByValue = function (mins) {
+    const input = document.getElementById('daily-goal-input');
+    if (input) {
+        input.value = mins;
+        input.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
+        setTimeout(() => input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)', 300);
+    }
+};
+
+window.setTargetByRank = function (hours) {
+    const input = document.getElementById('subject-target-input');
+    if (input) {
+        input.value = hours;
+        // 視覚的なフィードバック
+        input.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
+        setTimeout(() => input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)', 300);
+    }
+};
+
 window.saveSubjectRename = function (id) {
     const input = document.getElementById('subject-rename-input');
     if (!input) return;
@@ -1885,8 +1920,11 @@ window.saveSubjectRename = function (id) {
         return;
     }
 
-    const targetHours = document.getElementById('subject-target-input').value;
-    const targetMinutes = Math.max(0, parseInt(targetHours || '0') * 60);
+    const targetInput = document.getElementById('subject-target-input');
+    // 入力が空ならplaceholder（元の値）を使う、それもなければ0
+    const val = targetInput.value;
+    const finalHours = (val === null || val === '') ? (targetInput.placeholder || '0') : val;
+    const targetMinutes = Math.max(0, parseInt(finalHours) * 60);
 
     // データの保存
     const keyPrefix = id.replace(/-/g, '_');
@@ -2017,22 +2055,35 @@ function activateTimerUI() {
 }
 
 function showDailyGoalModal() {
-    // 選択中の科目の目標時間をデフォルト値として取得（なければ60分）
-    const subj = STUDY_SUBJECTS.find(s => s.label === gameData.currentSubject);
-    const defaultMins = (subj && subj.targetMinutes > 0) ? subj.targetMinutes : 60;
+    const subjectLabel = gameData.currentSubject;
+    // 前回入力した時間を取得（なければ0分）
+    const lastGoal = localStorage.getItem('last_daily_goal_' + subjectLabel);
+    const defaultMins = lastGoal ? parseInt(lastGoal) : 0;
 
     const html = `
         <div style="text-align:center; padding:10px;">
             <p style="margin-bottom:15px; font-size:14px; color:#2c1810; font-weight:bold;">
-                「${gameData.currentSubject}」の修行を開始します
+                「${subjectLabel}」の修行を開始します
             </p>
             <p style="margin-bottom:20px; font-size:12px; color:#2c1810;">
                 今日は何分間、修行に励みますか？<br>
                 <small>(完遂すると特別な報酬がもらえます！)</small>
             </p>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:20px;">
+                <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: hue-rotate(90deg);" 
+                    onclick="window.setDailyGoalByValue(25)">🌿 集中 (25分)</button>
+                <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: hue-rotate(180deg);" 
+                    onclick="window.setDailyGoalByValue(50)">⚔️ 奮闘 (50分)</button>
+                <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: hue-rotate(280deg);" 
+                    onclick="window.setDailyGoalByValue(90)">🐉 邁進 (90分)</button>
+                <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: grayscale(0.8);" 
+                    onclick="window.setDailyGoalByValue(0)">❓ 調査 (0分〜)</button>
+            </div>
+
             <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
                 <input type="number" id="daily-goal-input" value="${defaultMins}" min="1" step="5"
-                    style="width:80px; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:18px; text-align:center; outline:none;">
+                    style="width:80px; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:18px; text-align:center; outline:none; border-radius:0;">
                 <span style="font-size:14px; color:#2c1810; font-weight:bold;">分</span>
             </div>
             <div style="display:flex; gap:15px; justify-content:center;">
@@ -2051,6 +2102,9 @@ window.startQuestSession = function () {
         alert("1分以上の時間をセットしてください！");
         return;
     }
+
+    // 次回のために保存
+    localStorage.setItem('last_daily_goal_' + gameData.currentSubject, mins.toString());
 
     gameData.dailySession = {
         targetMinutes: mins,
@@ -2414,9 +2468,21 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) 
     // 念のため hidden クラスを削除
     screen.classList.remove('hidden');
 
-    const quest = gameData.currentChallenge.quest;
-    const maxHP = quest.targetMinutes;
-    const currentHP = quest.completedMinutes;
+    const quest = gameData.currentChallenge ? gameData.currentChallenge.quest : null;
+
+    // 安全対策：クエストデータがない場合は中断
+    if (!quest) {
+        console.error("❌ showBossDamageAnimation: Quest data is missing!");
+        if (levelUpInfo) {
+            handleDeferredLevelUp(levelUpInfo, () => showQuestResult(damageMinutes, isComplete));
+        } else {
+            showQuestResult(damageMinutes, isComplete);
+        }
+        return;
+    }
+
+    const maxHP = quest.targetMinutes || 100; // デフォルト値
+    const currentHP = quest.completedMinutes || 0;
     const remainingHP = Math.max(0, maxHP - (currentHP + damageMinutes));
 
     // クエスト目標時間に基づいてボスを動的に選定
@@ -2457,12 +2523,12 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) 
         screen.style.opacity = '1';
     }, 10);
 
-    // 0.5s: メッセージ「今日の修行で...」
+    // 1.0s: メッセージ「今日の修行で...」（少し余裕を持たせる）
     setTimeout(() => {
         const msg = document.getElementById('bossMessage');
         msg.textContent = `今日の修行で、${damageMinutes} 分の活力が溜まった！`;
 
-        // 1.5s: ダメージ演出開始
+        // 2.5s: ダメージ演出開始（メッセージを1.5秒読ませる）
         setTimeout(() => {
             const damageDisp = document.getElementById('damageDisplay');
             const damageNum = document.getElementById('damageNumber');
@@ -2483,21 +2549,22 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) 
                 setTimeout(() => { bossImg.classList.remove('taking-damage'); }, 500);
 
                 // 3.5s: メッセージ「残り...分」
+                // 4.0s: メッセージ「残り...分」（少し遅らせて表示）
                 setTimeout(() => {
                     const msg = document.getElementById('bossMessage');
                     msg.innerHTML = `${boss.name}にダメージを与えた！<br>大ボスの完全討伐まで あと ${remainingHP} 分...`;
 
-                    // 最終メッセージ表示時間を延長（3秒間表示）
+                    // 7.0s: 最終フェードアウト開始（たっぷり3秒見せる）
                     setTimeout(() => {
-                        screen.style.transition = 'opacity 1.5s';  // フェード速度を遅く（0.5s → 1.5s）
+                        screen.style.transition = 'opacity 1.5s';
                         screen.style.opacity = '0';
 
+                        // 8.5s: 画面非表示・次へ
                         setTimeout(() => {
                             screen.style.display = 'none';
                             screen.classList.remove('active');
 
-                            // 保存用の値を更新
-                            quest.completedMinutes += damageMinutes;
+                            gameData.currentChallenge.quest.completedMinutes += damageMinutes;
                             saveGameData();
 
                             // 既存の報酬画面を表示 (レベルアップがあった場合は先に表示)

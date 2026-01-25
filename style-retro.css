@@ -5314,11 +5314,35 @@ img,
 }
 
 /* --- 設定ボタン（スタディ画面右上） --- */
-.settings-btn {
+.settings-btn-wrapper {
     position: absolute;
     top: 50%;
-    right: 10px;
+    right: 5px;
     transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    padding: 10px;
+    /* Hit area increase */
+    z-index: 1002;
+}
+
+.settings-label {
+    font-size: 8px;
+    color: #ffd700;
+    text-shadow: 1px 1px 2px #000;
+    font-family: 'PixelMplus12', sans-serif;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2px 4px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.settings-btn {
+    position: static;
+    transform: none;
     background-image: url('./assets/ui/wood_btn.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
@@ -5339,15 +5363,18 @@ img,
     font-family: 'PixelMplus12', sans-serif;
 }
 
+/* 押し込み演出を連動させる */
+.settings-btn-wrapper:active .settings-btn,
 .settings-btn:active {
     box-shadow: 0 0 0 #000;
-    transform: translateY(-50%) translate(0, 4px);
+    transform: translateY(4px);
 }
 
-
+.settings-btn-wrapper:hover .settings-btn,
 .settings-btn:hover {
     filter: brightness(1.1);
 }
+
 
 /* ========================================
    魔法の粉（金色の砂）演出

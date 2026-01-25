@@ -128,7 +128,10 @@
         <div class="screen-header">
             <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
             <h2 class="screen-title-mvp">刻（とき）の試練</h2>
-            <button id="study-settings-btn" class="settings-btn" onclick="openSubjectSettings()">⚙️</button>
+            <div class="settings-btn-wrapper" onclick="openSubjectSettings()">
+                <span class="settings-label">作戦会議</span>
+                <div id="study-settings-btn" class="settings-btn">⚙️</div>
+            </div>
         </div>
 
         <!-- 【戦闘開始前のみ表示】 -->
