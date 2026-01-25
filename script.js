@@ -1862,7 +1862,7 @@ window.startRenamingSubject = function (id, currentName) {
                 <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: hue-rotate(280deg);" 
                     onclick="window.setTargetByRank(100)">🐉 大魔王級 (100h)</button>
                 <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: grayscale(0.8);" 
-                    onclick="window.setTargetByRank(0)">❓ 正体不明 (0h〜)</button>
+                    onclick="window.setRandomTargetHours()">🎲 正体不明 (？h)</button>
             </div>
 
             <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
@@ -1900,6 +1900,26 @@ window.setDailyGoalByValue = function (mins) {
     }
 };
 
+window.setRandomDailyGoal = function () {
+    const input = document.getElementById('daily-goal-input');
+    if (input) {
+        // 10分〜120分の間で5分刻みのランダムな時間を生成
+        const randomMins = Math.floor(Math.random() * (120 - 10) / 5 + 1) * 5 + 10;
+        input.value = randomMins;
+
+        // 占い風の演出
+        input.style.backgroundColor = 'rgba(155, 89, 182, 0.3)'; // 紫っぽい色
+        input.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            input.style.transform = 'scale(1)';
+        }, 300);
+
+        // メッセージを一時的に表示（あれば）
+        console.log("🎲 運命の修行時間:", randomMins);
+    }
+};
+
 window.setTargetByRank = function (hours) {
     const input = document.getElementById('subject-target-input');
     if (input) {
@@ -1907,6 +1927,23 @@ window.setTargetByRank = function (hours) {
         // 視覚的なフィードバック
         input.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
         setTimeout(() => input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)', 300);
+    }
+};
+
+window.setRandomTargetHours = function () {
+    const input = document.getElementById('subject-target-input');
+    if (input) {
+        // 5h〜300hの間でランダムな時間を生成
+        const randomHours = Math.floor(Math.random() * (300 - 5 + 1)) + 5;
+        input.value = randomHours;
+
+        // 占い風の演出
+        input.style.backgroundColor = 'rgba(155, 89, 182, 0.3)';
+        input.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            input.style.transform = 'scale(1)';
+        }, 300);
     }
 };
 
@@ -2078,7 +2115,7 @@ function showDailyGoalModal() {
                 <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: hue-rotate(280deg);" 
                     onclick="window.setDailyGoalByValue(90)">🐉 邁進 (90分)</button>
                 <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: grayscale(0.8);" 
-                    onclick="window.setDailyGoalByValue(0)">❓ 調査 (0分〜)</button>
+                    onclick="window.setRandomDailyGoal()">🎲 調査 (？分)</button>
             </div>
 
             <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
