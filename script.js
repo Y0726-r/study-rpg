@@ -928,7 +928,7 @@ const ITEM_MASTER = [
     { id: 13, name: "ひとくちチョコ", rarity: 1, file: "chocolate_mini.png", type: "consumable", useMessage: "糖分補給完了！脳が活性化していく…！", description: "疲れた脳には糖分が一番。" },
     { id: 14, name: "サクサクビスケット", rarity: 1, file: "biscuit.png", type: "consumable", useMessage: "お腹いっぱい！", description: "お茶が欲しくなる素朴な味。" },
     { id: 15, name: "三色団子", rarity: 1, file: "３色団子.png", type: "consumable", useMessage: "お腹いっぱい！", description: "彩りが可愛い、和みのスイーツ。" },
-    { id: 16, name: "消しゴムのカス", rarity: 3, file: "消しゴムのカス.png", type: "consumable", useMessage: "これは君の努力の結晶だ。試験合格へ一歩近づいたよ！", description: "沢山の勉強を積み重ねた証。光り輝いている。", effects: { focus: 50, intellect: 50, strength: 50 } },
+    { id: 16, name: "消しゴムのカス", rarity: 3, file: "eraser_dust.png", type: "consumable", useMessage: "これは君の努力の結晶だ。試験合格へ一歩近づいたよ！", description: "沢山の勉強を積み重ねた証。光り輝いている。", effects: { focus: 50, intellect: 50, strength: 50 } },
     { id: 17, name: "使い古したノート", rarity: 1, file: "使い古したノート.png", type: "consumable", useMessage: "これまでの努力が思い出される…よし、もう一踏ん張り！", description: "読み返すとやる気が湧いてくる。" },
     { id: 31, name: "布のズボン", rarity: 1, file: "布ズボン.png", type: "legs", effects: { strength: 2 }, description: "素朴で動きやすい旅人用ズボン。まずは“続ける力”を支えてくれる。", equipMessage: "布のズボンを装着した。準備完了。さあ、クエスト（勉強）に出発だ。", visuals: { x: 10, y: 35, width: 97 }, equipImage: "assets/item/gacha_equipment/布ズボン.png" },
 
@@ -2265,21 +2265,35 @@ function saveStudySession(actualSeconds, isComplete = false) {
     // 完遂時の特別報酬
     if (isComplete) {
         gameData.player.coins += 100; // ボーナスコイン
-        // ここにレアガチャ権付与ロジックなどを追加可能
         console.log("🎁 修行完遂！特別報酬を付与しました");
+
+        // ランク報酬（EXP/Coin/Medal/Title）をここで付与（画面表示前にデータを確定させるため）
+        if (gameData.activeQuest) {
+            const { rank } = gameData.activeQuest;
+            const rewards = RANK_REWARDS[rank];
+            if (rewards) {
+                gameData.player.exp += rewards.exp;
+                gameData.player.coins += rewards.coins;
+                if (!gameData.player.medals.includes(rewards.medal)) gameData.player.medals.push(rewards.medal);
+                if (rewards.title && !gameData.player.titles.includes(rewards.title)) gameData.player.titles.push(rewards.title);
+                console.log(`🎁 Quest Rank Bonus: +${rewards.exp} EXP, +${rewards.coins} Coins`);
+            }
+        }
     }
 
-    // レベルアップチェック
-    checkLevelUp(oldLevel);
+    // レベルアップチェック (モーダル抑制モード: 結果だけ受け取る)
+    const levelUpInfo = checkLevelUp(oldLevel, true);
 
     // データ保存
     saveGameData();
 
     // 画面更新
     if (gameData.currentChallenge && gameData.currentChallenge.quest) {
-        showBossDamageAnimation(minutes, isComplete);
+        showBossDamageAnimation(minutes, isComplete, levelUpInfo);
     } else {
-        showQuestResult(minutes, isComplete);
+        handleDeferredLevelUp(levelUpInfo, () => {
+            showQuestResult(minutes, isComplete);
+        });
     }
 
     calculateTodayStats();
@@ -2335,11 +2349,11 @@ function showQuestResult(minutes, isComplete) {
             </div>
         `;
 
-        // データの反映
-        gameData.player.exp += rewards.exp;
-        gameData.player.coins += rewards.coins;
-        if (!gameData.player.medals.includes(rewards.medal)) gameData.player.medals.push(rewards.medal);
-        if (rewards.title && !gameData.player.titles.includes(rewards.title)) gameData.player.titles.push(rewards.title);
+        // データの反映は saveStudySession で完了済み
+        // gameData.player.exp += rewards.exp;
+        // gameData.player.coins += rewards.coins;
+        // if (!gameData.player.medals.includes(rewards.medal)) gameData.player.medals.push(rewards.medal);
+        // if (rewards.title && !gameData.player.titles.includes(rewards.title)) gameData.player.titles.push(rewards.title);
 
         createSparkleEffect();
     }
@@ -2383,12 +2397,22 @@ function selectBossForQuest(rank) {
 /**
  * 大ボスダメージ演出画面（ドラクエ風）を表示
  */
-function showBossDamageAnimation(damageMinutes, isComplete) {
+function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) {
     const screen = document.getElementById('bossDamageScreen');
     if (!screen) {
-        showQuestResult(damageMinutes, isComplete);
+        // ボスダメージ画面がない場合は、直接結果画面へ (レベルアップがあれば先に表示)
+        if (levelUpInfo) {
+            showLevelUpModal(levelUpInfo.oldLevel, levelUpInfo.newLevel, () => {
+                showQuestResult(damageMinutes, isComplete);
+            });
+        } else {
+            showQuestResult(damageMinutes, isComplete);
+        }
         return;
     }
+
+    // 念のため hidden クラスを削除
+    screen.classList.remove('hidden');
 
     const quest = gameData.currentChallenge.quest;
     const maxHP = quest.targetMinutes;
@@ -2476,10 +2500,16 @@ function showBossDamageAnimation(damageMinutes, isComplete) {
                             quest.completedMinutes += damageMinutes;
                             saveGameData();
 
-                            // 既存の報酬画面を表示
-                            showQuestResult(damageMinutes, isComplete);
-                        }, 1500);  // フェード完了待機を延長（500ms → 1500ms）
-                    }, 3000);  // メッセージ表示時間を延長（1500ms → 3000ms）
+                            // 既存の報酬画面を表示 (レベルアップがあった場合は先に表示)
+                            if (levelUpInfo) {
+                                handleDeferredLevelUp(levelUpInfo, () => {
+                                    showQuestResult(damageMinutes, isComplete);
+                                });
+                            } else {
+                                showQuestResult(damageMinutes, isComplete);
+                            }
+                        }, 1500);  // フェード完了待機を延長
+                    }, 3000);
                 }, 1000);
             }, 1000);
         }, 1000);
@@ -2535,7 +2565,24 @@ function checkAndAwardEraserDust() {
     }
 }
 
-function checkLevelUp(oldLevel) {
+function handleDeferredLevelUp(info, onComplete) {
+    if (!info) {
+        if (onComplete) onComplete();
+        return;
+    }
+
+    if (info.eventType === 'birth') {
+        gameData.dragon.obtained = true;
+        updateHomeScreen();
+        if (onComplete) onComplete();
+    } else if (info.eventType === 'egg') {
+        triggerDragonEggGacha();
+    } else {
+        showLevelUpModal(info.oldLevel, info.newLevel, onComplete);
+    }
+}
+
+function checkLevelUp(oldLevel, suppressModal = false) {
     let newLevel = oldLevel;
 
     // 1. 最新の累積EXPに基づいて新レベルを算出 (Lv.99上限)
@@ -2551,6 +2598,15 @@ function checkLevelUp(oldLevel) {
         gameData.player.level = newLevel;
 
         console.log(`🆙 レベル判定: 新レベル=${newLevel}, 以前=${oldLevel}, 卵所持=${gameData.dragon.obtained}`);
+
+        let eventType = 'normal';
+        if (newLevel === 99) eventType = 'birth';
+        else if (newLevel >= 70 && !gameData.dragon.obtained) eventType = 'egg';
+
+        // モーダル表示を抑制する場合は情報を返して終了
+        if (suppressModal) {
+            return { oldLevel, newLevel, eventType };
+        }
 
         // --- ドラゴン伏線：特定レベルのイベント ---
 
@@ -2587,6 +2643,7 @@ function checkLevelUp(oldLevel) {
             showLevelUpModal(oldLevel, newLevel);
         }
     }
+    return null; // レベルアップなし
 }
 
 /**
@@ -2609,14 +2666,21 @@ function awardRainbowScale() {
     }
 }
 
-function showLevelUpModal(oldLevel, newLevel) {
+let onLevelUpModalClose = null;
+
+function showLevelUpModal(oldLevel, newLevel, onClose = null) {
     document.getElementById('old-level').textContent = oldLevel;
     document.getElementById('new-level').textContent = newLevel;
     document.getElementById('levelup-modal').classList.remove('hidden');
+    onLevelUpModalClose = onClose;
 }
 
 function closeLevelUpModal() {
     document.getElementById('levelup-modal').classList.add('hidden');
+    if (onLevelUpModalClose) {
+        onLevelUpModalClose();
+        onLevelUpModalClose = null;
+    }
 }
 
 function calculateTodayStats() {
