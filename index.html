@@ -131,93 +131,121 @@
             <button id="study-settings-btn" class="settings-btn" onclick="openSubjectSettings()">⚙️</button>
         </div>
 
-        <!-- Monster Stage Area -->
-        <div id="monster-stage" class="monster-stage hidden">
-            <div class="monster-info">
-                <span id="monster-rank-badge" class="rank-badge">RANK -</span>
-                <span id="monster-name" class="monster-name">モンスター出現中...</span>
-            </div>
-            <div class="monster-graphic-container">
-                <div id="monster-aura" class="monster-aura"></div>
-                <img id="monster-sprite" src="" alt="Monster" class="monster-sprite">
-            </div>
-            <div id="monster-weakness-box" class="monster-weakness">
-                弱点: <span id="monster-weakness-text">-</span>
-            </div>
-
-            <!-- Health Bar (Standard) -->
-            <div id="monster-hp-container" class="monster-hp-container">
-                <div class="hp-label">BOSS HP</div>
-                <div class="hp-bar-frame">
-                    <div id="monster-hp-fill" class="hp-bar-fill"></div>
+        <!-- 【戦闘開始前のみ表示】 -->
+        <div id="pre-battle-ui" class="pre-battle-ui">
+            <div class="subject-selector-mvp">
+                <div class="subject-item-wrapper">
+                    <button type="button" class="subject-btn-mvp" data-subject="資格">
+                        <div class="subject-icon math"></div>
+                    </button>
+                    <span class="subject-label-mvp">資格</span>
                 </div>
-                <div id="monster-hp-text" class="hp-text">0 / 0</div>
+                <div class="subject-item-wrapper">
+                    <button type="button" class="subject-btn-mvp" data-subject="語学">
+                        <div class="subject-icon english"></div>
+                    </button>
+                    <span class="subject-label-mvp">語学</span>
+                </div>
+                <div class="subject-item-wrapper">
+                    <button type="button" class="subject-btn-mvp" data-subject="ビジネス">
+                        <div class="subject-icon science"></div>
+                    </button>
+                    <span class="subject-label-mvp">ビジネス</span>
+                </div>
+                <div class="subject-item-wrapper">
+                    <button type="button" class="subject-btn-mvp" data-subject="その他">
+                        <div class="subject-icon other"></div>
+                    </button>
+                    <span class="subject-label-mvp">その他</span>
+                </div>
             </div>
 
-            <!-- Hourglass (EX Rank Only) -->
-            <div id="ex-hourglass-container" class="ex-hourglass-container hidden">
-                <div class="hourglass-hp-display">
-                    <div class="sand-container">
-                        <img src="assets/monster/sand_upper.png" class="sand-upper" id="sandUpper" alt="">
-                        <img src="assets/monster/sand_lower.png" class="sand-lower" id="sandLower" alt="">
+            <div class="reward-box-mvp">
+                <p>勉強すると +10 EXP, +5 コイン/分</p>
+            </div>
+
+            <div class="timer-controls-mvp">
+                <button type="button" class="start-button-mvp start-adventure-btn" id="start-adventure-btn"
+                    style="display: block !important; visibility: visible !important;"
+                    onclick="activateTimerUI()">冒険に出る</button>
+            </div>
+
+            <div class="today-stats-mvp">
+                <p class="stats-label">今日の冒険時間:</p>
+                <p class="stats-value" id="today-stats-display">00H 00M</p>
+            </div>
+        </div>
+
+        <!-- 【戦闘中のみ表示】 -->
+        <div id="battle-ui" class="battle-ui hidden">
+            <!-- Grand Boss Background Layer (Quest-level boss) -->
+            <div id="grand-boss-layer" class="grand-boss-layer">
+                <div class="grand-boss-silhouette">
+                    <img id="grand-boss-sprite" src="" alt="Grand Boss" class="grand-boss-image">
+                    <div class="grand-boss-overlay"></div>
+                </div>
+                <div class="grand-boss-progress-container">
+                    <div class="grand-boss-label">大ボス討伐進捗</div>
+                    <div class="grand-boss-hp-bar">
+                        <div id="grand-boss-hp-fill" class="grand-boss-hp-fill"></div>
                     </div>
-                    <img src="assets/monster/hourglass_empty.png" class="hourglass-frame" alt="砂時計">
-                    <div class="sand-stream"></div> <!-- Keep the stream for animation -->
+                    <div id="grand-boss-hp-text" class="grand-boss-hp-text">0 / 0 min</div>
                 </div>
-                <p class="hourglass-label">TIME ABYSS</p>
             </div>
-        </div>
 
-        <div class="timer-container-mvp">
-            <div class="timer-frame">
-                <div class="timer-display-lcd" id="timer-display">00:00:00</div>
+            <!-- Monster Stage Area (Daily monster) -->
+            <div id="monster-stage" class="monster-stage">
+                <div class="monster-info">
+                    <span id="monster-rank-badge" class="rank-badge">RANK -</span>
+                    <span id="monster-name" class="monster-name">モンスター出現中...</span>
+                </div>
+                <div class="monster-graphic-container">
+                    <div id="monster-aura" class="monster-aura"></div>
+                    <img id="monster-sprite" src="" alt="Monster" class="monster-sprite">
+                </div>
+                <div id="monster-weakness-box" class="monster-weakness">
+                    弱点: <span id="monster-weakness-text">-</span>
+                </div>
+
+                <!-- Health Bar (Standard) -->
+                <div id="monster-hp-container" class="monster-hp-container">
+                    <div class="hp-label">BOSS HP</div>
+                    <div class="hp-bar-frame">
+                        <div id="monster-hp-fill" class="hp-bar-fill"></div>
+                    </div>
+                    <div id="monster-hp-text" class="hp-text">0 / 0</div>
+                </div>
+
+                <!-- Hourglass (EX Rank Only) -->
+                <div id="ex-hourglass-container" class="ex-hourglass-container hidden">
+                    <div class="hourglass-hp-display">
+                        <div class="sand-container">
+                            <img src="assets/monster/sand_upper.png" class="sand-upper" id="sandUpper" alt="">
+                            <img src="assets/monster/sand_lower.png" class="sand-lower" id="sandLower" alt="">
+                        </div>
+                        <img src="assets/monster/hourglass_empty.png" class="hourglass-frame" alt="砂時計">
+                        <div class="sand-stream"></div>
+                    </div>
+                    <p class="hourglass-label">TIME ABYSS</p>
+                </div>
             </div>
-        </div>
 
-        <div class="subject-selector-mvp">
-            <div class="subject-item-wrapper">
-                <button type="button" class="subject-btn-mvp" data-subject="資格">
-                    <div class="subject-icon math"></div>
-                </button>
-                <span class="subject-label-mvp">資格</span>
+            <!-- デジタルタイマー（木枠） -->
+            <div class="timer-container-mvp">
+                <div class="timer-frame">
+                    <div class="timer-display-lcd" id="timer-display">00:00:00</div>
+                </div>
             </div>
-            <div class="subject-item-wrapper">
-                <button type="button" class="subject-btn-mvp" data-subject="語学">
-                    <div class="subject-icon english"></div>
-                </button>
-                <span class="subject-label-mvp">語学</span>
+
+            <!-- メッセージ欄 -->
+            <div id="timer-cheer-message" class="timer-message hidden">ナイス集中力！</div>
+
+            <!-- 操作ボタン -->
+            <div class="timer-controls-mvp">
+                <button type="button" id="pause-button" class="pause-button-mvp hidden"
+                    onclick="handlePauseResume()">ひとやすみ</button>
+                <button type="button" class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">おわる</button>
             </div>
-            <div class="subject-item-wrapper">
-                <button type="button" class="subject-btn-mvp" data-subject="ビジネス">
-                    <div class="subject-icon science"></div>
-                </button>
-                <span class="subject-label-mvp">ビジネス</span>
-            </div>
-            <div class="subject-item-wrapper">
-                <button type="button" class="subject-btn-mvp" data-subject="その他">
-                    <div class="subject-icon other"></div>
-                </button>
-                <span class="subject-label-mvp">その他</span>
-            </div>
-        </div>
-
-        <div class="reward-box-mvp">
-            <p>勉強すると +10 EXP, +5 コイン/分</p>
-        </div>
-        <div class="timer-controls-mvp">
-            <button type="button" class="start-button-mvp" id="start-button" onclick="activateTimerUI()">冒険に出る</button>
-            <button type="button" id="pause-button" class="pause-button-mvp hidden"
-                onclick="handlePauseResume()">ひとやすみ</button>
-            <button type="button" class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">おわる</button>
-        </div>
-
-        <!-- 応援・労いメッセージ表示エリア -->
-        <div id="timer-cheer-message" class="timer-message hidden"></div>
-
-
-        <div class="today-stats-mvp">
-            <p class="stats-label">今日の冒険時間:</p>
-            <p class="stats-value" id="today-stats-display">00H 00M</p>
         </div>
     </div>
 
@@ -484,6 +512,29 @@
             </p>
             <button class="ok-button" onclick="closeSubjectWarningModal()"
                 style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
+        </div>
+    </div>
+
+    <!-- 大ボスダメージ演出画面（ドラクエ風） -->
+    <div class="boss-damage-screen" id="bossDamageScreen" style="display: none;">
+        <div class="boss-damage-bg"></div>
+        <div class="boss-damage-content">
+            <div class="boss-display">
+                <img src="assets/bosses/zero_chronos.png" id="bossDisplayImage" class="boss-sprite-large" alt="大ボス">
+            </div>
+            <div class="boss-hp-display">
+                <h2 class="boss-name-large" id="bossNameLarge">刻喰い王ゼロ＝クロノス</h2>
+                <div class="boss-hp-bar-container">
+                    <div class="boss-hp-bar-fill" id="bossHPBarFill"></div>
+                </div>
+                <p class="boss-hp-text">HP: <span id="bossCurrentHP"></span> / <span id="bossMaxHP"></span> 分</p>
+            </div>
+            <div class="damage-display" id="damageDisplay" style="display: none;">
+                <span class="damage-number" id="damageNumber"></span><span class="damage-text"> の ダメージ！</span>
+            </div>
+            <div class="boss-message-window" id="bossMessageWindow">
+                <div class="boss-message" id="bossMessage"></div>
+            </div>
         </div>
     </div>
 

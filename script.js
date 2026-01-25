@@ -114,14 +114,19 @@ let gameData = {
     timer: {
         isRunning: false,
         startTime: null,
-        elapsedBeforePause: 0
+        pausedAt: null
     },
     hasSeenOpening: false,
-    // NEW: Monster Quest System
+    // NEW: Two-tier Boss System
+    // 1. Grand Boss: Quest-level boss (overall target, e.g., 800 hours)
+    grandBoss: null, // { rank: string, monster: object, targetMinutes: number, currentDamage: number }
+    // 2. Daily Monster: Session-level monster (today's target, e.g., 2 hours)
     activeQuest: null, // { rank: string, monster: object, targetMinutes: number, currentDamage: number }
     dailySession: {
         targetMinutes: 0,
-        remainingSeconds: 0,
+        startTime: null,
+        pausedTime: null,
+        elapsedAtPause: 0,
         isCompleted: false
     },
     dragon: {
@@ -454,34 +459,106 @@ function showTimerMessage(type) {
 }
 
 function selectMonsterForQuest() {
-    console.log("Selecting monster for:", gameData.currentSubject);
+    console.log("Selecting monsters for:", gameData.currentSubject);
     const subj = STUDY_SUBJECTS.find(s => s.label === gameData.currentSubject);
 
     // Safety check: if subject not found, use default target or 60m
-    const target = (subj && subj.targetMinutes > 0) ? subj.targetMinutes : 60;
+    const questTarget = (subj && subj.targetMinutes > 0) ? subj.targetMinutes : 60;
+    const sessionTarget = gameData.dailySession.targetMinutes || 60;
 
-    let rank = 'F-ERANK';
-    if (target >= 6000) rank = 'EXRANK';
-    else if (target >= 4800) rank = 'SSRANK';
-    else if (target >= 3000) rank = 'SRANK';
-    else if (target >= 1800) rank = 'B-ARANK';
-    else if (target >= 600) rank = 'D-CRANK';
+    // 1. Select Grand Boss (based on quest total target)
+    let grandRank = 'F-ERANK';
+    if (questTarget >= 6000) grandRank = 'EXRANK';
+    else if (questTarget >= 4800) grandRank = 'SSRANK';
+    else if (questTarget >= 3000) grandRank = 'SRANK';
+    else if (questTarget >= 1800) grandRank = 'B-ARANK';
+    else if (questTarget >= 600) grandRank = 'D-CRANK';
 
-    console.log("Rank determined:", rank, "Target:", target);
-    const pool = MONSTER_MASTER[rank] || MONSTER_MASTER['F-ERANK'];
-    const monster = pool[Math.floor(Math.random() * pool.length)];
+    console.log("Grand Boss Rank determined:", grandRank, "Quest Target:", questTarget);
+    const grandPool = MONSTER_MASTER[grandRank] || MONSTER_MASTER['F-ERANK'];
+    const grandMonster = grandPool[Math.floor(Math.random() * grandPool.length)];
 
-    gameData.activeQuest = {
-        rank: rank,
-        monster: monster,
-        targetMinutes: target,
+    gameData.grandBoss = {
+        rank: grandRank,
+        monster: grandMonster,
+        targetMinutes: questTarget,
         currentDamage: (subj && subj.currentDamage) ? subj.currentDamage : 0
     };
+
+    // 2. Select Daily Monster (based on today's session target)
+    let dailyRank = 'F-ERANK';
+    if (sessionTarget >= 300) dailyRank = 'B-ARANK';      // 5+ hours
+    else if (sessionTarget >= 180) dailyRank = 'D-CRANK'; // 3+ hours
+    else if (sessionTarget >= 60) dailyRank = 'F-ERANK';  // 1+ hour
+
+    console.log("Daily Monster Rank determined:", dailyRank, "Session Target:", sessionTarget);
+    const dailyPool = MONSTER_MASTER[dailyRank] || MONSTER_MASTER['F-ERANK'];
+    const dailyMonster = dailyPool[Math.floor(Math.random() * dailyPool.length)];
+
+    gameData.activeQuest = {
+        rank: dailyRank,
+        monster: dailyMonster,
+        targetMinutes: sessionTarget,
+        currentDamage: 0 // Daily monster starts fresh each session
+    };
+
     saveGameData();
+    updateGrandBossUI();
     updateMonsterUI();
 }
 
+function updateGrandBossUI() {
+    const layer = document.getElementById('grand-boss-layer');
+    if (!layer || !gameData.grandBoss) return;
+
+    layer.classList.remove('hidden');
+    const { rank, monster, targetMinutes, currentDamage } = gameData.grandBoss;
+
+    // Set grand boss sprite
+    const sprite = document.getElementById('grand-boss-sprite');
+    if (sprite) {
+        sprite.src = `assets/monster/${rank}_${monster.name}.png`;
+
+        // Apply reveal effect based on progress
+        const progress = Math.min(1, currentDamage / targetMinutes);
+        const progressPercent = progress * 100;
+
+        // Remove all reveal classes
+        sprite.classList.remove('reveal-10', 'reveal-25', 'reveal-50', 'reveal-75', 'reveal-100', 'defeated');
+
+        // Add appropriate reveal class
+        if (progressPercent >= 100) {
+            sprite.classList.add('reveal-100');
+            sprite.classList.add('defeated'); // 完遂！モノクロになり昇天していく演出
+        } else if (progressPercent >= 75) {
+            sprite.classList.add('reveal-75');
+        } else if (progressPercent >= 50) {
+            sprite.classList.add('reveal-50');
+        } else if (progressPercent >= 25) {
+            sprite.classList.add('reveal-25');
+        } else if (progressPercent >= 10) {
+            sprite.classList.add('reveal-10');
+        }
+
+        console.log(`👹 Grand Boss Loaded: ${rank}_${monster.name}, Progress: ${progressPercent.toFixed(1)}%`);
+    }
+
+    // Update HP bar
+    const progress = Math.min(1, currentDamage / targetMinutes);
+    const hpPercent = (1 - progress) * 100;
+
+    const fill = document.getElementById('grand-boss-hp-fill');
+    if (fill) fill.style.width = `${hpPercent}%`;
+
+    const hpText = document.getElementById('grand-boss-hp-text');
+    if (hpText) {
+        const remainingMin = Math.max(0, targetMinutes - currentDamage);
+        hpText.textContent = `${Math.ceil(remainingMin)} / ${targetMinutes} min`;
+    }
+}
+
 function updateMonsterUI() {
+
     const stage = document.getElementById('monster-stage');
     if (!stage || !gameData.activeQuest) return;
 
@@ -527,7 +604,9 @@ function updateMonsterUI() {
 function updateHPBarUI() {
     if (!gameData.activeQuest) return;
     const { targetMinutes, currentDamage } = gameData.activeQuest;
-    const sessionEarnedSeconds = gameData.dailySession.targetMinutes * 60 - gameData.dailySession.remainingSeconds;
+    const now = Date.now();
+    const elapsedMs = gameData.dailySession.startTime ? (now - gameData.dailySession.startTime) : gameData.dailySession.elapsedAtPause;
+    const sessionEarnedSeconds = Math.floor(elapsedMs / 1000);
     const totalCurrentMinutes = currentDamage + (sessionEarnedSeconds / 60);
 
     const progress = Math.min(1, totalCurrentMinutes / targetMinutes);
@@ -548,9 +627,9 @@ function updateHourglassUI() {
     const { targetMinutes, currentDamage } = gameData.activeQuest;
 
     // sessionEarnedSeconds の計算を安全にする
-    const targetSec = (gameData.dailySession && gameData.dailySession.targetMinutes) ? gameData.dailySession.targetMinutes * 60 : 0;
-    const remainSec = (gameData.dailySession && gameData.dailySession.remainingSeconds) ? gameData.dailySession.remainingSeconds : 0;
-    const sessionEarnedSeconds = Math.max(0, targetSec - remainSec);
+    const now = Date.now();
+    const elapsedMs = gameData.dailySession.startTime ? (now - gameData.dailySession.startTime) : gameData.dailySession.elapsedAtPause;
+    const sessionEarnedSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
 
     const totalCurrentMinutes = (currentDamage || 0) + (sessionEarnedSeconds / 60);
     const progress = Math.min(1, totalCurrentMinutes / (targetMinutes || 1));
@@ -603,52 +682,77 @@ function startTimer() {
     console.log("🔥 カウントダウンタイマーを開始します");
 
     if (!gameData.timer) {
-        gameData.timer = { isRunning: false, lastActionTime: null, elapsedBeforePause: 0 };
+        gameData.timer = { isRunning: false, startTime: null, pausedAt: null };
+    }
+    if (!gameData.dailySession) {
+        console.error("❌ dailySessionが未設定です");
+        return;
     }
 
     requestNotificationPermission();
     if (timerInterval) return;
 
-    // Start/Resume Logic
+    const now = Date.now();
+
+    // 初回開始 or 再開の判定
+    if (!gameData.dailySession.startTime) {
+        // 初回開始
+        gameData.dailySession.startTime = now;
+        gameData.dailySession.elapsedAtPause = 0;
+        console.log("⏱️ タイマー初回開始");
+    } else if (gameData.dailySession.pausedTime) {
+        // 一時停止からの再開
+        console.log("▶️ タイマー再開（一時停止から復帰）");
+        gameData.dailySession.startTime = now - gameData.dailySession.elapsedAtPause;
+        gameData.dailySession.pausedTime = null;
+    }
+
     gameData.timer.isRunning = true;
-    gameData.timer.lastActionTime = Date.now();
     saveGameData();
 
     // Show Cheer Message only on RESUME
-    if (gameData.dailySession.remainingSeconds < gameData.dailySession.targetMinutes * 60) {
+    const targetSeconds = gameData.dailySession.targetMinutes * 60;
+    const elapsed = gameData.dailySession.elapsedAtPause / 1000;
+    if (elapsed > 0) {
         showTimerMessage('RESUME');
     }
 
     timerInterval = setInterval(() => {
-        const now = Date.now();
-        const deltaMs = now - gameData.timer.lastActionTime;
-        gameData.timer.lastActionTime = now; // 次の計算用に更新
-
-        // 経過分を秒単位で減らしていく
-        gameData.dailySession.remainingSeconds -= (deltaMs / 1000);
-
-        if (gameData.dailySession.remainingSeconds <= 0) {
-            gameData.dailySession.remainingSeconds = 0;
-            gameData.dailySession.isCompleted = true;
-            renderTimer(0);
-            stopTimer(true); // 完遂として停止
-            return;
-        }
-
-        renderTimer(Math.ceil(gameData.dailySession.remainingSeconds));
-        updateHPBarUI(); // ダメージ連動
-
-        // 砂時計（EXランクのみ）
-        if (gameData.activeQuest && gameData.activeQuest.monster.isEX) {
-            updateHourglassUI();
-        }
-
+        updateTimerFromElapsed();
     }, 1000);
 
-    renderTimer(Math.ceil(gameData.dailySession.remainingSeconds));
+    updateTimerFromElapsed(); // 即座に表示更新
     const timerDisplay = document.getElementById('timer-display');
     if (timerDisplay) timerDisplay.classList.add('timer-pulsing');
     updateStudyScreenUI();
+}
+
+// スリープ対応：Date.now()ベースで経過時間を計算
+function updateTimerFromElapsed() {
+    if (!gameData.dailySession || !gameData.dailySession.startTime) return;
+
+    const now = Date.now();
+    const elapsedMs = now - gameData.dailySession.startTime;
+    const targetMs = gameData.dailySession.targetMinutes * 60 * 1000;
+    const remainingMs = Math.max(0, targetMs - elapsedMs);
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+
+    if (remainingMs <= 0) {
+        // タイマー完了
+        gameData.dailySession.isCompleted = true;
+        renderTimer(0);
+        stopTimer(true); // 完遂として停止
+        return;
+    }
+
+    renderTimer(remainingSeconds);
+    updateHPBarUI(); // ダメージ連動
+    updateGrandBossUI(); // 大ボスのHP更新
+
+    // 砂時計（EXランクのみ）
+    if (gameData.activeQuest && gameData.activeQuest.monster.isEX) {
+        updateHourglassUI();
+    }
 }
 
 
@@ -662,12 +766,15 @@ function pauseTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
 
-    // Standard Pause: Bank the exact calculated time
+    // 経過時間を保存（スリープから戻った時に正確に再開できるように）
     const now = Date.now();
-    const sessionDelta = now - gameData.timer.lastActionTime;
-    gameData.timer.elapsedBeforePause += sessionDelta;
+    if (gameData.dailySession && gameData.dailySession.startTime) {
+        gameData.dailySession.elapsedAtPause = now - gameData.dailySession.startTime;
+        gameData.dailySession.pausedTime = now;
+    }
 
     gameData.timer.isRunning = false;
+    gameData.timer.pausedAt = now;
     saveGameData();
 
     // Show Pause Message
@@ -695,22 +802,42 @@ function handlePauseResume() {
 }
 
 function updateStudyScreenUI() {
-    const startBtn = document.getElementById('start-button');
+    const startBtn = document.getElementById('start-adventure-btn');
     const stopBtn = document.getElementById('stop-button');
     const pauseBtn = document.getElementById('pause-button');
 
-    // A. 【実行中】
-    if (timerInterval) {
+    const preBattle = document.getElementById('pre-battle-ui');
+    const battle = document.getElementById('battle-ui');
+
+    // 科目ボタンのハイライトを復元
+    if (gameData.currentSubject) {
+        document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
+            if (btn.dataset.subject === gameData.currentSubject) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // セッション進行中かどうかの判定用フラグを定義
+    const hasActiveSession = gameData.dailySession && gameData.dailySession.targetMinutes > 0;
+
+    // A. 【修行中（タイマー稼働中）】
+    if (timerInterval || (gameData.timer && gameData.timer.isRunning)) {
         if (startBtn) startBtn.classList.add('hidden');
         if (stopBtn) stopBtn.classList.remove('hidden');
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
             pauseBtn.textContent = 'ひとやすみ';
             pauseBtn.classList.remove('is-paused');
+            pauseBtn.style.background = ''; // CSSの定数に戻す
         }
+        if (preBattle) preBattle.classList.add('hidden');
+        if (battle) battle.classList.remove('hidden');
     }
-    // B. 【一時停止中】
-    else if (gameData.dailySession.remainingSeconds > 0) {
+    // B. 【一時停止中】 (セッションは開始しているがタイマーが止まっている)
+    else if (hasActiveSession && !gameData.dailySession.isCompleted) {
         if (startBtn) startBtn.classList.add('hidden');
         if (stopBtn) stopBtn.classList.remove('hidden');
         if (pauseBtn) {
@@ -718,14 +845,21 @@ function updateStudyScreenUI() {
             pauseBtn.textContent = 'つづける';
             pauseBtn.classList.add('is-paused');
         }
+        if (preBattle) preBattle.classList.add('hidden');
+        if (battle) battle.classList.remove('hidden');
     }
-    // C. 【未開始・リセット後】
+    // C. 【未開始・待機状態】
     else {
-        if (startBtn) startBtn.classList.remove('hidden');
+        if (startBtn) {
+            startBtn.classList.remove('hidden');
+            startBtn.style.display = 'block';
+        }
         if (stopBtn) stopBtn.classList.add('hidden');
         if (pauseBtn) pauseBtn.classList.add('hidden');
 
-        // モンスター表示を隠す
+        if (preBattle) preBattle.classList.remove('hidden');
+        if (battle) battle.classList.add('hidden');
+
         const stage = document.getElementById('monster-stage');
         if (stage) stage.classList.add('hidden');
     }
@@ -820,7 +954,7 @@ const ITEM_MASTER = [
     { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/聖なる宝冠.png" },
     { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "infinite", effects: { intellect: 100 }, description: "まるで光を纏っているような服。", useMessage: "聖なる光に包まれた…！" },
     { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 7, y: -4, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/全知の眼鏡.png" },
-    { id: 30, name: "虹色の鱗", rarity: 3, file: "虹色の鱗.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" },
+    { id: 30, name: "虹色の鱗", rarity: 3, file: "rainbow.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" },
     { id: 33, name: "竜鱗の脚当て（金縁）", rarity: 3, file: "竜鱗の脚当て.png", type: "legs", effects: { strength: 40, focus: 20 }, description: "竜の鱗を編み上げた脚当て。揺るがない集中と、伝説級の格を与える。", equipMessage: "竜鱗の脚当てを装着した。伝説の装備だ。ここからが本番。", visuals: { x: 8, y: 40, width: 98 }, equipImage: "assets/item/gacha_equipment/竜鱗の脚当て.png" }
 ];
 
@@ -927,52 +1061,47 @@ function initGame() {
     updateHomeScreen();
     calculateTodayStats();
 
-    // Restore Timer State
-    if (gameData.timer) {
-        // Initialize basic display value
-        elapsedBeforePause = gameData.timer.elapsedBeforePause || 0;
+    // スリープから復帰した時のタイマー状態復元
+    if (gameData.timer && gameData.timer.isRunning && gameData.dailySession && gameData.dailySession.startTime) {
+        console.log("⏰ スリープから復帰：タイマー状態を復元します");
 
-        if (gameData.timer.isRunning && gameData.timer.lastActionTime) {
-            // Calculate time elapsed while closed/background
-            const now = Date.now();
-            const sessionDelta = now - gameData.timer.lastActionTime;
+        const now = Date.now();
+        const elapsedMs = now - gameData.dailySession.startTime;
+        const targetMs = gameData.dailySession.targetMinutes * 60 * 1000;
+        const remainingMs = targetMs - elapsedMs;
 
-            // Check limits immediately
-            const totalMs = elapsedBeforePause + sessionDelta;
-            const minutesInSession = sessionDelta / 1000 / 60;
-
-            if (minutesInSession >= 46) {
-                // Background exceeded limit
-                console.log("🛑 アプリ復帰: 45分超過のため停止");
-
-                // Manually trigger the cap logic
-                // We fake the timerInterval being present so autoStopTimerAtLimit works, 
-                // or we just run the logic manually.
-                // Simpler: Just run logic manually.
-
-                const cappedDelta = 45 * 60 * 1000;
-                gameData.timer.elapsedBeforePause += cappedDelta;
-                gameData.timer.isRunning = false;
-                gameData.timer.lastActionTime = null;
-
-                elapsedSeconds = Math.floor(gameData.timer.elapsedBeforePause / 1000);
-                renderTimer(elapsedSeconds);
-                saveGameData();
-
-                setTimeout(() => {
-                    showMessageModal("AUTO STOP", "一定時間反応がなかったため、<br>45分でタイマーを停止しました。");
-                }, 500); // Small delay to allow UI init
-
-            } else {
-                // Resume normally with correct time
-                elapsedSeconds = Math.floor(totalMs / 1000);
-                renderTimer(elapsedSeconds);
-                startTimer(); // This will pick up 'lastActionTime' and continue counting
-            }
+        if (remainingMs <= 0) {
+            // スリープ中にタイマーが完了していた
+            console.log("✅ スリープ中にタイマーが完了していました");
+            gameData.dailySession.isCompleted = true;
+            renderTimer(0);
+            // タイマーを自動停止してリザルトを表示
+            setTimeout(() => {
+                stopTimer(true);
+            }, 500);
         } else {
-            // Just paused
-            elapsedSeconds = Math.floor(elapsedBeforePause / 1000);
-            renderTimer(elapsedSeconds);
+            // まだ時間が残っている - タイマーを再開
+            console.log(`⏱️ 残り時間: ${Math.ceil(remainingMs / 1000)}秒`);
+
+            // モンスター表示を復元
+            if (gameData.activeQuest) {
+                updateMonsterUI();
+            }
+
+            // タイマーを再開
+            startTimer();
+        }
+    } else if (gameData.dailySession && gameData.dailySession.pausedTime) {
+        // 一時停止中の状態を復元
+        console.log("⏸️ 一時停止状態を復元します");
+        const elapsedSeconds = Math.ceil(gameData.dailySession.elapsedAtPause / 1000);
+        const targetSeconds = gameData.dailySession.targetMinutes * 60;
+        const remainingSeconds = targetSeconds - elapsedSeconds;
+        renderTimer(Math.max(0, remainingSeconds));
+
+        // モンスター表示を復元
+        if (gameData.activeQuest) {
+            updateMonsterUI();
         }
     }
     // 勉強ログの更新
@@ -1029,7 +1158,16 @@ function loadGameData() {
         gameData = JSON.parse(savedData);
         // Ensure timer object exists (migration for old saves)
         if (!gameData.timer) {
-            gameData.timer = { isRunning: false, startTime: null, elapsedBeforePause: 0 };
+            gameData.timer = { isRunning: false, startTime: null, pausedAt: null };
+        }
+        if (!gameData.dailySession) {
+            gameData.dailySession = {
+                targetMinutes: 0,
+                startTime: null,
+                pausedTime: null,
+                elapsedAtPause: 0,
+                isCompleted: false
+            };
         }
         // Ensure player and equipment exist
         if (!gameData.player) {
@@ -1108,6 +1246,20 @@ function loadGameData() {
                 targetMinutes: 0,
                 remainingSeconds: 0,
                 isCompleted: false
+            };
+        }
+
+        if (!gameData.currentChallenge) {
+            gameData.currentChallenge = {
+                quest: {
+                    targetMinutes: 50000, // デフォルト50000分
+                    completedMinutes: (gameData.grandBoss && gameData.grandBoss.currentDamage) ? gameData.grandBoss.currentDamage : 0
+                }
+            };
+        } else if (!gameData.currentChallenge.quest) {
+            gameData.currentChallenge.quest = {
+                targetMinutes: 50000,
+                completedMinutes: (gameData.grandBoss && gameData.grandBoss.currentDamage) ? gameData.grandBoss.currentDamage : 0
             };
         }
 
@@ -1865,6 +2017,10 @@ function activateTimerUI() {
 }
 
 function showDailyGoalModal() {
+    // 選択中の科目の目標時間をデフォルト値として取得（なければ60分）
+    const subj = STUDY_SUBJECTS.find(s => s.label === gameData.currentSubject);
+    const defaultMins = (subj && subj.targetMinutes > 0) ? subj.targetMinutes : 60;
+
     const html = `
         <div style="text-align:center; padding:10px;">
             <p style="margin-bottom:15px; font-size:14px; color:#2c1810; font-weight:bold;">
@@ -1875,7 +2031,7 @@ function showDailyGoalModal() {
                 <small>(完遂すると特別な報酬がもらえます！)</small>
             </p>
             <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
-                <input type="number" id="daily-goal-input" value="60" min="1" step="5"
+                <input type="number" id="daily-goal-input" value="${defaultMins}" min="1" step="5"
                     style="width:80px; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:18px; text-align:center; outline:none;">
                 <span style="font-size:14px; color:#2c1810; font-weight:bold;">分</span>
             </div>
@@ -1898,13 +2054,22 @@ window.startQuestSession = function () {
 
     gameData.dailySession = {
         targetMinutes: mins,
-        remainingSeconds: mins * 60,
+        startTime: null,
+        pausedTime: null,
+        elapsedAtPause: 0,
         isCompleted: false
     };
 
     // モンスターを選出
     selectMonsterForQuest();
 
+    // UI切り替え：戦闘前UI非表示、戦闘UI表示
+    const preBattleUI = document.getElementById('pre-battle-ui');
+    const battleUI = document.getElementById('battle-ui');
+    if (preBattleUI) preBattleUI.classList.add('hidden');
+    if (battleUI) battleUI.classList.remove('hidden');
+
+    closeMessageModal(); // モーダルを閉じる
     startTimer();
 };
 
@@ -1946,7 +2111,7 @@ function stopTimer(forcedComplete) {
     const isComplete = (forcedComplete === true);
     console.log("stopTimer called. isComplete:", isComplete);
 
-    if (!timerInterval && gameData.dailySession && gameData.dailySession.remainingSeconds === gameData.dailySession.targetMinutes * 60) return;
+    if (!timerInterval && gameData.dailySession && !gameData.dailySession.startTime) return;
 
     if (timerInterval) {
         clearInterval(timerInterval);
@@ -1967,8 +2132,9 @@ function stopTimer(forcedComplete) {
     }
 
     // 修行済みの時間を計算
-    const totalSetSeconds = gameData.dailySession.targetMinutes * 60;
-    const elapsedSecondsInSession = totalSetSeconds - gameData.dailySession.remainingSeconds;
+    const now = Date.now();
+    const elapsedMs = gameData.dailySession.startTime ? (now - gameData.dailySession.startTime) : 0;
+    const elapsedSecondsInSession = Math.floor(elapsedMs / 1000);
 
     // 少しディレイを置いてリザルトを表示
     setTimeout(() => {
@@ -1991,7 +2157,9 @@ function finishStudySessionCleanUp() {
     // Reset Daily Session
     gameData.dailySession = {
         targetMinutes: 0,
-        remainingSeconds: 0,
+        startTime: null,
+        pausedTime: null,
+        elapsedAtPause: 0,
         isCompleted: false
     };
     gameData.activeQuest = null;
@@ -2000,9 +2168,15 @@ function finishStudySessionCleanUp() {
     gameData.timer = {
         isRunning: false,
         startTime: null,
-        elapsedBeforePause: 0
+        pausedAt: null
     };
     saveGameData();
+
+    // UI切り替え：戦闘UI非表示、戦闘前UI表示
+    const preBattleUI = document.getElementById('pre-battle-ui');
+    const battleUI = document.getElementById('battle-ui');
+    if (battleUI) battleUI.classList.add('hidden');
+    if (preBattleUI) preBattleUI.classList.remove('hidden');
 
     // UIリセット
     renderTimer(0);
@@ -2082,6 +2256,12 @@ function saveStudySession(actualSeconds, isComplete = false) {
         localStorage.setItem(STUDY_SUBJECTS[subjIndexForDamage].id.replace(/-/g, '_') + '_damage', STUDY_SUBJECTS[subjIndexForDamage].currentDamage.toString());
     }
 
+    // 大ボスへのダメージも蓄積
+    if (gameData.grandBoss) {
+        gameData.grandBoss.currentDamage += minutes;
+        console.log(`👹 Grand Boss damaged: +${minutes} min (Total: ${gameData.grandBoss.currentDamage}/${gameData.grandBoss.targetMinutes})`);
+    }
+
     // 完遂時の特別報酬
     if (isComplete) {
         gameData.player.coins += 100; // ボーナスコイン
@@ -2096,7 +2276,11 @@ function saveStudySession(actualSeconds, isComplete = false) {
     saveGameData();
 
     // 画面更新
-    showQuestResult(minutes, isComplete);
+    if (gameData.currentChallenge && gameData.currentChallenge.quest) {
+        showBossDamageAnimation(minutes, isComplete);
+    } else {
+        showQuestResult(minutes, isComplete);
+    }
 
     calculateTodayStats();
     updateLogScreen();
@@ -2167,6 +2351,139 @@ function showQuestResult(minutes, isComplete) {
 
     showMessageModal("- 修行の成果 -", html, true);
     saveGameData();
+}
+
+/**
+ * クエスト目標時間に基づいてボスランクを判定
+ */
+function getBossRankByTargetMinutes(targetMinutes) {
+    const hours = targetMinutes / 60;
+    if (hours < 10) return 'F-ERANK';
+    if (hours < 30) return 'D-CRANK';
+    if (hours < 50) return 'B-ARANK';
+    if (hours < 80) return 'SRANK';
+    if (hours < 100) return 'SSRANK';
+    return 'EXRANK';
+}
+
+/**
+ * ランクに基づいてランダムにボスを選択
+ */
+function selectBossForQuest(rank) {
+    const bossList = MONSTER_MASTER[rank];
+    if (!bossList || bossList.length === 0) {
+        // フォールバック: EXランクのボスを使用
+        return MONSTER_MASTER['EXRANK'][0];
+    }
+    // ランダムに1体選択
+    const randomIndex = Math.floor(Math.random() * bossList.length);
+    return bossList[randomIndex];
+}
+
+/**
+ * 大ボスダメージ演出画面（ドラクエ風）を表示
+ */
+function showBossDamageAnimation(damageMinutes, isComplete) {
+    const screen = document.getElementById('bossDamageScreen');
+    if (!screen) {
+        showQuestResult(damageMinutes, isComplete);
+        return;
+    }
+
+    const quest = gameData.currentChallenge.quest;
+    const maxHP = quest.targetMinutes;
+    const currentHP = quest.completedMinutes;
+    const remainingHP = Math.max(0, maxHP - (currentHP + damageMinutes));
+
+    // クエスト目標時間に基づいてボスを動的に選定
+    const rank = getBossRankByTargetMinutes(maxHP);
+    const boss = selectBossForQuest(rank);
+
+    // ボス画像とボス名を動的に設定
+    const bossImg = document.getElementById('bossDisplayImage');
+    const bossNameEl = document.getElementById('bossNameLarge');
+
+    // 画像パスを設定（アセットがない場合はフォールバック）
+    const imagePath = `assets/monster/${rank}_${boss.name}.png`;
+    bossImg.src = imagePath;
+    bossImg.onerror = () => {
+        // 画像が見つからない場合はEXランクのボスを使用
+        bossImg.src = 'assets/bosses/zero_chronos.png';
+    };
+
+    if (bossNameEl) {
+        bossNameEl.textContent = boss.name;
+    }
+
+    // 1. 初期表示セット
+    document.getElementById('bossMaxHP').textContent = maxHP;
+    document.getElementById('bossCurrentHP').textContent = maxHP - currentHP;
+    document.getElementById('bossHPBarFill').style.width = `${((maxHP - currentHP) / maxHP) * 100}%`;
+    document.getElementById('damageDisplay').style.display = 'none';
+    document.getElementById('bossMessage').textContent = "";
+
+    // 画面フェードイン
+    screen.style.display = 'flex';
+    screen.style.opacity = '0';
+    screen.classList.add('active');
+
+    // 0.0s: フェードイン開始
+    setTimeout(() => {
+        screen.style.transition = 'opacity 0.5s';
+        screen.style.opacity = '1';
+    }, 10);
+
+    // 0.5s: メッセージ「今日の修行で...」
+    setTimeout(() => {
+        const msg = document.getElementById('bossMessage');
+        msg.textContent = `今日の修行で、${damageMinutes} 分の活力が溜まった！`;
+
+        // 1.5s: ダメージ演出開始
+        setTimeout(() => {
+            const damageDisp = document.getElementById('damageDisplay');
+            const damageNum = document.getElementById('damageNumber');
+
+            bossImg.classList.add('taking-damage');
+            damageDisp.style.display = 'block';
+            damageNum.textContent = damageMinutes;
+
+            // 2.5s: HPゲージ減少
+            setTimeout(() => {
+                const fill = document.getElementById('bossHPBarFill');
+                const hpText = document.getElementById('bossCurrentHP');
+
+                fill.style.width = `${(remainingHP / maxHP) * 100}%`;
+                hpText.textContent = remainingHP;
+
+                // 次のメッセージのためにクラス削除
+                setTimeout(() => { bossImg.classList.remove('taking-damage'); }, 500);
+
+                // 3.5s: メッセージ「残り...分」
+                setTimeout(() => {
+                    const msg = document.getElementById('bossMessage');
+                    msg.innerHTML = `${boss.name}にダメージを与えた！<br>大ボスの完全討伐まで あと ${remainingHP} 分...`;
+
+                    // 最終メッセージ表示時間を延長（3秒間表示）
+                    setTimeout(() => {
+                        screen.style.transition = 'opacity 1.5s';  // フェード速度を遅く（0.5s → 1.5s）
+                        screen.style.opacity = '0';
+
+                        setTimeout(() => {
+                            screen.style.display = 'none';
+                            screen.classList.remove('active');
+
+                            // 保存用の値を更新
+                            quest.completedMinutes += damageMinutes;
+                            saveGameData();
+
+                            // 既存の報酬画面を表示
+                            showQuestResult(damageMinutes, isComplete);
+                        }, 1500);  // フェード完了待機を延長（500ms → 1500ms）
+                    }, 3000);  // メッセージ表示時間を延長（1500ms → 3000ms）
+                }, 1000);
+            }, 1000);
+        }, 1000);
+    }, 500);
 }
 
 // --- 消しゴムのカス（努力の証）出現チェック ---

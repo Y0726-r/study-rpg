@@ -1841,35 +1841,33 @@ textarea {
 /* Specific right-alignment overrides removed to favor absolute centering */
 
 .timer-container-mvp {
+    width: 100%;
+    max-width: 100%;
+    margin: 2px 0;
     text-align: center;
 }
 
 .timer-frame {
     position: relative;
-    /* 基準点にする */
     width: 100%;
-    max-width: 500px;
-    /* PCでも広がりすぎないように制限 */
-    margin: 16px auto 0;
+    max-width: 100%;
+    margin: 2px auto 0;
 
     background-image: url("./assets/ui_frame.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: 100% 100%;
-    /* Stretch to fill the rectangular area */
 
     height: auto;
     aspect-ratio: 1024 / 450;
-    /* Horizontal box look */
-    max-height: 25vh;
+    max-height: 12vh;
 
     display: flex;
     align-items: center;
     justify-content: center;
     image-rendering: pixelated;
-    padding: 15px;
-    /* 少し小さく調整 */
-    margin-top: 10px !important;
+    padding: 6px;
+    margin-top: 2px !important;
 }
 
 
@@ -1899,8 +1897,8 @@ textarea {
 
     /* 文字装飾：vwを使って画面幅に合わせて縮小するように設定 */
     color: #b6ff7a;
-    font-size: clamp(14px, 5vw, 24px);
-    letter-spacing: 2px;
+    font-size: clamp(12px, 4.5vw, 20px);
+    letter-spacing: 1px;
     font-family: 'Press Start 2P', cursive !important;
     text-align: center;
     line-height: 1;
@@ -1910,26 +1908,242 @@ textarea {
 }
 
 /* ========================================
+   Pre-Battle UI & Battle UI Separation
+   ======================================== */
+.pre-battle-ui {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.pre-battle-ui.hidden {
+    display: none !important;
+}
+
+.battle-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    padding: 4px 8px;
+    max-height: calc(100vh - 100px);
+    overflow: hidden;
+    justify-content: flex-start;
+}
+
+.battle-ui.hidden {
+    display: none !important;
+}
+
+/* ========================================
+   Grand Boss Background Layer (Quest-level boss)
+   ======================================== */
+.grand-boss-layer {
+    width: 100%;
+    position: relative;
+    margin-bottom: 0;
+    padding: 6px 10px;
+    background: linear-gradient(180deg, rgba(20, 10, 30, 0.7) 0%, rgba(40, 20, 50, 0.5) 100%);
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    border-radius: 8px;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+.grand-boss-layer.hidden {
+    display: none !important;
+}
+
+.grand-boss-silhouette {
+    display: none;
+}
+
+.grand-boss-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter: brightness(0.3) contrast(1.5);
+    /* Start as dark silhouette */
+    transition: filter 1.5s ease-out;
+    animation: grandBossFloat 4s ease-in-out infinite;
+}
+
+/* Reveal effect based on progress - controlled via JS */
+.grand-boss-image.reveal-10 {
+    filter: brightness(0.4) contrast(1.4);
+}
+
+.grand-boss-image.reveal-25 {
+    filter: brightness(0.5) contrast(1.3);
+}
+
+.grand-boss-image.reveal-50 {
+    filter: brightness(0.7) contrast(1.2);
+}
+
+.grand-boss-image.reveal-75 {
+    filter: brightness(0.9) contrast(1.1);
+}
+
+.grand-boss-image.reveal-100 {
+    filter: brightness(1.0) contrast(1.0) drop-shadow(0 0 20px rgba(255, 50, 50, 0.8));
+    animation: grandBossAura 2s ease-in-out infinite alternate;
+}
+
+.grand-boss-image.defeated {
+    filter: grayscale(1) brightness(0.5) !important;
+    opacity: 0.7;
+    animation: grandBossFade 5s forwards;
+}
+
+@keyframes grandBossAura {
+    from {
+        drop-shadow: 0 0 10px rgba(255, 50, 50, 0.6);
+    }
+
+    to {
+        drop-shadow: 0 0 30px rgba(255, 50, 50, 1);
+    }
+}
+
+@keyframes grandBossFade {
+    0% {
+        transform: translateY(0);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+}
+
+@keyframes grandBossFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-5px) scale(1.01);
+    }
+}
+
+.grand-boss-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(138, 43, 226, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+    animation: overlayPulse 3s ease-in-out infinite;
+}
+
+@keyframes overlayPulse {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.grand-boss-progress-container {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.grand-boss-label {
+    font-size: 11px;
+    color: #d8b4fe;
+    text-align: left;
+    font-family: 'PixelMplus12', sans-serif;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.grand-boss-hp-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #8b5cf6;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.grand-boss-hp-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #dc2626 0%, #f97316 50%, #fbbf24 100%);
+    transition: width 0.8s ease-out;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.6);
+    animation: hpGlow 2s ease-in-out infinite;
+}
+
+@keyframes hpGlow {
+
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.2);
+    }
+}
+
+.grand-boss-hp-text {
+    font-size: 8px;
+    color: #fbbf24;
+    text-align: right;
+    font-family: 'Press Start 2P', cursive;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    margin-top: 1px;
+}
+
+/* ========================================
    Monster Encounter System (Study Screen)
    ======================================== */
 .monster-stage {
     width: 100%;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 5px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.2);
-    border-top: 2px solid #5d4037;
-    border-bottom: 2px solid #5d4037;
+    gap: 4px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 10px;
+    border: 3px solid #5d4037;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     position: relative;
-    /* 重ね合わせの基準 */
+    flex: 1;
+    overflow: hidden;
 }
+
 
 .monster-stage.rank-ex {
     background: radial-gradient(circle, rgba(46, 10, 60, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%);
-    min-height: 280px;
-    /* 重ねた時に崩れないように高さを確保 */
+    min-height: 180px;
 }
 
 .monster-stage.hidden {
@@ -2012,21 +2226,21 @@ textarea {
 .monster-info {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 2px;
 }
 
 .rank-badge {
-    padding: 2px 8px;
+    padding: 1px 6px;
     background: #2c1810;
     color: #ffd700;
-    font-size: 11px;
+    font-size: 9px;
     border: 1px solid #ffd700;
     font-family: 'Press Start 2P', cursive;
 }
 
 .monster-name {
-    font-size: 16px;
+    font-size: 14px;
     color: #fff;
     text-shadow: 2px 2px #000;
     font-weight: bold;
@@ -2034,15 +2248,12 @@ textarea {
 
 .monster-graphic-container {
     position: relative;
-    width: 260px;
-    /* 200px -> 260px に拡大 */
-    height: 240px;
-    /* 180px -> 240px に拡大 */
+    width: 100px;
+    height: 90px;
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    /* 下端合わせに変更 */
-    margin: 10px 0;
+    margin: 0;
 }
 
 .monster-sprite {
@@ -2095,30 +2306,31 @@ textarea {
 }
 
 .monster-weakness {
-    font-size: 12px;
+    font-size: 9px;
     color: #ffccbc;
-    margin-bottom: 10px;
+    margin-bottom: 2px;
     text-shadow: 1px 1px #000;
 }
 
 /* HP Bar Styles */
 .monster-hp-container {
-    width: 80%;
-    max-width: 300px;
+    width: 90%;
+    max-width: 100%;
     text-align: center;
+    margin: 1px 0;
 }
 
 .hp-label {
-    font-size: 10px;
+    font-size: 7px;
     color: #ff5252;
     font-family: 'Press Start 2P', cursive;
     text-align: left;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .hp-bar-frame {
     width: 100%;
-    height: 12px;
+    height: 8px;
     background: #333;
     border: 2px solid #555;
     padding: 1px;
@@ -2133,9 +2345,9 @@ textarea {
 }
 
 .hp-text {
-    font-size: 11px;
+    font-size: 8px;
     color: #ccc;
-    margin-top: 3px;
+    margin-top: 1px;
     font-family: 'Press Start 2P', cursive;
 }
 
@@ -2344,7 +2556,7 @@ textarea {
 
 
 .subject-selector-mvp {
-    margin-top: 10px !important;
+    margin-top: 5px !important;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
@@ -2472,7 +2684,7 @@ textarea {
 }
 
 .reward-box-mvp {
-    margin: 10px auto !important;
+    margin: 5px auto !important;
     width: 90%;
     padding: 12px;
     background: #653d1e;
@@ -2487,20 +2699,16 @@ textarea {
 }
 
 .timer-controls-mvp {
-    /*display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 24px;*/
     display: flex;
-    gap: 8px;
-    /* ボタン同士の隙間 */
+    gap: 6px;
+    width: 100%;
+    max-width: 100%;
     justify-content: center;
-    padding: 0 16px;
-    margin-bottom: 24px;
     position: relative;
     z-index: 2100;
-    /* Ensure timer controls are above layers */
+    margin: 2px 0;
 }
+
 
 /*.start-button-mvp,
 .stop-button-mvp {
@@ -2516,10 +2724,9 @@ textarea {
 .pause-button-mvp,
 .stop-button-mvp {
     flex: 1;
-    /* 同じ幅で分け合う */
-    padding: 12px 0;
+    padding: 6px 0;
     font-family: 'PixelMplus12', sans-serif;
-    font-size: 18px;
+    font-size: 14px;
     border-radius: 6px;
     cursor: pointer;
     transition: transform 0.1s;
@@ -2534,8 +2741,8 @@ textarea {
 
 /* --- 共通：ボタンの基本の形（崩れないように固定） --- */
 .pause-button-mvp {
-    width: 140px;
-    height: 50px;
+    width: 110px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2553,12 +2760,13 @@ textarea {
     box-shadow: 0 4px #d35400;
 }
 
-/* 2. ポーズ中（RESUME）の色：キャンプの緑 */
+/* 2. ポーズ中（RESUME）の色：明るい再開グリーン */
 .pause-button-mvp.is-paused {
-    background: #357132 !important;
-    border: 4px solid #a04a1b !important;
+    background: #27ae60 !important;
+    /* 明るい緑 */
+    border: 4px solid #1e8449 !important;
     color: #fff !important;
-    box-shadow: 0 4px #873d16 !important;
+    box-shadow: 0 4px #145a32 !important;
 }
 
 /* ボタンを押した時の「カチッ」とする沈み込み演出 */
@@ -2567,18 +2775,26 @@ textarea {
     transform: translateY(4px) !important;
 }
 
+
 /* クラス名が正しく当たっているか確認 */
 .timer-controls-mvp .pause-button-mvp {
-    display: inline-block;
-    /* hiddenが外れた時に確実に見せる */
+    flex: 1;
+    max-width: 160px;
+    padding: 14px 20px;
+    font-size: 16px;
 }
 
 .stop-button-mvp {
+    flex: 1;
+    max-width: 160px;
+    padding: 14px 20px;
+    font-size: 16px;
     background: #993c3c;
     border: 4px solid #5e1f1f;
     color: #ffe4e4;
     box-shadow: 0 4px #4b1919;
 }
+
 
 .start-button-mvp:active,
 .stop-button-mvp:active {
@@ -2595,7 +2811,7 @@ textarea {
 }
 
 .today-stats-mvp {
-    margin-top: 25px;
+    margin-top: 10px;
     padding: 15px;
     background: #0f0f0d;
     border: 3px solid #4a4a4a;
@@ -4685,23 +4901,23 @@ body.gacha-mode {
 
 /* Timer Cheer/Pause Message */
 .timer-message {
-    margin: 16px auto;
-    width: 90%;
-    max-width: 340px;
-    background: #fff;
-    border: 3px solid #6b4423;
-    border-radius: 8px;
-    padding: 12px;
-    font-family: 'PixelMplus12', sans-serif;
-    font-size: 14px;
-    color: #4a2c0f;
-    line-height: 1.5;
+    width: 100%;
+    max-width: 350px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #6b4400;
+    border-radius: 6px;
     text-align: center;
-    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+    font-size: 12px;
+    color: #2c1810;
+    font-family: 'PixelMplus12', sans-serif;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    line-height: 1.3;
     position: relative;
-    /* Animation for appearing */
     animation: popIn 0.3s ease-out;
+    margin: 2px 0;
 }
+
 
 .timer-message.hidden {
     display: none;
@@ -5170,4 +5386,348 @@ img,
 
 .dissolve-anim {
     animation: scrollDissolve 0.8s ease-in forwards !important;
+}
+
+/* ========================================
+   🔥 みつきさん専用：冒険ボタン＆画面 強制復活コード
+   ======================================== */
+
+/* 1. 全ての画面を「存在」はさせるように修正（!importantを上書き） */
+.screen {
+    display: none !important;
+    /* 一旦リセット */
+    display: block !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+}
+
+/* 2. 今アクティブな画面（勉強画面など）だけを強制的に「見える」ようにする */
+.screen.active {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    z-index: 5000 !important;
+    /* 最前面へ */
+}
+
+/* 3. 消されていた「冒険に出る」ボタンを強制復活 */
+.movie-skip-btn,
+.start-adventure-btn,
+#start-adventure {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+}
+
+/* 4. モンスターエリアが大きすぎて押し出されないように高さを固定 */
+.battle-ui {
+    max-height: 80vh !important;
+    overflow: hidden !important;
+}
+
+.monster-stage {
+    min-height: 120px !important;
+    max-height: 160px !important;
+}
+
+/* --- 📱 みつきさん専用：独立配置・クリック修復 --- */
+
+/* 1. 画面全体の連動を整理し、他の画面を邪魔しないようにする */
+#study-screen {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    /* 中央寄せに戻して「上すぎ」を解消 */
+    height: 100dvh !important;
+    overflow: hidden !important;
+    padding: 10px !important;
+}
+
+/* 2. 選択画面(pre)と修行画面(battle)が重ならないように、hiddenを絶対優先にする */
+.pre-battle-ui.hidden,
+.battle-ui.hidden {
+    display: none !important;
+}
+
+.pre-battle-ui,
+.battle-ui {
+    width: 100% !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    /* 中身も中央寄せ */
+    gap: 15px !important;
+    /* 詰まりすぎを解消 */
+}
+
+/* 3. モンスター・タイマーの位置の最終微調整 & モンスター巨大化 */
+.monster-stage {
+    margin-top: 5px !important;
+    min-height: 160px !important;
+    /* 少し縦幅を広げる */
+    max-height: 200px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.monster-graphic-container {
+    width: 140px !important;
+    /* 横幅をアップ */
+    height: 110px !important;
+    /* 高さをアップ */
+    margin: 5px 0 !important;
+}
+
+.monster-sprite {
+    transform: scale(1.4) !important;
+    /* 1.4倍に拡大 */
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5)) !important;
+}
+
+.timer-container-mvp {
+    margin-top: 10px !important;
+}
+
+/* 4. タイマーとボタンのサイズをみつきさんの理想に固定 */
+.timer-frame {
+    height: 85px !important;
+}
+
+.pause-button-mvp,
+.stop-button-mvp {
+    width: 140px !important;
+    height: 48px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    margin: 0 5px !important;
+}
+
+.timer-controls-mvp {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 5px !important;
+}
+
+/* ========================================
+   大ボスダメージ演出（ドラクエ風）
+   ======================================== */
+.boss-damage-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    font-family: 'DotGothic16', sans-serif;
+}
+
+.boss-damage-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, #1a0a00 0%, #000 70%);
+    opacity: 0.8;
+}
+
+.boss-damage-content {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* ボス画像 */
+.boss-display {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 256px;
+}
+
+.boss-sprite-large {
+    width: 256px;
+    height: auto;
+    image-rendering: pixelated;
+    animation: bossFloat 4s ease-in-out infinite;
+}
+
+@keyframes bossFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+.taking-damage {
+    animation: bossDamage 0.5s linear;
+}
+
+@keyframes bossDamage {
+
+    0%,
+    20%,
+    40%,
+    60%,
+    80%,
+    100% {
+        opacity: 1;
+        filter: none;
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        opacity: 0.5;
+        filter: brightness(2) sepia(1) hue-rotate(-50deg) saturate(5);
+    }
+
+    0% {
+        transform: translate(5px, 5px);
+    }
+
+    25% {
+        transform: translate(-5px, -5px);
+    }
+
+    50% {
+        transform: translate(5px, -5px);
+    }
+
+    75% {
+        transform: translate(-5px, 5px);
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+/* HPゲージ */
+.boss-hp-display {
+    width: 80%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.boss-name-large {
+    color: #fff;
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px #000;
+}
+
+.boss-hp-bar-container {
+    width: 100%;
+    height: 12px;
+    background: #444;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.boss-hp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4e50, #f9d423);
+    width: 100%;
+    transition: width 1s ease-out;
+}
+
+.boss-hp-text {
+    color: #fff;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* ダメージ数値 */
+.damage-display {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2010;
+    pointer-events: none;
+}
+
+.damage-number {
+    font-size: 64px;
+    color: #fff;
+    font-family: 'Press Start 2P', cursive;
+    text-shadow: 4px 4px #d32f2f;
+    display: inline-block;
+    animation: damageBounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.damage-text {
+    font-size: 14px;
+    color: #fff;
+    margin-left: 10px;
+}
+
+@keyframes damageBounce {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* メッセージウィンドウ */
+.boss-message-window {
+    width: 90%;
+    height: 100px;
+    background: #000;
+    border: 4px double #fff;
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.boss-message {
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: left;
+    width: 100%;
 }
