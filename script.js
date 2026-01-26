@@ -154,7 +154,7 @@ let timerInterval = null;
 function selectBoss(targetMinutes) {
     const targetHours = targetMinutes / 60;
 
-    // 既存の MONSTER_MASTER と画像の整合性を考慮しつつ、ユーザー指定のテーブルを実装
+    // selectMonsterForQuest とランク判定を統一 (2026/01/26)
     const bossTable = [
         { maxHours: 10, name: "刻蝕のヒトガタ", rank: "F〜E", image: "assets/monster/F-ERANK_刻蝕のヒトガタ.png" },
         { maxHours: 30, name: "怠惰のエテイン", rank: "D〜C", image: "assets/monster/D-CRANK_怠惰のエテイン.png" },
@@ -183,11 +183,15 @@ window.handleTargetTimeConfirm = function (chapterName, targetHours) {
 
     const existing = gameData.chapters[chapterName] || {};
 
+    // 🔴 修正：既存のダメージ（科目データ）があればそれを優先して引き継ぐ
+    const subj = STUDY_SUBJECTS.find(s => s.label === chapterName);
+    const initialDamage = existing.completedMinutes || (subj ? subj.currentDamage : 0);
+
     gameData.chapters[chapterName] = {
         name: chapterName,
         targetMinutes: targetMinutes,
-        completedMinutes: existing.completedMinutes || 0,
-        progress: (existing.completedMinutes || 0) / targetMinutes,
+        completedMinutes: initialDamage,
+        progress: initialDamage / targetMinutes,
         boss: boss.name,
         bossRank: boss.rank,
         bossImage: boss.image,
@@ -522,18 +526,45 @@ function selectMonsterForQuest() {
     const questTarget = (subj && subj.targetMinutes > 0) ? subj.targetMinutes : 60;
     const sessionTarget = gameData.dailySession.targetMinutes || 60;
 
-    // 1. Select Grand Boss (目標時間に応じた大ボスのランク)
+    // 1. 大ボス（Grand Boss）の固定ロード (クエスト単位の主)
     let grandRank = 'F-ERANK';
-    if (questTarget >= 6000) grandRank = 'EXRANK';     // 100h
-    else if (questTarget >= 4800) grandRank = 'SSRANK'; // 80h
-    else if (questTarget >= 3000) grandRank = 'SRANK';  // 50h
-    else if (questTarget >= 1800) grandRank = 'B-ARANK'; // 30h
-    else if (questTarget >= 600) grandRank = 'D-CRANK';  // 10h
+    let grandMonster = null;
 
-    console.log("Grand Boss Rank determined:", grandRank, "Quest Target:", questTarget);
-    const grandPool = MONSTER_MASTER[grandRank] || MONSTER_MASTER['F-ERANK'];
-    const grandMonster = grandPool[Math.floor(Math.random() * grandPool.length)];
+    // 章（Chapter）データを確認。すでにボスが決定している場合はそれを絶対に使用する
+    const currentSubject = gameData.currentSubject;
+    if (gameData.chapters && gameData.chapters[currentSubject]) {
+        const ch = gameData.chapters[currentSubject];
+        grandRank = ch.bossRank;
+        // マスタから名前が一致するモンスターデータを呼び戻す
+        const pool = MONSTER_MASTER[grandRank] || [];
+        grandMonster = pool.find(m => m.name === ch.boss);
 
+        if (grandMonster) {
+            console.log(`🏰 クエストの主「${grandMonster.name}」を配置しました`);
+        }
+    }
+
+    // まだボスが未定の場合（初回のクエスト開始時など）のみ新規抽選を行う
+    if (!grandMonster) {
+        if (questTarget >= 6000) grandRank = 'EXRANK';
+        else if (questTarget >= 4800) grandRank = 'SSRANK';
+        else if (questTarget >= 3000) grandRank = 'SRANK';
+        else if (questTarget >= 1800) grandRank = 'B-ARANK';
+        else if (questTarget >= 600) grandRank = 'D-CRANK';
+
+        const grandPool = MONSTER_MASTER[grandRank] || MONSTER_MASTER['F-ERANK'];
+        grandMonster = grandPool[Math.floor(Math.random() * grandPool.length)];
+        console.log(`📜 このクエストの主を${grandMonster.name}に任命しました`);
+
+        // 未作成の場合は命名式で作成されるはずだが、ここでは安全に同期
+        if (gameData.chapters && gameData.chapters[currentSubject]) {
+            gameData.chapters[currentSubject].boss = grandMonster.name;
+            gameData.chapters[currentSubject].bossRank = grandRank;
+            gameData.chapters[currentSubject].bossImage = `assets/monster/${grandRank}_${grandMonster.name}.png`;
+        }
+    }
+
+    // gameData.grandBoss に「今戦っている大ボス」の情報を完全に固定
     gameData.grandBoss = {
         rank: grandRank,
         monster: grandMonster,
@@ -541,7 +572,7 @@ function selectMonsterForQuest() {
         currentDamage: (subj && subj.currentDamage) ? subj.currentDamage : 0
     };
 
-    // 演出システム用のゴーストデータも同期（不整合を防ぐ）
+    // 演出システム（HPバーなど）の基準値も同期
     gameData.currentChallenge = {
         quest: {
             targetMinutes: questTarget,
@@ -625,6 +656,12 @@ function updateGrandBossUI() {
 
     layer.classList.remove('hidden');
     const { rank, monster, targetMinutes, currentDamage } = gameData.grandBoss;
+
+    // 大ボス名のラベルを更新 (2026/01/26)
+    const label = document.querySelector('.grand-boss-label');
+    if (label) {
+        label.textContent = `${monster.name} 討伐までの道のり・・・`;
+    }
 
     // Set grand boss sprite
     const sprite = document.getElementById('grand-boss-sprite');
@@ -2317,19 +2354,26 @@ function showBossIntroScreen(chapterName) {
     const titleText = chapterData.firstTime ? '試練開始' : '試練再開';
     document.getElementById('boss-intro-title-text').textContent = titleText;
 
+    // 🔴 修正：現在戦っている「大ボス」がいる場合はその情報を優先して表示する
+    const activeGrand = gameData.grandBoss;
+    const bossName = activeGrand ? activeGrand.monster.name : chapterData.boss;
+    const bossRank = activeGrand ? activeGrand.rank : chapterData.bossRank;
+    const currentDamage = activeGrand ? activeGrand.currentDamage : (chapterData.completedMinutes || 0);
+    const targetMin = activeGrand ? activeGrand.targetMinutes : (chapterData.targetMinutes || 1800);
+
     // ボス画像
     const bossImage = document.getElementById('boss-intro-image');
-    bossImage.src = chapterData.bossImage;
-    bossImage.alt = chapterData.boss;
+    bossImage.src = activeGrand ? `assets/monster/${bossRank}_${bossName}.png` : chapterData.bossImage;
+    bossImage.alt = bossName;
 
     // ボス名・ランク
-    document.getElementById('boss-intro-name').textContent = chapterData.boss;
-    document.getElementById('boss-intro-rank').textContent = `（${chapterData.bossRank} ランク）`;
+    document.getElementById('boss-intro-name').textContent = bossName;
+    document.getElementById('boss-intro-rank').textContent = `（${bossRank} ランク）`;
 
-    // 進捗情報
-    const targetHours = Math.floor(chapterData.targetMinutes / 60);
-    const completedHours = Math.floor(chapterData.completedMinutes / 60);
-    const progressPercent = Math.floor((chapterData.progress || 0) * 100);
+    // 進捗情報 (分を時間に変換)
+    const targetHours = Math.floor(targetMin / 60);
+    const completedHours = Math.floor(currentDamage / 60);
+    const progressPercent = Math.floor((currentDamage / targetMin) * 100);
 
     document.getElementById('boss-intro-target-time').textContent = `${targetHours}時間`;
     document.getElementById('boss-intro-completed-time').textContent = `${completedHours}時間`;
@@ -2686,6 +2730,13 @@ function saveStudySession(actualSeconds, isComplete = false) {
     if (gameData.grandBoss) {
         gameData.grandBoss.currentDamage += minutes;
         console.log(`👹 Grand Boss damaged: +${minutes} min (Total: ${gameData.grandBoss.currentDamage}/${gameData.grandBoss.targetMinutes})`);
+
+        // 章（Chapter）データ側の進捗も同期させる
+        if (gameData.chapters && gameData.chapters[gameData.currentSubject]) {
+            const ch = gameData.chapters[gameData.currentSubject];
+            ch.completedMinutes = gameData.grandBoss.currentDamage;
+            ch.progress = ch.completedMinutes / ch.targetMinutes;
+        }
     }
 
     // 完遂時の特別報酬
@@ -2864,25 +2915,34 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
     const currentHP = quest.currentDamage !== undefined ? quest.currentDamage : (quest.completedMinutes || 0);
     const remainingHP = Math.max(0, maxHP - (currentHP + damageMinutes));
 
-    // クエスト目標時間に基づいてボスを動的に選定
-    const rank = getBossRankByTargetMinutes(maxHP);
-    const boss = selectBossForQuest(rank);
+    // 🔴 修正：演出画面に出すのは「今日倒した雑魚」ではなく「クエストの大ボス」に完全固定
+    const grandBoss = gameData.grandBoss;
+    let activeBossName = "大ボス";
 
-    // ボス画像とボス名を動的に設定
+    if (!grandBoss) {
+        console.error("❌ showBossDamageAnimation: 大ボスのデータがありません！");
+        // 最悪の事態のフォールバック
+        const fallbackName = "刻喰い王ゼロ＝クロノス";
+        activeBossName = fallbackName;
+        document.getElementById('bossDisplayImage').src = 'assets/monster/EXRANK_刻喰い王ゼロ＝クロノス.png';
+        if (document.getElementById('bossNameLarge')) document.getElementById('bossNameLarge').textContent = fallbackName;
+    } else {
+        const { rank, monster } = grandBoss;
+        const bossImg = document.getElementById('bossDisplayImage');
+        const bossNameEl = document.getElementById('bossNameLarge');
+
+        activeBossName = monster.name;
+        bossImg.src = `assets/monster/${rank}_${monster.name}.png`;
+        if (bossNameEl) bossNameEl.textContent = monster.name;
+
+        console.log(`💥 演出開始：大ボス「${monster.name}」へのダメージを描写します`);
+    }
+
     const bossImg = document.getElementById('bossDisplayImage');
     const bossNameEl = document.getElementById('bossNameLarge');
-
-    // 画像パスを設定（アセットがない場合はフォールバック）
-    const imagePath = `assets/monster/${rank}_${boss.name}.png`;
-    bossImg.src = imagePath;
     bossImg.onerror = () => {
-        // 画像が見つからない場合はEXランクのボスを使用
         bossImg.src = 'assets/bosses/zero_chronos.png';
     };
-
-    if (bossNameEl) {
-        bossNameEl.textContent = boss.name;
-    }
 
     // 1. 初期表示セット
     document.getElementById('bossMaxHP').textContent = maxHP;
@@ -2931,7 +2991,7 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
                 // 4.0s: メッセージ「残り...分」（少し遅らせて表示）
                 setTimeout(() => {
                     const msg = document.getElementById('bossMessage');
-                    msg.innerHTML = `${boss.name}にダメージを与えた！<br>大ボスの完全討伐まで あと ${remainingHP} 分...`;
+                    msg.innerHTML = `${activeBossName}にダメージを与えた！<br>大ボスの完全討伐まで あと ${remainingHP} 分...`;
 
                     // 7.0s: 最終フェードアウト開始（たっぷり3秒見せる）
                     setTimeout(() => {
