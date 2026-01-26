@@ -44,6 +44,29 @@
             <button class="movie-skip-btn" onclick="skipOpening()">スキップ &raquo;</button>
         </div>
     </div>
+
+    <!-- 大ボスダメージ演出画面（ドラクエ風） - BODY直下に移動 -->
+    <div class="boss-damage-screen" id="bossDamageScreen" style="display: none;">
+        <div class="boss-damage-bg"></div>
+        <div class="boss-damage-content">
+            <div class="boss-display">
+                <img src="assets/bosses/zero_chronos.png" id="bossDisplayImage" class="boss-sprite-large" alt="大ボス">
+            </div>
+            <div class="boss-hp-display">
+                <h2 class="boss-name-large" id="bossNameLarge">刻喰い王ゼロ＝クロノス</h2>
+                <div class="boss-hp-bar-container">
+                    <div class="boss-hp-bar-fill" id="bossHPBarFill"></div>
+                </div>
+                <p class="boss-hp-text">HP: <span id="bossCurrentHP"></span> / <span id="bossMaxHP"></span> 分</p>
+            </div>
+            <div class="damage-display" id="damageDisplay" style="display: none;">
+                <span class="damage-number" id="damageNumber"></span><span class="damage-text"> の ダメージ！</span>
+            </div>
+            <div class="boss-message-window" id="bossMessageWindow">
+                <div class="boss-message" id="bossMessage"></div>
+            </div>
+        </div>
+    </div>
     <!-- Flash Effect Overlay -->
     <div id="flash-overlay" class="flash-overlay"></div>
 
@@ -126,7 +149,7 @@
         <div class="screen-header">
             <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
 
-            <h2 class="screen-title-mvp">刻（とき）の試練</h2>
+            <h2 class="screen-title-mvp" id="study-screen-title">刻（とき）の試練</h2>
 
             <div class="header-right-controls">
                 <div class="settings-btn-wrapper" onclick="openSubjectSettings()">
@@ -253,10 +276,10 @@
                 <button type="button" class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">おわる</button>
             </div>
         </div>
-    </div> <!-- study-screen end -->
+    </div>
 
-    <!-- NEW: ボス登場演出画面 (Added screen class for safety) -->
-    <div id="boss-intro-screen" class="boss-intro-screen screen" style="display: none;">
+    <!-- NEW: ボス登場演出画面 -->
+    <div id="boss-intro-screen" class="boss-intro-screen" style="display: none;">
         <div class="boss-intro-overlay"></div>
         <div class="boss-intro-content">
             <div class="boss-intro-title">
@@ -302,7 +325,7 @@
                 画面タップでスキップ可能
             </p>
         </div>
-    </div> <!-- boss-intro-screen end -->
+    </div>
 
     <!-- ガチャ画面 -->
     <div id="gacha-screen" class="screen">
@@ -571,28 +594,7 @@
         </div>
     </div>
 
-    <!-- 大ボスダメージ演出画面（ドラクエ風） -->
-    <div class="boss-damage-screen screen" id="bossDamageScreen" style="display: none;">
-        <div class="boss-damage-bg"></div>
-        <div class="boss-damage-content">
-            <div class="boss-display">
-                <img src="assets/bosses/zero_chronos.png" id="bossDisplayImage" class="boss-sprite-large" alt="大ボス">
-            </div>
-            <div class="boss-hp-display">
-                <h2 class="boss-name-large" id="bossNameLarge">刻喰い王ゼロ＝クロノス</h2>
-                <div class="boss-hp-bar-container">
-                    <div class="boss-hp-bar-fill" id="bossHPBarFill"></div>
-                </div>
-                <p class="boss-hp-text">HP: <span id="bossCurrentHP"></span> / <span id="bossMaxHP"></span> 分</p>
-            </div>
-            <div class="damage-display" id="damageDisplay" style="display: none;">
-                <span class="damage-number" id="damageNumber"></span><span class="damage-text"> の ダメージ！</span>
-            </div>
-            <div class="boss-message-window" id="bossMessageWindow">
-                <div class="boss-message" id="bossMessage"></div>
-            </div>
-        </div>
-    </div>
+
 
     <script src="script.js"></script>
 </body>

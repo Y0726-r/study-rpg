@@ -14,16 +14,10 @@ document.addEventListener("DOMContentLoaded", () => {
         screen.style.opacity = '';
     });
 
-    // 2. オープニングムービーを確実に表示（showScreen 相当の処理）
-    const openingMovie = document.getElementById('opening-movie');
-    if (openingMovie) {
-        openingMovie.classList.remove('hidden');
-        openingMovie.classList.add('active'); // activeクラスを付与
-        openingMovie.style.display = 'flex';
-        openingMovie.style.opacity = '1';
-        openingMovie.style.visibility = 'visible';
-        console.log("✅ オープニングムービーを表示状態に固定しました");
-    }
+    // 2. 初期表示：ホーム画面を確実に表示
+    // (オープニングムービー制御は showScreen 呼び出し時の active クラス切り替えに任せる)
+    showScreen('home-screen');
+    console.log("✅ ホーム画面を初期表示しました");
 
     // 3. キャラクターメッセージの初期設定
     updateCharacterMessage();
@@ -789,6 +783,12 @@ function startTimer() {
         showTimerMessage('RESUME');
     }
 
+    // タイトルの更新（再開時やリロード時用）
+    const titleElement = document.getElementById('study-screen-title');
+    if (titleElement && gameData.dailySession && gameData.dailySession.subjectLabel) {
+        titleElement.textContent = `${gameData.dailySession.subjectLabel}の試練`;
+    }
+
     // タイマー更新ループ (requestAnimationFrameでスムーズに)
     const timerLoop = () => {
         if (!gameData.timer.isRunning) return;
@@ -1375,19 +1375,18 @@ function showScreen(screenId) {
         pauseTimer();
     }
 
-    // 全ての画面を非表示
+    // 全ての画面を非表示(物理的に消す)
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
-        // インラインスタイルをリセット
-        screen.style.display = '';
-        screen.style.opacity = '';
+        screen.style.display = 'none'; // 明示的にnoneを入れる
     });
 
     // 指定された画面を表示
     const target = document.getElementById(screenId);
     if (target) {
         target.classList.add('active');
-        target.classList.remove('hidden'); // hiddenクラスがあれば除去
+        target.classList.remove('hidden');
+        target.style.display = 'flex'; // 明示的にflexで出す
     }
 
     // 画面ごとの初期化処理
@@ -1433,6 +1432,10 @@ function showScreen(screenId) {
     } else if (screenId === 'log-screen') {
         updateLogScreen();
     } else if (screenId === 'study-screen') {
+        // タイトルを初期状態に戻す
+        const titleElement = document.getElementById('study-screen-title');
+        if (titleElement) titleElement.textContent = "刻（とき）の試練";
+
         generateSubjectButtons();
         calculateTodayStats();
         // ボタンの見た目を現在のタイマー状態に合わせる
@@ -2146,6 +2149,12 @@ function activateTimerUI() {
         return;
     }
 
+    // タイトルの更新
+    const titleElement = document.getElementById('study-screen-title');
+    if (titleElement && gameData.currentSubject) {
+        titleElement.textContent = `${gameData.currentSubject}の試練`;
+    }
+
     // すでに進行中のセッションがあるならレジューム
     if (gameData.dailySession && gameData.dailySession.remainingSeconds > 0) {
         console.log("Resuming existing session.");
@@ -2567,8 +2576,16 @@ function saveStudySession(actualSeconds, isComplete = false) {
     const minutes = Math.floor(actualSeconds / 60);
     if (minutes === 0) return; // 1分未満は記録しない
 
+    // 累積時間を計算（過去分 + 今回分）
+    const pastTotalMinutes = gameData.studyLogs.reduce((sum, log) => sum + log.minutes, 0);
+    const currentTotalMinutes = pastTotalMinutes + minutes;
+
+    // コインレート: トータル時間（時間単位）にする
+    // ※ 休憩して分割しても損しないように、"今までの積み上げ" をレートにする
+    const coinRate = Math.max(5, Math.floor(currentTotalMinutes / 60));
+
     const earnedExp = minutes * 10;
-    const earnedCoins = minutes * 5;
+    const earnedCoins = minutes * coinRate;
 
     // パラメーターの上昇量 (1分 = 0.5ポイント)
     const statIncrease = minutes * 0.5;
@@ -2668,6 +2685,10 @@ function showQuestResult(minutes, isComplete) {
     const { rank, monster } = gameData.activeQuest;
     const rewards = RANK_REWARDS[rank];
 
+    // 表示用にレートを再計算
+    const totalMinutes = gameData.studyLogs.reduce((sum, log) => sum + log.minutes, 0);
+    const coinRate = Math.max(5, Math.floor(totalMinutes / 60));
+
     let html = `
         <div style="text-align:center; padding:10px;">
             <div class="result-title-banner">${isComplete ? '討伐成功！' : '討伐はまだ遠いようだ'}</div>
@@ -2684,6 +2705,10 @@ function showQuestResult(minutes, isComplete) {
                 <div class="reward-item">
                     <span class="reward-icon">✨</span>
                     <span>獲得経験値：+${minutes * 10}${isComplete ? ' (+' + rewards.exp + ' Bonus!)' : ''} EXP</span>
+                </div>
+                <div class="reward-item">
+                    <span class="reward-icon">💰</span>
+                    <span>獲得コイン：+${minutes * coinRate} (レート: Lv.${coinRate})</span>
                 </div>
             </div>
     `;

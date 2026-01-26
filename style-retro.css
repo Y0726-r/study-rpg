@@ -1391,41 +1391,59 @@ textarea {
 
 
 
+/* ========================================
+   共通スクリーン制御 (Simple Toggle)
+   ======================================== */
+.screen {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 480px;
+    height: 100vh;
+    background-color: transparent;
+    padding: 10px;
+    box-sizing: border-box;
+    /* 中央配置 */
+    margin: 0 auto;
+    position: relative;
+}
+
+.screen.active {
+    display: flex !important;
+}
+
+
+/* ========================================
+   Speech Bubble (Restored)
+   ======================================== */
 .character-message {
     position: absolute !important;
     top: auto !important;
     bottom: 155px !important;
-    /* Fixed position above character (140px height + gap) */
     left: 50% !important;
     transform: translateX(-50%) !important;
     margin-bottom: 0 !important;
     transition: bottom 0.5s ease-in-out;
-    /* ドラゴン登場時の移動を滑らかに */
 
-    /* --- ここからサイズアップの調整 --- */
+    /* --- Visual Styles --- */
     background: #fff;
     border: 3px solid #2c1810;
     border-radius: 12px;
-    /* 角丸を少し大きくして柔らかい印象に */
     padding: 12px 18px;
-    /* 余白を広げて、文字周りにゆとりを作る */
 
     width: max-content;
     max-width: 240px;
-    /* 最大幅を広げて、長文でも窮屈にしない */
 
     font-size: 12px;
-    /* 文字を読みやすい大きさにアップ */
     line-height: 1.5;
-    /* 行間を広げて読みやすく */
-    /* ------------------------------ */
 
     color: #2c1810;
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
     z-index: 1000 !important;
-    /* ドラゴンより確実に前面へ */
     pointer-events: none;
 }
+
+
 
 /* 成体ドラゴン登場時の高度調整：巨大化したドラゴンの頭上に配置 */
 .character-wrapper.dragon-active .character-message {
@@ -5781,12 +5799,7 @@ img,
    💎 最終解決：クリック貫通と配置の修正
    ======================================== */
 
-/* 1. アクティブ（active）じゃない画面は物理的に消す（これでスキップボタンが押せる！） */
-.screen:not(.active) {
-    display: none !important;
-    pointer-events: none !important;
-    z-index: -1 !important;
-}
+
 
 
 /* 2. スキップボタンを最前面へ（絶対押せるようにする） */
@@ -5822,7 +5835,7 @@ img,
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
     width: auto !important;
-    font-size: 16px !important;
+    font-size: 18px !important;
     white-space: nowrap !important;
     z-index: 1050 !important;
 }
@@ -5876,104 +5889,183 @@ img,
 .repair-mini-btn:hover {
     filter: brightness(1.2);
 }
+
 /* ボス登場演出画面 */
 .boss-intro-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .boss-intro-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.9);
-  animation: fadeIn 0.5s ease-in;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    animation: fadeIn 0.5s ease-in;
 }
 
 .boss-intro-content {
-  position: relative;
-  max-width: 500px;
-  width: 90%;
-  background: #2c1e14;
-  border: 4px solid #8b4513;
-  padding: 30px 20px;
-  border-radius: 4px;
-  text-align: center;
-  animation: slideUp 0.5s ease-out;
-  box-shadow: 0 0 20px rgba(0,0,0,0.8);
-  image-rendering: pixelated;
+    position: relative;
+    max-width: 500px;
+    width: 90%;
+    background: #2c1e14;
+    border: 4px solid #8b4513;
+    padding: 30px 20px;
+    border-radius: 4px;
+    text-align: center;
+    animation: slideUp 0.5s ease-out;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    image-rendering: pixelated;
 }
 
 .boss-intro-image {
-  width: 160px;
-  height: 160px;
-  object-fit: contain;
-  margin: 10px 0;
-  filter: drop-shadow(0 0 10px rgba(255,215,0,0.3));
-  animation: bossAppear 1s ease-out;
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+    margin: 10px 0;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+    animation: bossAppear 1s ease-out;
 }
 
 .boss-intro-name {
-  font-size: 20px;
-  color: #f1c40f;
-  margin: 10px 0 5px;
-  text-shadow: 2px 2px 0 #000;
+    font-size: 20px;
+    color: #f1c40f;
+    margin: 10px 0 5px;
+    text-shadow: 2px 2px 0 #000;
 }
 
 .boss-intro-rank {
-  font-size: 14px;
-  color: #e74c3c;
-  margin-bottom: 20px;
+    font-size: 14px;
+    color: #e74c3c;
+    margin-bottom: 20px;
 }
 
 .boss-intro-dialogue-box {
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid #5a3e2b;
-  padding: 15px;
-  margin-bottom: 20px;
-  min-height: 80px;
-  text-align: left;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #5a3e2b;
+    padding: 15px;
+    margin-bottom: 20px;
+    min-height: 80px;
+    text-align: left;
 }
 
 .boss-intro-dialogue-text {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #fff;
-  white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #fff;
+    white-space: pre-wrap;
 }
 
 .boss-intro-progress-bar {
-  height: 10px;
-  background: #e74c3c;
-  width: 0%;
-  transition: width 0.8s ease-out;
+    height: 10px;
+    background: #e74c3c;
+    width: 0%;
+    transition: width 0.8s ease-out;
 }
 
 .button-skip {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid #fff;
-  color: #fff;
-  font-size: 12px;
-  padding: 5px 10px;
-  cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #fff;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    cursor: pointer;
 }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @keyframes bossAppear {
-  0% { opacity: 0; transform: scale(0.5); filter: brightness(0); }
-  50% { opacity: 1; filter: brightness(2); }
-  100% { transform: scale(1); filter: brightness(1); }
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+        filter: brightness(0);
+    }
+
+    50% {
+        opacity: 1;
+        filter: brightness(2);
+    }
+
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
+
+/* ========================================
+   タイマー画面：関係性明示用のヒント
+   ======================================== */
+.quest-relation-hint {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #6b4400;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 8px auto !important;
+    width: fit-content;
+    animation: relationPulse 2s infinite ease-in-out;
+}
+
+@keyframes relationPulse {
+    0% {
+        transform: scale(1);
+        border-color: #6b4400;
+    }
+
+    50% {
+        transform: scale(1.05);
+        border-color: #ffd700;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    100% {
+        transform: scale(1);
+        border-color: #6b4400;
+    }
+}
+
+/* プレミアムレイアウトの高さ制限 */
+.battle-ui {
+    max-height: 550px !important;
+    overflow-y: hidden !important;
+    /* スクロールさせず、1画面に収める */
+    justify-content: flex-start;
+}
+
+/* タイマー部分が押し出されないように調整 */
+.timer-container-mvp {
+    margin-top: auto;
+    margin-bottom: 10px;
 }
