@@ -540,7 +540,7 @@ function updateGrandBossUI() {
             sprite.classList.add('reveal-10');
         }
 
-        console.log(`👹 Grand Boss Loaded: ${rank}_${monster.name}, Progress: ${progressPercent.toFixed(1)}%`);
+
     }
 
     // Update HP bar
@@ -765,10 +765,11 @@ function updateTimerFromElapsed() {
 // -----------------------------------------------------------------------------
 
 function pauseTimer() {
-    if (!timerInterval) return;
-
-    clearInterval(timerInterval);
-    timerInterval = null;
+    // 🔴 修正：timerInterval のチェックを外す（requestAnimationFrame対応）
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
 
     // 経過時間を保存（スリープから戻った時に正確に再開できるように）
     const now = Date.now();
@@ -791,59 +792,62 @@ function pauseTimer() {
 }
 
 function handlePauseResume() {
+    const isRunning = timerInterval || (gameData.timer && gameData.timer.isRunning);
+    const hasActiveSession = gameData.dailySession && gameData.dailySession.targetMinutes > 0;
+
+    // 🔴 修正：タイマーが動いているか、セッションがあるなら科目チェックを無視して「停止/再開」を許可する
+    if (isRunning || hasActiveSession) {
+        if (isRunning) {
+            pauseTimer();
+        } else {
+            // もし科目が外れていたらセッションデータから無理やり復元
+            if (!gameData.currentSubject && gameData.dailySession.subjectLabel) {
+                gameData.currentSubject = gameData.dailySession.subjectLabel;
+            }
+            startTimer();
+        }
+        updateStudyScreenUI();
+        return;
+    }
+
+    // 未開始の時だけ警告を出す
     if (!gameData.currentSubject) {
         showSubjectWarningModal();
         return;
     }
-
-    if (timerInterval || gameData.timer.isRunning) {
-        // Run pause
-        pauseTimer();
-    } else {
-        startTimer();
-    }
-    updateStudyScreenUI();
 }
 
 function updateStudyScreenUI() {
     const startBtn = document.getElementById('start-adventure-btn');
     const stopBtn = document.getElementById('stop-button');
     const pauseBtn = document.getElementById('pause-button');
-
     const preBattle = document.getElementById('pre-battle-ui');
     const battle = document.getElementById('battle-ui');
 
-    // 科目ボタンのハイライトを復元
+    // 🔴 強制復元：科目が消えていたらセッションから引っ張ってくる
+    if (!gameData.currentSubject && gameData.dailySession && gameData.dailySession.subjectLabel) {
+        gameData.currentSubject = gameData.dailySession.subjectLabel;
+    }
+
+    // ボタンのハイライト
     if (gameData.currentSubject) {
         document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
-            if (btn.dataset.subject === gameData.currentSubject) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+            btn.classList.toggle('active', btn.dataset.subject === gameData.currentSubject);
         });
     }
 
-    // セッション進行中かどうかの判定用フラグを定義
     const hasActiveSession = gameData.dailySession && gameData.dailySession.targetMinutes > 0;
+    const isRunning = timerInterval || (gameData.timer && gameData.timer.isRunning);
 
-    // A. 【修行中（タイマー稼働中）】
-    if (timerInterval || (gameData.timer && gameData.timer.isRunning)) {
-        if (startBtn) startBtn.classList.add('hidden');
-        if (stopBtn) stopBtn.classList.remove('hidden');
+    if (isRunning) {
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
             pauseBtn.textContent = 'ひとやすみ';
             pauseBtn.classList.remove('is-paused');
-            pauseBtn.style.background = ''; // CSSの定数に戻す
         }
         if (preBattle) preBattle.classList.add('hidden');
         if (battle) battle.classList.remove('hidden');
-    }
-    // B. 【一時停止中】 (セッションは開始しているがタイマーが止まっている)
-    else if (hasActiveSession && !gameData.dailySession.isCompleted) {
-        if (startBtn) startBtn.classList.add('hidden');
-        if (stopBtn) stopBtn.classList.remove('hidden');
+    } else if (hasActiveSession) {
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
             pauseBtn.textContent = 'つづける';
@@ -851,21 +855,11 @@ function updateStudyScreenUI() {
         }
         if (preBattle) preBattle.classList.add('hidden');
         if (battle) battle.classList.remove('hidden');
-    }
-    // C. 【未開始・待機状態】
-    else {
-        if (startBtn) {
-            startBtn.classList.remove('hidden');
-            startBtn.style.display = 'block';
-        }
-        if (stopBtn) stopBtn.classList.add('hidden');
-        if (pauseBtn) pauseBtn.classList.add('hidden');
-
+    } else {
+        // 未開始状態...
+        if (startBtn) startBtn.classList.remove('hidden');
         if (preBattle) preBattle.classList.remove('hidden');
         if (battle) battle.classList.add('hidden');
-
-        const stage = document.getElementById('monster-stage');
-        if (stage) stage.classList.add('hidden');
     }
 }
 
@@ -1272,8 +1266,8 @@ function loadGameData() {
         console.log("No saved data, using default");
     }
 
-    // [Cleanup] Always start with no subject selected to enforce the "Select Subject first" rule.
-    gameData.currentSubject = null;
+    // [REMOVED] Always start with no subject selected to enforce the "Select Subject first" rule.
+    // gameData.currentSubject = null; 
 }
 function saveGameData() {
     localStorage.setItem('studyQuestData', JSON.stringify(gameData));
@@ -2140,27 +2134,27 @@ window.startQuestSession = function () {
         return;
     }
 
-    // 次回のために保存
     localStorage.setItem('last_daily_goal_' + gameData.currentSubject, mins.toString());
 
+    // 🔴 修正ポイント：セッションデータに今の科目を「絶対」に保存する
     gameData.dailySession = {
         targetMinutes: mins,
+        subjectLabel: gameData.currentSubject, // ここに刻む
         startTime: null,
         pausedTime: null,
         elapsedAtPause: 0,
         isCompleted: false
     };
 
-    // モンスターを選出
     selectMonsterForQuest();
 
-    // UI切り替え：戦闘前UI非表示、戦闘UI表示
     const preBattleUI = document.getElementById('pre-battle-ui');
     const battleUI = document.getElementById('battle-ui');
     if (preBattleUI) preBattleUI.classList.add('hidden');
     if (battleUI) battleUI.classList.remove('hidden');
 
-    closeMessageModal(); // モーダルを閉じる
+    saveGameData(); // 🔴 ここで即保存！
+    closeMessageModal();
     startTimer();
 };
 
@@ -3782,7 +3776,8 @@ function showConfirmModal(title, content, onConfirm, onCancel = null, confirmBut
 
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
-        modal.style.zIndex = '20001';
+        modal.style.zIndex = '30000'; // 🔴 モーダルよりさらに手前に
+        modal.style.pointerEvents = 'auto'; // 🔴 追加：クリックを確実に受け付けるようにする
     }
 }
 
@@ -3944,6 +3939,7 @@ function showMessageModal(title, content, useScrollWindow = false) {
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
         modal.style.zIndex = '20000';
+        modal.style.pointerEvents = 'auto'; // 🔴 追加：クリックを確実に受け付けるようにする
 
         // 科目設定の時だけ巻物背景を適用し、CLOSEボタンを非表示
         const contentContainer = modal.querySelector('.modal-content');
@@ -3968,6 +3964,7 @@ function closeMessageModal() {
     if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
+        modal.style.pointerEvents = 'none'; // クリックを貫通させる
 
         // クラスとスタイルをリセット
         const contentContainer = modal.querySelector('.modal-content');

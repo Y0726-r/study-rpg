@@ -2750,6 +2750,9 @@ textarea {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
+    pointer-events: auto !important;
+    z-index: 10000 !important;
+    /* 修行画面内で手前に出すが、モーダル(20000)よりは奥にする */
 }
 
 /* 1. 勉強中（PAUSE）の色：やる気のオレンジ */
@@ -5266,6 +5269,12 @@ img,
 /* 5. モーダル / 通知 (Modals) */
 .modal {
     z-index: 20000 !important;
+    /* 通常のモーダルは20000 */
+}
+
+#confirm-modal {
+    z-index: 30000 !important;
+    /* 確認画面は最前面 */
 }
 
 /* --- 背景の隔離と透明化 --- */
@@ -5294,10 +5303,17 @@ img,
 
 /* --- タイマーコントロールのz-index調整 (残骸の消去) --- */
 .timer-controls-mvp {
-    z-index: 1001 !important;
-    /* UI(.screen)の少し上 */
+    z-index: 5500 !important;
+    /* Screen(5000)より高く、かつ確実に手前に */
+    pointer-events: auto !important;
+    position: relative !important;
+}
+
+.pause-button-mvp,
+.stop-button-mvp {
     pointer-events: auto !important;
 }
+
 
 /* --- 月の最終調整 --- */
 #moon-element {
@@ -5455,6 +5471,8 @@ img,
 .battle-ui {
     max-height: 80vh !important;
     overflow: hidden !important;
+    pointer-events: auto !important;
+    z-index: 5100 !important;
 }
 
 .monster-stage {
@@ -5766,7 +5784,10 @@ img,
 /* 1. アクティブ（active）じゃない画面は物理的に消す（これでスキップボタンが押せる！） */
 .screen:not(.active) {
     display: none !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
 }
+
 
 /* 2. スキップボタンを最前面へ（絶対押せるようにする） */
 .movie-skip-btn {
@@ -5843,7 +5864,8 @@ img,
     align-items: center;
     justify-content: center;
     pointer-events: auto !important;
-    /* 強制的にクリック可能にする */
+    z-index: 10000 !important;
+    /* 修行画面内で手前に出すが、モーダル(20000)よりは奥にする */
 }
 
 .repair-mini-btn:active {
