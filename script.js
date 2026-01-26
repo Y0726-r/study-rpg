@@ -4341,3 +4341,64 @@ window.addExp = function (amount) {
     updateHomeScreen();
     console.log(`✨ EXP +${amount} 加算完了`);
 };
+
+// ========================================
+// 🛠️ タイマー修復（レスキュー）システム
+// ========================================
+
+/**
+ * 1. ユーザーに確認を求める（ボタンから呼び出す）
+ */
+window.confirmRepair = function () {
+    console.log("🔮 修復確認モーダルを呼び出します");
+
+    // 既存の confirm-modal を利用
+    showConfirmModal(
+        "🔮 時の修復儀式",
+        "時の魔法が　みだれていますか？<br>タイマーを　初期状態にもどします。<br>（これまでの経験値は　消えません）",
+        () => {
+            // 「はい（OK）」を押した時の処理
+            executeTimerRepair();
+        },
+        null, // 「やめる」の時は何もしない
+        "修復する", // OKボタンのテキスト
+        "やめる"    // キャンセルボタンのテキスト
+    );
+};
+
+/**
+ * 2. 実際の修復処理
+ */
+function executeTimerRepair() {
+    console.log("🛠️ タイマー修復を実行中...");
+
+    // 進行中のタイマーを物理的に止める
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
+    // データの不整合をクリア（安全な初期値へ）
+    gameData.timer = { isRunning: false, startTime: null, pausedAt: null };
+    gameData.dailySession = {
+        targetMinutes: 0,
+        startTime: null,
+        pausedTime: null,
+        elapsedAtPause: 0,
+        isCompleted: false
+    };
+    gameData.activeQuest = null;
+
+    // 保存
+    saveGameData();
+
+    // UIをリセット
+    renderTimer(0);
+    updateStudyScreenUI();
+
+    // 演出
+    createSparkleEffect();
+
+    // 完了報告
+    showMessageModal("✨ 修復完了", "時の魔法を　かけなおしました！<br>もういちど　試練に挑んでみてください。");
+}

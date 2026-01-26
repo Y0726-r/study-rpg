@@ -5349,8 +5349,8 @@ img,
     background-color: #5d4037;
     border: none;
     color: #fff;
-    font-size: 10px;
-    padding: 6px 6px;
+    font-size: 14px;
+    padding: 6px 8px;
     cursor: pointer;
     border-radius: 4px;
     box-shadow: 0 4px #22150c;
@@ -5757,4 +5757,100 @@ img,
     line-height: 1.6;
     text-align: left;
     width: 100%;
+}
+
+/* ========================================
+   💎 最終解決：クリック貫通と配置の修正
+   ======================================== */
+
+/* 1. アクティブ（active）じゃない画面は物理的に消す（これでスキップボタンが押せる！） */
+.screen:not(.active) {
+    display: none !important;
+}
+
+/* 2. スキップボタンを最前面へ（絶対押せるようにする） */
+.movie-skip-btn {
+    z-index: 2147483647 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* 3. ヘッダーの配置を安定させる（タイトル中央、ボタン両端） */
+.screen-header {
+    position: relative !important;
+    width: 100% !important;
+    height: 60px !important;
+    margin-bottom: 20px !important;
+    display: block !important;
+    /* Flexを解除して絶対配置を活かす */
+}
+
+/* 4. 各要素を適切な場所に配置（重なり防止） */
+.pixel-back-btn {
+    position: absolute !important;
+    left: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+    z-index: 1100 !important;
+}
+
+.screen-title-mvp {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: auto !important;
+    font-size: 16px !important;
+    white-space: nowrap !important;
+    z-index: 1050 !important;
+}
+
+.header-right-controls {
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    z-index: 1100 !important;
+}
+
+/* 内部のラッパーの絶対配置をリセット */
+.header-right-controls .settings-btn-wrapper {
+    position: static !important;
+    transform: none !important;
+    padding: 0 !important;
+}
+
+
+/* 5. 修復ボタン（🔧）のスタイル定義 */
+.repair-mini-btn {
+    background: #5d4037;
+    background-image: url('./assets/ui/wood_btn.png');
+    background-size: 100% 100%;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 10px;
+    padding: 6px 6px;
+    border-radius: 4px;
+    box-shadow: 0 4px #22150c;
+    transition: all 0.1s;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto !important;
+    /* 強制的にクリック可能にする */
+}
+
+.repair-mini-btn:active {
+    box-shadow: 0 0 0 #000;
+    transform: translateY(4px);
+}
+
+.repair-mini-btn:hover {
+    filter: brightness(1.2);
 }
