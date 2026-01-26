@@ -1,41 +1,33 @@
-// ========================================
-// 初期化処理：オープニングムービーを最優先で表示
-// ========================================
-
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("🎬 アプリ起動 - オープニングムービー初期化開始");
+    console.log("🎬 アプリ起動 - オープニングムービーを最優先で開始します");
 
-    // 1. 全ての画面を一旦隠す（activeクラスの除去）
+    // 1. 全ての画面を一旦隠す（リセット）
     const allScreens = document.querySelectorAll('.screen');
     allScreens.forEach(screen => {
         screen.classList.remove('active');
-        // インラインスタイルが残っている場合はリセット
-        screen.style.display = '';
-        screen.style.opacity = '';
     });
 
-    // 2. 初期表示：ホーム画面を確実に表示
-    // (オープニングムービー制御は showScreen 呼び出し時の active クラス切り替えに任せる)
-    showScreen('home-screen');
-    console.log("✅ ホーム画面を初期表示しました");
+    // 2. オープニングムービーを強制的に表示する
+    const openingMovie = document.getElementById('opening-movie');
+    if (openingMovie) {
+        openingMovie.classList.add('active'); // activeクラスを付けて見えるようにする
+        openingMovie.style.display = 'flex';  // 確実に表示させる
+        openingMovie.style.opacity = '1';     // 透明度を1にする
+        console.log("✅ 龍の舞台を整えました。冒険の始まりです！");
+    }
 
-    // 3. キャラクターメッセージの初期設定
+    // 3. 裏側でひっそりゲームデータを読み込む
     updateCharacterMessage();
-
-    // 4. ゲームデータの初期化
     setTimeout(() => {
         initGame();
-
-        // 5. 時間連動背景システム & 天体サイクルの初期化
         updateTimeBackgroundEffect();
-        updateCelestialCycle(); // ←【重要】1分待たずに、今すぐ空の状態を判定する！
+        updateCelestialCycle();
 
-        // その後は、今まで通り1分ごとに更新し続ける
         setInterval(() => {
             updateTimeBackgroundEffect();
             updateCelestialCycle();
         }, 60000);
-        console.log("🎮 ゲームデータ読み込み中（ムービー表示中）...");
+        console.log("🎮 ゲームデータの準備が完了しました");
     }, 100);
 });
 
@@ -66,17 +58,26 @@ const MONSTER_MASTER = {
     'F-ERANK': [
         { name: "刻蝕のヒトガタ", weakness: "なし", desc: "怠け心を囁く低級存在" },
         { name: "時腐りスライム", weakness: "光属性", desc: "やる気が吸い取られる腐泥" },
-        { name: "時空ネズミ", weakness: "火", desc: "書類やタスクをかじる不吉な獣" }
+        { name: "時空ネズミ", weakness: "火", desc: "書類やタスクをかじる不吉な獣" },
+        { name: "時喰い蟲スワーム", weakness: "集中の光", desc: "時計の針のような触角" },
+        { name: "怠惰のゴブリン", weakness: "最初の一歩", desc: "だらしない姿勢" },
+        { name: "時間泥棒コソドロ", weakness: "タイマーの音", desc: "小さな盗賊" }
     ],
     'D-CRANK': [
         { name: "怠惰のエテイン", weakness: "意志バフ", desc: "「今じゃなくてもいい」と唱える巨人" },
         { name: "時間喰いコボルト", weakness: "一撃の集中", desc: "時間を金貨のように盗む小鬼" },
-        { name: "刻裂のカラス", weakness: "無属性攻撃", desc: "気が散る幻を見せる魔鳥" }
+        { name: "刻裂のカラス", weakness: "無属性攻撃", desc: "気が散る幻を見せる魔鳥" },
+        { name: "時歪みの魔導師ワープ", weakness: "スケジュール管理", desc: "クロノ・ディストーション" },
+        { name: "刻奪のバンパイア", weakness: "朝日（朝の習慣）", desc: "吸血鬼、黒マント" },
+        { name: "時縛りの傀儡マリオネット", weakness: "自由意志（自分で決める力）", desc: "操り人形" }
     ],
     'B-ARANK': [
         { name: "進捗断ちの番犬フェンリル", weakness: "連続作業", desc: "連続性を噛み砕く獣" },
         { name: "時溺れの魔書", weakness: "記録", desc: "積み上げが滞ると閉じる呪本" },
-        { name: "迷刻のミノタウロス", weakness: "優先順位づけ", desc: "やることを迷わせる牛頭の魔人" }
+        { name: "迷刻のミノタウロス", weakness: "優先順位づけ", desc: "やることを迷わせる牛頭の魔人" },
+        { name: "焦燥のデーモン・ラッシュ", weakness: "計画的な進捗（余裕を持つ）", desc: "赤い悪魔" },
+        { name: "時喰いキマイラ", weakness: "一点集中", desc: "3つの頭（ライオン・ヤギ・蛇）" },
+        { name: "刻断のエクスキューショナー", weakness: "継続の力（諦めない心）", desc: "時計の仮面をつけた処刑人" }
     ],
     'SRANK': [
         { name: "焦燥の魔女ヘルミナ", weakness: "深呼吸", desc: "未来への不安を煽る女魔導士" },
@@ -549,17 +550,62 @@ function selectMonsterForQuest() {
     };
 
     // 2. Select Daily Monster (今日のセッション時間に応じたランク)
-    let dailyRank = 'F-ERANK';
-    if (sessionTarget >= 300) dailyRank = 'EXRANK';       // 5h+
-    else if (sessionTarget >= 240) dailyRank = 'SSRANK';  // 4h+
-    else if (sessionTarget >= 180) dailyRank = 'SRANK';   // 3h+
-    else if (sessionTarget >= 120) dailyRank = 'B-ARANK'; // 2h+
-    else if (sessionTarget >= 60) dailyRank = 'D-CRANK';  // 1h+
-    else dailyRank = 'F-ERANK';                           // 1h未満
+    // 【重要：大ボスとデイリーの重複回避・ランク逆転防止ルール】
+    const rankOrder = ['F-ERANK', 'D-CRANK', 'B-ARANK', 'SRANK', 'SSRANK', 'EXRANK'];
+    const grandRankIndex = rankOrder.indexOf(grandRank);
 
-    console.log("Daily Monster Rank determined:", dailyRank, "Session Target:", sessionTarget);
-    const dailyPool = MONSTER_MASTER[dailyRank] || MONSTER_MASTER['F-ERANK'];
-    const dailyMonster = dailyPool[Math.floor(Math.random() * dailyPool.length)];
+    // セッション目標時間に基づく暫定ランク（デイリーは修行・雑念の役割なので上限を設ける）
+    let dailyRankIndex = 0;
+    if (sessionTarget >= 120) dailyRankIndex = 2; // B-ARANK (2時間以上で最大)
+    else if (sessionTarget >= 60) dailyRankIndex = 1; // D-CRANK (1時間以上)
+    else dailyRankIndex = 0; // F-ERANK (1時間未満)
+
+    // ルール1: 今日のモンスターのランクは大ボスよりも常に低いものにする
+    if (dailyRankIndex >= grandRankIndex) {
+        dailyRankIndex = Math.max(0, grandRankIndex - 1);
+    }
+
+    // ルール2: デイリーにSランク以上は絶対に出さない (最大 B-ARANK = 2)
+    if (dailyRankIndex > 2) dailyRankIndex = 2;
+
+    const dailyRank = rankOrder[dailyRankIndex];
+    console.log("Daily Monster Rank restricted:", dailyRank, "Session Target:", sessionTarget);
+
+    // ルール3: 大ボスと同じモンスターはデイリーに出現させない
+    const basePool = MONSTER_MASTER[dailyRank] || MONSTER_MASTER['F-ERANK'];
+    const dailyPool = basePool.filter(m => m.name !== grandMonster.name);
+
+    // 万が一フィルタリングで空になった場合は全プールから（基本ありえないがセーフティとして）
+    const finalPool = dailyPool.length > 0 ? dailyPool : basePool;
+
+    saveGameData();
+
+    // --- 🔍 追加：コンソールでの確認用ログ ---
+    console.log("-----------------------------------------");
+    console.log(`👾 モンスター選択開始: ランク[${dailyRank}]`);
+    console.log("出現候補リスト:", finalPool.map(m => m.name).join(", "));
+    if (basePool.length !== dailyPool.length) {
+        console.log(`※大ボス「${grandMonster.name}」は重複回避のため除外されました`);
+    }
+
+    const dailyMonster = finalPool[Math.floor(Math.random() * finalPool.length)];
+
+    console.log("✨ 抽選結果:", dailyMonster.name);
+
+    // --- 🖼️ コンソールに画像を表示する演出 ---
+    const imgPath = `assets/monster/${dailyRank}_${dailyMonster.name}.png`;
+    console.log(
+        `%c `,
+        `font-size: 1px; 
+         padding: 80px 80px; 
+         background-image: url('${imgPath}'); 
+         background-size: contain; 
+         background-repeat: no-repeat; 
+         background-position: center;
+         border: 2px solid #555;
+         border-radius: 10px;`
+    );
+    console.log("-----------------------------------------");
 
     gameData.activeQuest = {
         rank: dailyRank,
@@ -2580,12 +2626,15 @@ function saveStudySession(actualSeconds, isComplete = false) {
     const pastTotalMinutes = gameData.studyLogs.reduce((sum, log) => sum + log.minutes, 0);
     const currentTotalMinutes = pastTotalMinutes + minutes;
 
-    // コインレート: トータル時間（時間単位）にする
-    // ※ 休憩して分割しても損しないように、"今までの積み上げ" をレートにする
-    const coinRate = Math.max(5, Math.floor(currentTotalMinutes / 60));
+    // コイン計算ロジック変更 (2026/01/26)
+    // 1. 基本レート: 1分につき1コイン
+    // 2. 集中ボーナス: 60分(連続)ごとに +40コイン
+    // これにより 60分 = 60(基本) + 40(ボーナス) = 100コイン (ガチャ1回分) となる
+    const baseCoins = minutes * 1;
+    const bonusCoins = Math.floor(minutes / 60) * 40;
+    const earnedCoins = baseCoins + bonusCoins;
 
     const earnedExp = minutes * 10;
-    const earnedCoins = minutes * coinRate;
 
     // パラメーターの上昇量 (1分 = 0.5ポイント)
     const statIncrease = minutes * 0.5;
@@ -2666,10 +2715,10 @@ function saveStudySession(actualSeconds, isComplete = false) {
 
     // 画面更新
     if (gameData.currentChallenge && gameData.currentChallenge.quest) {
-        showBossDamageAnimation(minutes, isComplete, levelUpInfo);
+        showBossDamageAnimation(minutes, isComplete, levelUpInfo, earnedCoins);
     } else {
         handleDeferredLevelUp(levelUpInfo, () => {
-            showQuestResult(minutes, isComplete);
+            showQuestResult(minutes, isComplete, earnedCoins);
         });
     }
 
@@ -2680,14 +2729,12 @@ function saveStudySession(actualSeconds, isComplete = false) {
     finishStudySessionCleanUp();
 }
 
-function showQuestResult(minutes, isComplete) {
+function showQuestResult(minutes, isComplete, earnedCoins = 0) {
     if (!gameData.activeQuest) return;
     const { rank, monster } = gameData.activeQuest;
     const rewards = RANK_REWARDS[rank];
 
-    // 表示用にレートを再計算
-    const totalMinutes = gameData.studyLogs.reduce((sum, log) => sum + log.minutes, 0);
-    const coinRate = Math.max(5, Math.floor(totalMinutes / 60));
+    // coinRate calculation removed (logic changed to 1/min + bonus)
 
     let html = `
         <div style="text-align:center; padding:10px;">
@@ -2708,7 +2755,7 @@ function showQuestResult(minutes, isComplete) {
                 </div>
                 <div class="reward-item">
                     <span class="reward-icon">💰</span>
-                    <span>獲得コイン：+${minutes * coinRate} (レート: Lv.${coinRate})</span>
+                    <span>獲得コイン：+${earnedCoins}</span>
                 </div>
             </div>
     `;
@@ -2782,7 +2829,7 @@ function selectBossForQuest(rank) {
 /**
  * 大ボスダメージ演出画面（ドラクエ風）を表示
  */
-function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) {
+function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, earnedCoins = 0) {
     const screen = document.getElementById('bossDamageScreen');
     if (!screen) {
         // ボスダメージ画面がない場合は、直接結果画面へ (レベルアップがあれば先に表示)
@@ -2806,9 +2853,9 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) 
     if (!quest) {
         console.error("❌ showBossDamageAnimation: Quest data is missing!");
         if (levelUpInfo) {
-            handleDeferredLevelUp(levelUpInfo, () => showQuestResult(damageMinutes, isComplete));
+            handleDeferredLevelUp(levelUpInfo, () => showQuestResult(damageMinutes, isComplete, earnedCoins));
         } else {
-            showQuestResult(damageMinutes, isComplete);
+            showQuestResult(damageMinutes, isComplete, earnedCoins);
         }
         return;
     }
@@ -2902,10 +2949,10 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) 
                             // 既存の報酬画面を表示 (レベルアップがあった場合は先に表示)
                             if (levelUpInfo) {
                                 handleDeferredLevelUp(levelUpInfo, () => {
-                                    showQuestResult(damageMinutes, isComplete);
+                                    showQuestResult(damageMinutes, isComplete, earnedCoins);
                                 });
                             } else {
-                                showQuestResult(damageMinutes, isComplete);
+                                showQuestResult(damageMinutes, isComplete, earnedCoins);
                             }
                         }, 1500);  // フェード完了待機を延長
                     }, 3000);
