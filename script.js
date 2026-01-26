@@ -466,13 +466,13 @@ function selectMonsterForQuest() {
     const questTarget = (subj && subj.targetMinutes > 0) ? subj.targetMinutes : 60;
     const sessionTarget = gameData.dailySession.targetMinutes || 60;
 
-    // 1. Select Grand Boss (based on quest total target)
+    // 1. Select Grand Boss (目標時間に応じた大ボスのランク)
     let grandRank = 'F-ERANK';
-    if (questTarget >= 6000) grandRank = 'EXRANK';
-    else if (questTarget >= 4800) grandRank = 'SSRANK';
-    else if (questTarget >= 3000) grandRank = 'SRANK';
-    else if (questTarget >= 1800) grandRank = 'B-ARANK';
-    else if (questTarget >= 600) grandRank = 'D-CRANK';
+    if (questTarget >= 6000) grandRank = 'EXRANK';     // 100h
+    else if (questTarget >= 4800) grandRank = 'SSRANK'; // 80h
+    else if (questTarget >= 3000) grandRank = 'SRANK';  // 50h
+    else if (questTarget >= 1800) grandRank = 'B-ARANK'; // 30h
+    else if (questTarget >= 600) grandRank = 'D-CRANK';  // 10h
 
     console.log("Grand Boss Rank determined:", grandRank, "Quest Target:", questTarget);
     const grandPool = MONSTER_MASTER[grandRank] || MONSTER_MASTER['F-ERANK'];
@@ -485,11 +485,22 @@ function selectMonsterForQuest() {
         currentDamage: (subj && subj.currentDamage) ? subj.currentDamage : 0
     };
 
-    // 2. Select Daily Monster (based on today's session target)
+    // 演出システム用のゴーストデータも同期（不整合を防ぐ）
+    gameData.currentChallenge = {
+        quest: {
+            targetMinutes: questTarget,
+            completedMinutes: gameData.grandBoss.currentDamage
+        }
+    };
+
+    // 2. Select Daily Monster (今日のセッション時間に応じたランク)
     let dailyRank = 'F-ERANK';
-    if (sessionTarget >= 300) dailyRank = 'B-ARANK';      // 5+ hours
-    else if (sessionTarget >= 180) dailyRank = 'D-CRANK'; // 3+ hours
-    else if (sessionTarget >= 60) dailyRank = 'F-ERANK';  // 1+ hour
+    if (sessionTarget >= 300) dailyRank = 'EXRANK';       // 5h+
+    else if (sessionTarget >= 240) dailyRank = 'SSRANK';  // 4h+
+    else if (sessionTarget >= 180) dailyRank = 'SRANK';   // 3h+
+    else if (sessionTarget >= 120) dailyRank = 'B-ARANK'; // 2h+
+    else if (sessionTarget >= 60) dailyRank = 'D-CRANK';  // 1h+
+    else dailyRank = 'F-ERANK';                           // 1h未満
 
     console.log("Daily Monster Rank determined:", dailyRank, "Session Target:", sessionTarget);
     const dailyPool = MONSTER_MASTER[dailyRank] || MONSTER_MASTER['F-ERANK'];
@@ -1250,14 +1261,9 @@ function loadGameData() {
         if (!gameData.currentChallenge) {
             gameData.currentChallenge = {
                 quest: {
-                    targetMinutes: 50000, // デフォルト50000分
+                    targetMinutes: (gameData.grandBoss && gameData.grandBoss.targetMinutes) ? gameData.grandBoss.targetMinutes : 60,
                     completedMinutes: (gameData.grandBoss && gameData.grandBoss.currentDamage) ? gameData.grandBoss.currentDamage : 0
                 }
-            };
-        } else if (!gameData.currentChallenge.quest) {
-            gameData.currentChallenge.quest = {
-                targetMinutes: 50000,
-                completedMinutes: (gameData.grandBoss && gameData.grandBoss.currentDamage) ? gameData.grandBoss.currentDamage : 0
             };
         }
 
@@ -2499,7 +2505,8 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) 
     // 念のため hidden クラスを削除
     screen.classList.remove('hidden');
 
-    const quest = gameData.currentChallenge ? gameData.currentChallenge.quest : null;
+    // 大ボスのデータを取得
+    const quest = gameData.grandBoss || (gameData.currentChallenge ? gameData.currentChallenge.quest : null);
 
     // 安全対策：クエストデータがない場合は中断
     if (!quest) {
@@ -2512,8 +2519,8 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null) 
         return;
     }
 
-    const maxHP = quest.targetMinutes || 100; // デフォルト値
-    const currentHP = quest.completedMinutes || 0;
+    const maxHP = quest.targetMinutes || 60;
+    const currentHP = quest.currentDamage !== undefined ? quest.currentDamage : (quest.completedMinutes || 0);
     const remainingHP = Math.max(0, maxHP - (currentHP + damageMinutes));
 
     // クエスト目標時間に基づいてボスを動的に選定
