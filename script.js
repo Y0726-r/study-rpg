@@ -138,11 +138,72 @@ let gameData = {
         scaleAwarded: false
     },
     // NEW: Pending effect for item usage
-    pendingEffect: null // { active: boolean, message: string, floatTexts: [{text, color}] }
+    pendingEffect: null, // { active: boolean, message: string, floatTexts: [{text, color}] }
+
+    // NEW: Chapter System
+    chapters: {} // [chapterName]: { targetMinutes, completedMinutes, progress, boss, bossRank, bossImage, firstTime, ... }
 };
 
 // タイマー関連 (Session state, initialized from gameData at load)
 let timerInterval = null;
+
+// ========================================
+// 🎯 ボス自動選択システム
+// ========================================
+
+/**
+ * 目標時間に応じて適切なボスを選択する
+ * @param {number} targetMinutes - 目標時間（分単位）
+ * @returns {Object} ボス情報 { name, rank, image }
+ */
+function selectBoss(targetMinutes) {
+    const targetHours = targetMinutes / 60;
+
+    // 既存の MONSTER_MASTER と画像の整合性を考慮しつつ、ユーザー指定のテーブルを実装
+    const bossTable = [
+        { maxHours: 10, name: "刻蝕のヒトガタ", rank: "F〜E", image: "assets/monster/F-ERANK_刻蝕のヒトガタ.png" },
+        { maxHours: 30, name: "怠惰のエテイン", rank: "D〜C", image: "assets/monster/D-CRANK_怠惰のエテイン.png" },
+        { maxHours: 50, name: "進捗断ちの番犬フェンリル", rank: "B〜A", image: "assets/monster/B-ARANK_進捗断ちの番犬フェンリル.png" },
+        { maxHours: 80, name: "時廻竜アークバーン", rank: "S", image: "assets/monster/SRANK_時廻竜アークバーン.png" },
+        { maxHours: 100, name: "刻喰い皇妃メリアノス", rank: "SS", image: "assets/monster/SSRANK_刻喰い皇妃メリアノス.png" },
+        { maxHours: Infinity, name: "刻喰い王ゼロ＝クロノス", rank: "EX", image: "assets/monster/EXRANK_刻喰い王ゼロ＝クロノス.png" }
+    ];
+
+    for (let boss of bossTable) {
+        if (targetHours <= boss.maxHours) {
+            return boss;
+        }
+    }
+    return bossTable[0];
+}
+
+/**
+ * 聖なる命名式で目標時間を確定・章データを更新する
+ */
+window.handleTargetTimeConfirm = function (chapterName, targetHours) {
+    const targetMinutes = targetHours * 60;
+    const boss = selectBoss(targetMinutes);
+
+    if (!gameData.chapters) gameData.chapters = {};
+
+    const existing = gameData.chapters[chapterName] || {};
+
+    gameData.chapters[chapterName] = {
+        name: chapterName,
+        targetMinutes: targetMinutes,
+        completedMinutes: existing.completedMinutes || 0,
+        progress: (existing.completedMinutes || 0) / targetMinutes,
+        boss: boss.name,
+        bossRank: boss.rank,
+        bossImage: boss.image,
+        firstTime: existing.firstTime !== false, // デフォルト true
+        startDate: existing.startDate || new Date().toISOString(),
+        lastStudyDate: existing.lastStudyDate || null
+    };
+
+    saveGameData();
+    console.log(`📖 章データ更新: ${chapterName} -> Boss: ${boss.name}`);
+};
 let elapsedSeconds = 0;
 let startTime = null;
 let elapsedBeforePause = 0;
@@ -900,8 +961,9 @@ const LEVEL_TABLE = {};
     let cumulativeExp = 0;
     for (let i = 1; i <= 99; i++) {
         LEVEL_TABLE[i] = cumulativeExp;
-        // Lv(n) -> Lv(n+1) に必要な経験値: 100 + 50 * (n-1)
-        cumulativeExp += (100 + 50 * (i - 1));
+        // 420時間の修行（ボーナス報酬込）でLv.99に達するよう重めに調整
+        // Lv.2: 200 EXP / Lv.99: 1,920,800 EXP
+        cumulativeExp += (200 + 420 * (i - 1));
     }
 })();
 
@@ -961,7 +1023,7 @@ const ITEM_MASTER = [
     { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！", visuals: { x: -3, y: 30, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/ドラゴンの盾.png" },
     { id: 26, name: "王家のショートケーキ", rarity: 3, file: "王家のショートケーキ.png", type: "consumable", useMessage: "究極の美味！今この瞬間、全能力が極限まで解放された！", description: "今日一番頑張った自分へのご褒美！" },
     { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/聖なる宝冠.png" },
-    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "infinite", effects: { intellect: 100 }, description: "まるで光を纏っているような服。", useMessage: "聖なる光に包まれた…！" },
+    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "consumable", effects: { intellect: 100 }, description: "まるで光を纏っているような服。一度袖を通せば、聖なる知恵が魂に刻まれる。", useMessage: "聖なる光に包まれた…！知力が永続的に上昇した！" },
     { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 7, y: -4, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/全知の眼鏡.png" },
     { id: 30, name: "虹色の鱗", rarity: 3, file: "rainbow.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" },
     { id: 33, name: "竜鱗の脚当て（金縁）", rarity: 3, file: "竜鱗の脚当て.png", type: "legs", effects: { strength: 40, focus: 20 }, description: "竜の鱗を編み上げた脚当て。揺るがない集中と、伝説級の格を与える。", equipMessage: "竜鱗の脚当てを装着した。伝説の装備だ。ここからが本番。", visuals: { x: 8, y: 40, width: 98 }, equipImage: "assets/item/gacha_equipment/竜鱗の脚当て.png" }
@@ -1978,6 +2040,11 @@ window.saveSubjectRename = function (id) {
     // UIを即座に再描画
     generateSubjectButtons();
 
+    // 🎯 Chapter System 連携
+    if (window.handleTargetTimeConfirm) {
+        window.handleTargetTimeConfirm(newName, parseInt(finalHours));
+    }
+
     // 演出：キラキラ
     createSparkleEffect();
 
@@ -2161,8 +2228,210 @@ window.startQuestSession = function () {
 
     saveGameData(); // 🔴 ここで即保存！
     closeMessageModal();
-    startTimer();
+
+    // 🎯 直接修行開始せず、ボス登場演出画面へ
+    showBossIntroScreen(gameData.currentSubject);
 };
+
+// ========================================
+// 🎭 ボス登場演出画面の制御
+// ========================================
+
+/**
+ * ボス登場演出画面を表示
+ */
+function showBossIntroScreen(chapterName) {
+    if (!gameData.chapters) gameData.chapters = {};
+    let chapterData = gameData.chapters[chapterName];
+
+    // データがない場合のフォールバック（既存の科目名から生成）
+    if (!chapterData) {
+        const subj = STUDY_SUBJECTS.find(s => s.label === chapterName);
+        const targetHours = subj ? (subj.targetMinutes / 60) : 60;
+        window.handleTargetTimeConfirm(chapterName, targetHours);
+        chapterData = gameData.chapters[chapterName];
+    }
+
+    const introScreen = document.getElementById('boss-intro-screen');
+    if (!introScreen) return;
+
+    introScreen.style.display = 'flex';
+    introScreen.classList.add('active');
+
+    // タイトル設定
+    const titleText = chapterData.firstTime ? '試練開始' : '試練再開';
+    document.getElementById('boss-intro-title-text').textContent = titleText;
+
+    // ボス画像
+    const bossImage = document.getElementById('boss-intro-image');
+    bossImage.src = chapterData.bossImage;
+    bossImage.alt = chapterData.boss;
+
+    // ボス名・ランク
+    document.getElementById('boss-intro-name').textContent = chapterData.boss;
+    document.getElementById('boss-intro-rank').textContent = `（${chapterData.bossRank} ランク）`;
+
+    // 進捗情報
+    const targetHours = Math.floor(chapterData.targetMinutes / 60);
+    const completedHours = Math.floor(chapterData.completedMinutes / 60);
+    const progressPercent = Math.floor((chapterData.progress || 0) * 100);
+
+    document.getElementById('boss-intro-target-time').textContent = `${targetHours}時間`;
+    document.getElementById('boss-intro-completed-time').textContent = `${completedHours}時間`;
+    document.getElementById('boss-intro-total-time').textContent = `${targetHours}時間`;
+    document.getElementById('boss-intro-progress-percent').textContent = `${progressPercent}%`;
+
+    // 進捗バー
+    const progressBar = document.getElementById('boss-intro-progress-bar');
+    progressBar.style.width = `${progressPercent}%`;
+
+    // セリフを取得して表示（タイプライター効果）
+    const dialogue = getBossDialogue(chapterData.boss, chapterData.progress || 0);
+    typewriterEffect('boss-intro-dialogue', dialogue, 40);
+
+    // スキップボタン制御
+    const skipButton = document.getElementById('skip-intro-button');
+    const skipHint = document.querySelector('.skip-hint');
+
+    if (!chapterData.firstTime) {
+        if (skipButton) skipButton.style.display = 'block';
+        if (skipHint) skipHint.style.display = 'block';
+    } else {
+        if (skipButton) skipButton.style.display = 'none';
+        if (skipHint) skipHint.style.display = 'none';
+    }
+
+    // ボタンイベント設定
+    setupBossIntroButtons(chapterName);
+
+    // 初回フラグを更新
+    if (chapterData.firstTime) {
+        gameData.chapters[chapterName].firstTime = false;
+        saveGameData();
+    }
+}
+
+/**
+ * ボス登場演出画面のボタンイベントを設定
+ */
+function setupBossIntroButtons(chapterName) {
+    const introScreen = document.getElementById('boss-intro-screen');
+    const startButton = document.getElementById('start-battle-button');
+    const skipButton = document.getElementById('skip-intro-button');
+
+    const proceed = () => {
+        closeBossIntroScreen();
+        // ここでタイマー開始とUI切り替えを行う
+        startTimer(); // 元々の修行開始ロジックを実行
+    };
+
+    startButton.onclick = (e) => {
+        e.stopPropagation();
+        proceed();
+    };
+
+    if (skipButton) {
+        skipButton.onclick = (e) => {
+            e.stopPropagation();
+            proceed();
+        };
+    }
+
+    // 画面タップでスキップ（2回目以降のみ）
+    const chapterData = gameData.chapters[chapterName];
+    if (!chapterData.firstTime) {
+        introScreen.onclick = (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                proceed();
+            }
+        };
+    } else {
+        introScreen.onclick = null;
+    }
+}
+
+function closeBossIntroScreen() {
+    const introScreen = document.getElementById('boss-intro-screen');
+    if (introScreen) {
+        introScreen.style.display = 'none';
+        introScreen.classList.remove('active');
+    }
+}
+
+function typewriterEffect(elementId, text, speed) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    element.textContent = '';
+
+    let i = 0;
+    const interval = setInterval(() => {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(interval);
+            const startBtn = document.getElementById('start-battle-button');
+            if (startBtn) startBtn.disabled = false;
+        }
+    }, speed);
+
+    const startBtn = document.getElementById('start-battle-button');
+    if (startBtn) startBtn.disabled = true;
+}
+
+function getBossDialogue(bossName, progress) {
+    const dialogues = {
+        "刻蝕のヒトガタ": {
+            intro: "ふふふ…まずは私が相手だ。\n10時間、耐えられるかな？",
+            early: "ほう…戻ってきたか。\nまだ始まったばかりだぞ。",
+            mid: "なかなかやるな…だが、油断するなよ。",
+            late: "くっ…思ったより粘るな。",
+            final: "バカな…ここまで来るとは…"
+        },
+        "怠惰のエテイン": {
+            intro: "ふあぁ…30時間も頑張るの？\n途中で休みたくなっちゃうよ。",
+            early: "ほう…戻ってきたか。\nだらけたくなったんじゃないの？",
+            mid: "なかなかやるな…でも、まだ半分だよ？",
+            late: "くっ…思ったより粘るな。",
+            final: "バカな…本当に続けるとは…"
+        },
+        "進捗断ちの番犬フェンリル": {
+            intro: "ガルルル…50時間は長いぞ。\n途中で挫折する者が多い…",
+            early: "お前の覚悟、見せてみろ。",
+            mid: "なかなかやるな…だが、ここからが本当の試練だ。",
+            late: "くっ…思ったより粘るな。",
+            final: "バカな…ここまで来るとは…"
+        },
+        "時廻竜アークバーン": {
+            intro: "80時間の試練に挑むとは、時を巻き戻したくなるだろう。",
+            early: "ほう…戻ってきたか。だが、逃げ道はない。",
+            mid: "なかなかやるな…認めてやろう。",
+            late: "くっ…思ったより粘るな。時を巻き戻したくなるだろう。",
+            final: "バカな…時の流れすら超えるのか…"
+        },
+        "刻喰い皇妃メリアノス": {
+            intro: "100時間…壮大な挑戦ね。途中で諦める者ばかり、あなたは違うと言えるかしら？",
+            early: "ほう…戻ってきたのね。覚悟は本物のようね。",
+            mid: "なかなかやるわね…でも、まだ半分よ。",
+            late: "くっ…思ったより粘るわね。最後まで油断しないで。",
+            final: "まさか…認めるわ、あなたの覚悟を。"
+        },
+        "刻喰い王ゼロ＝クロノス": {
+            intro: "100時間の試練を乗り越えし者よ。時を喰らい尽くす覚悟はあるか？",
+            early: "ほう…戻ってきたか。すでに時間を喰らい始めたな。",
+            mid: "なかなかやるな…だが、ここからが本当の試練だ。",
+            late: "私を倒すにはまだ足りない。",
+            final: "ぐあああ…時を…喰らい尽くされた…"
+        }
+    };
+
+    const bossDlg = dialogues[bossName] || { intro: "さあ、試練を始めよう…", early: "やるな…", mid: "ふむ…", late: "な、何だと！？", final: "バカな…" };
+    if (progress === 0) return bossDlg.intro;
+    if (progress < 0.25) return bossDlg.early;
+    if (progress < 0.5) return bossDlg.mid;
+    if (progress < 0.75) return bossDlg.late;
+    return bossDlg.final;
+}
 
 
 // Jump Animation & Transition

@@ -191,7 +191,7 @@
                     <div class="grand-boss-overlay"></div>
                 </div>
                 <div class="grand-boss-progress-container">
-                    <div class="grand-boss-label">大ボス討伐進捗</div>
+                    <div class="grand-boss-label">大ボス討伐までの道のり・・・</div>
                     <div class="grand-boss-hp-bar">
                         <div id="grand-boss-hp-fill" class="grand-boss-hp-fill"></div>
                     </div>
@@ -253,298 +253,349 @@
                 <button type="button" class="stop-button-mvp hidden" id="stop-button" onclick="stopTimer()">おわる</button>
             </div>
         </div>
-    </div>
 
-    <!-- ガチャ画面 -->
-    <div id="gacha-screen" class="screen">
-        <!-- World Layer: Chest Object -->
-        <div class="gacha-world-layer">
-            <div class="ground-anchor"></div>
-            <!-- Clickable Chest Container -->
-            <div class="chest-centered" onclick="pullGacha()" style="cursor: pointer; pointer-events: auto;">
-                <div class="pull-tooltip" id="pull-tooltip">
-                    <span class="finger-pointer">👆</span>
-                    <span class="tooltip-text">あける?</span>
+        <!-- NEW: ボス登場演出画面 -->
+        <div id="boss-intro-screen" class="boss-intro-screen" style="display: none;">
+            <div class="boss-intro-overlay"></div>
+            <div class="boss-intro-content">
+                <div class="boss-intro-title">
+                    <div class="wooden-sign" id="boss-intro-title-text">試練開始</div>
                 </div>
-                <img src="./assets/item/chest/chest_wood.png" alt="Chest" class="chest-image-large" id="chest-display">
+
+                <div class="boss-image-container">
+                    <img id="boss-intro-image" src="" alt="ボス画像" class="boss-intro-image">
+                </div>
+
+                <div class="boss-info">
+                    <h2 id="boss-intro-name" class="boss-intro-name"></h2>
+                    <p id="boss-intro-rank" class="boss-intro-rank"></p>
+                </div>
+
+                <div class="boss-dialogue-box">
+                    <p id="boss-intro-dialogue" class="boss-intro-dialogue-text"></p>
+                </div>
+
+                <div class="boss-progress-info">
+                    <p class="progress-text" style="color:#fff;">
+                        目標時間：<span id="boss-intro-target-time">---</span><br>
+                        進捗：<span id="boss-intro-completed-time">---</span> / <span id="boss-intro-total-time">---</span>
+                    </p>
+                    <div class="progress-bar-container">
+                        <div id="boss-intro-progress-bar" class="boss-intro-progress-bar" style="width: 0%;"></div>
+                    </div>
+                    <p id="boss-intro-progress-percent" class="progress-percent">0%</p>
+                </div>
+
+                <div class="boss-intro-buttons">
+                    <button id="start-battle-button" class="settings-btn"
+                        style="position:static; transform:none; padding:15px 40px; font-size:18px;">
+                        戦いに挑む！
+                    </button>
+                </div>
+
+                <button id="skip-intro-button" class="button-skip" style="display: none;">
+                    スキップ
+                </button>
+
+                <p class="skip-hint" style="display: none; color: #aaa; font-size: 12px; margin-top: 10px;">
+                    画面タップでスキップ可能
+                </p>
             </div>
         </div>
 
-        <!-- UI Layer: Interface Elements -->
-        <div class="gacha-ui-layer">
+        <!-- ガチャ画面 -->
+        <div id="gacha-screen" class="screen">
+            <!-- World Layer: Chest Object -->
+            <div class="gacha-world-layer">
+                <div class="ground-anchor"></div>
+                <!-- Clickable Chest Container -->
+                <div class="chest-centered" onclick="pullGacha()" style="cursor: pointer; pointer-events: auto;">
+                    <div class="pull-tooltip" id="pull-tooltip">
+                        <span class="finger-pointer">👆</span>
+                        <span class="tooltip-text">あける?</span>
+                    </div>
+                    <img src="./assets/item/chest/chest_wood.png" alt="Chest" class="chest-image-large"
+                        id="chest-display">
+                </div>
+            </div>
+
+            <!-- UI Layer: Interface Elements -->
+            <div class="gacha-ui-layer">
+                <div class="screen-header">
+                    <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
+                    <h2 class="screen-title-mvp">たからばこの間</h2>
+                </div>
+
+                <div class="gacha-main-layout">
+                    <!-- Top: Coin Pill -->
+                    <div class="coin-pill-wrapper">
+                        "コイン": <span id="gacha-coin-count">0</span> <span class="coin-icon">🟡</span>
+                    </div>
+
+                    <!-- Middle: Chest Stage (Chest in World Layer) -->
+                    <!-- Rarity Badges removed for immersion -->
+
+                    <!-- Middle: Log Box (Visual Order: Top > Chest > Button) -->
+                    <!-- Positioned via CSS to be above chest -->
+                    <div class="gacha-log-minimal" id="gacha-mini-log">
+                        <p>へえ、いいもの持ってるじゃん。</p>
+                    </div>
+                    <!-- Bottom: Controls & Log -->
+                    <div class="gacha-controls-area">
+                        <!-- Button removed, chest is now the trigger -->
+                        <!-- Cost hint removed -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Modal (Fixed) -->
+            <div id="gacha-result" class="gacha-result hidden">
+                <div class="result-content-mvp">
+                    <p class="result-text-mvp">獲得！</p>
+                    <div class="result-item-mvp">
+                        <div class="item-icon-mvp" id="result-text-icon"></div> <!-- Added text icon container -->
+                        <div class="item-icon-mvp" id="result-icon"></div>
+                        <div>
+                            <p class="item-name-mvp" id="result-name">アイテム名</p>
+                            <p class="item-rarity-mvp" id="result-rarity">★★★</p>
+                        </div>
+                    </div>
+                    <button class="ok-btn-mvp" onclick="closeGachaResult()">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ステータス画面 -->
+        <div id="status-screen" class="screen">
             <div class="screen-header">
                 <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
-                <h2 class="screen-title-mvp">たからばこの間</h2>
+                <h2 class="screen-title-mvp">けいけんち</h2>
             </div>
 
-            <div class="gacha-main-layout">
-                <!-- Top: Coin Pill -->
-                <div class="coin-pill-wrapper">
-                    "コイン": <span id="gacha-coin-count">0</span> <span class="coin-icon">🟡</span>
-                </div>
-
-                <!-- Middle: Chest Stage (Chest in World Layer) -->
-                <!-- Rarity Badges removed for immersion -->
-
-                <!-- Middle: Log Box (Visual Order: Top > Chest > Button) -->
-                <!-- Positioned via CSS to be above chest -->
-                <div class="gacha-log-minimal" id="gacha-mini-log">
-                    <p>へえ、いいもの持ってるじゃん。</p>
-                </div>
-                <!-- Bottom: Controls & Log -->
-                <div class="gacha-controls-area">
-                    <!-- Button removed, chest is now the trigger -->
-                    <!-- Cost hint removed -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Result Modal (Fixed) -->
-        <div id="gacha-result" class="gacha-result hidden">
-            <div class="result-content-mvp">
-                <p class="result-text-mvp">獲得！</p>
-                <div class="result-item-mvp">
-                    <div class="item-icon-mvp" id="result-text-icon"></div> <!-- Added text icon container -->
-                    <div class="item-icon-mvp" id="result-icon"></div>
-                    <div>
-                        <p class="item-name-mvp" id="result-name">アイテム名</p>
-                        <p class="item-rarity-mvp" id="result-rarity">★★★</p>
-                    </div>
-                </div>
-                <button class="ok-btn-mvp" onclick="closeGachaResult()">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ステータス画面 -->
-    <div id="status-screen" class="screen">
-        <div class="screen-header">
-            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
-            <h2 class="screen-title-mvp">けいけんち</h2>
-        </div>
-
-        <div class="status-scroll-container">
-            <div class="scroll-window status-detail-scroll">
-                <div class="scroll-body">
-                    <!-- FOCUS -->
-                    <div class="status-detail-item">
-                        <div class="status-header-row">
-                            <img src="./assets/focus.png" alt="" class="status-icon-large">
-                            <span class="status-label-large">集中力（しゅうちゅう）</span>
-                        </div>
-                        <div class="status-bar-wrapper">
-                            <div class="status-bar-frame-large">
-                                <div class="status-bar-fill-large focus" id="status-fill-focus"></div>
+            <div class="status-scroll-container">
+                <div class="scroll-window status-detail-scroll">
+                    <div class="scroll-body">
+                        <!-- FOCUS -->
+                        <div class="status-detail-item">
+                            <div class="status-header-row">
+                                <img src="./assets/focus.png" alt="" class="status-icon-large">
+                                <span class="status-label-large">集中力（しゅうちゅう）</span>
                             </div>
-                            <div class="status-val-large">
-                                <span id="status-val-focus">0</span> / <span id="status-cap-focus">100</span>
+                            <div class="status-bar-wrapper">
+                                <div class="status-bar-frame-large">
+                                    <div class="status-bar-fill-large focus" id="status-fill-focus"></div>
+                                </div>
+                                <div class="status-val-large">
+                                    <span id="status-val-focus">0</span> / <span id="status-cap-focus">100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INT -->
+                        <div class="status-detail-item">
+                            <div class="status-header-row">
+                                <img src="./assets/intelligence.png" alt="" class="status-icon-large">
+                                <span class="status-label-large">知力（かしこさ）</span>
+                            </div>
+                            <div class="status-bar-wrapper">
+                                <div class="status-bar-frame-large">
+                                    <div class="status-bar-fill-large intellect" id="status-fill-intellect"></div>
+                                </div>
+                                <div class="status-val-large">
+                                    <span id="status-val-intellect">0</span> / <span
+                                        id="status-cap-intellect">100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STR -->
+                        <div class="status-detail-item">
+                            <div class="status-header-row">
+                                <img src="./assets/strength.png" alt="" class="status-icon-large">
+                                <span class="status-label-large">筋力（にんたい）</span>
+                            </div>
+                            <div class="status-bar-wrapper">
+                                <div class="status-bar-frame-large">
+                                    <div class="status-bar-fill-large strength" id="status-fill-strength"></div>
+                                </div>
+                                <div class="status-val-large">
+                                    <span id="status-val-strength">0</span> / <span id="status-cap-strength">100</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- INT -->
-                    <div class="status-detail-item">
-                        <div class="status-header-row">
-                            <img src="./assets/intelligence.png" alt="" class="status-icon-large">
-                            <span class="status-label-large">知力（かしこさ）</span>
-                        </div>
-                        <div class="status-bar-wrapper">
-                            <div class="status-bar-frame-large">
-                                <div class="status-bar-fill-large intellect" id="status-fill-intellect"></div>
-                            </div>
-                            <div class="status-val-large">
-                                <span id="status-val-intellect">0</span> / <span id="status-cap-intellect">100</span>
-                            </div>
-                        </div>
+                    <p class="status-hint">～ 努力の証がここに記されている ～</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- メニュー画面 -->
+        <div id="menu-screen" class="screen">
+            <div class="screen-header">
+                <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
+                <h2 class="screen-title-mvp">コレクション</h2>
+                <div class="capacity-badge">
+                    <span id="current-inv-count">0</span>/<span id="max-inv-count">50</span>
+                </div>
+            </div>
+
+            <div class="inventory-container-mvp" id="inventory-container">
+                <p class="empty-message">まだアイテムを持っていません</p>
+            </div>
+
+            <div class="menu-footer-mvp">
+                <button class="reset-button-mvp" onclick="confirmReset()">アイテムをすべて消す</button>
+            </div>
+        </div>
+
+        <!-- ログ画面 -->
+        <div id="log-screen" class="screen">
+            <div class="screen-header">
+                <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
+                <h2 class="screen-title-mvp">冒険の記録</h2>
+            </div>
+
+            <div class="log-stats-mvp">
+                <div class="stat-card-mvp">
+                    <p class="stat-label">累計（るいけい）修行時間</p>
+                    <p class="stat-value"><span id="total-time">0</span> min</p>
+                </div>
+                <div class="stat-card-mvp">
+                    <p class="stat-label">累計（るいけい）経験値</p>
+                    <p class="stat-value"><span id="total-exp">0</span></p>
+                </div>
+            </div>
+
+            <div class="log-container-mvp" id="log-container">
+                <p class="empty-message">まだ勉強記録がありません</p>
+            </div>
+        </div>
+
+        <!-- レベルアップモーダル -->
+        <div id="levelup-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 class="levelup-title">レベルアップ！</h2>
+                <div class="character-sprite large"><img src="./assets/player.png" alt="Player"></div>
+                <p class="levelup-text">
+                    Lv.<span id="old-level">1</span> → Lv.<span id="new-level">2</span>
+                </p>
+                <button class="ok-button" onclick="closeLevelUpModal()">OK</button>
+            </div>
+        </div>
+
+        <!-- ログ編集モーダル -->
+        <div id="edit-log-modal" class="modal hidden">
+            <div class="modal-content rpg-window">
+                <h2 class="screen-title-mvp" style="color: #2c1810; font-size: 16px; display: none !important;">
+                    冒険の記録を書きかえる
+                </h2>
+                <div class="edit-form">
+                    <div class="form-group">
+                        <label>科目:</label>
+                        <select id="edit-log-subject">
+                            <option value="資格">資格</option>
+                            <option value="言語">言語</option>
+                            <option value="ビジネス">ビジネス</option>
+                            <option value="その他">その他</option>
+                        </select>
                     </div>
-
-                    <!-- STR -->
-                    <div class="status-detail-item">
-                        <div class="status-header-row">
-                            <img src="./assets/strength.png" alt="" class="status-icon-large">
-                            <span class="status-label-large">筋力（にんたい）</span>
-                        </div>
-                        <div class="status-bar-wrapper">
-                            <div class="status-bar-frame-large">
-                                <div class="status-bar-fill-large strength" id="status-fill-strength"></div>
-                            </div>
-                            <div class="status-val-large">
-                                <span id="status-val-strength">0</span> / <span id="status-cap-strength">100</span>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label>分:</label>
+                        <input type="number" id="edit-log-minutes" min="1">
+                    </div>
+                    <div class="modal-controls">
+                        <button class="cancel-button" onclick="closeEditLogModal()">やめる</button>
+                        <button class="save-button" onclick="saveEditedLog()">これにする！</button>
                     </div>
                 </div>
-
-                <p class="status-hint">～ 努力の証がここに記されている ～</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- メニュー画面 -->
-    <div id="menu-screen" class="screen">
-        <div class="screen-header">
-            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
-            <h2 class="screen-title-mvp">コレクション</h2>
-            <div class="capacity-badge">
-                <span id="current-inv-count">0</span>/<span id="max-inv-count">50</span>
             </div>
         </div>
 
-        <div class="inventory-container-mvp" id="inventory-container">
-            <p class="empty-message">まだアイテムを持っていません</p>
-        </div>
-
-        <div class="menu-footer-mvp">
-            <button class="reset-button-mvp" onclick="confirmReset()">アイテムをすべて消す</button>
-        </div>
-    </div>
-
-    <!-- ログ画面 -->
-    <div id="log-screen" class="screen">
-        <div class="screen-header">
-            <button class="pixel-back-btn" onclick="showScreen('home-screen')">⬅ もどる</button>
-            <h2 class="screen-title-mvp">冒険の記録</h2>
-        </div>
-
-        <div class="log-stats-mvp">
-            <div class="stat-card-mvp">
-                <p class="stat-label">累計（るいけい）修行時間</p>
-                <p class="stat-value"><span id="total-time">0</span> min</p>
-            </div>
-            <div class="stat-card-mvp">
-                <p class="stat-label">累計（るいけい）経験値</p>
-                <p class="stat-value"><span id="total-exp">0</span></p>
+        <!-- コイン不足モーダル -->
+        <div id="coin-shortage-modal" class="modal hidden">
+            <div class="modal-content rpg-window" style="text-align: center;">
+                <h2 class="screen-title-mvp" style="color: #e53e3e; font-size: 16px; margin-bottom: 10px;">NOT ENOUGH
+                    COINS
+                </h2>
+                <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
+                    コインが足りません！<br>
+                    勉強してコインを貯めよう。<br>
+                    (1回 100コイン必要です)
+                </p>
+                <button class="ok-button" onclick="closeCoinShortageModal()"
+                    style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
             </div>
         </div>
 
-        <div class="log-container-mvp" id="log-container">
-            <p class="empty-message">まだ勉強記録がありません</p>
-        </div>
-    </div>
-
-    <!-- レベルアップモーダル -->
-    <div id="levelup-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2 class="levelup-title">レベルアップ！</h2>
-            <div class="character-sprite large"><img src="./assets/player.png" alt="Player"></div>
-            <p class="levelup-text">
-                Lv.<span id="old-level">1</span> → Lv.<span id="new-level">2</span>
-            </p>
-            <button class="ok-button" onclick="closeLevelUpModal()">OK</button>
-        </div>
-    </div>
-
-    <!-- ログ編集モーダル -->
-    <div id="edit-log-modal" class="modal hidden">
-        <div class="modal-content rpg-window">
-            <h2 class="screen-title-mvp" style="color: #2c1810; font-size: 16px; display: none !important;">冒険の記録を書きかえる
-            </h2>
-            <div class="edit-form">
-                <div class="form-group">
-                    <label>科目:</label>
-                    <select id="edit-log-subject">
-                        <option value="資格">資格</option>
-                        <option value="言語">言語</option>
-                        <option value="ビジネス">ビジネス</option>
-                        <option value="その他">その他</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>分:</label>
-                    <input type="number" id="edit-log-minutes" min="1">
-                </div>
+        <!-- 確認モーダル -->
+        <div id="confirm-modal" class="modal hidden">
+            <div class="modal-content rpg-window" style="text-align: center;">
+                <h2 id="confirm-modal-title" class="screen-title-mvp"
+                    style="color: #e53e3e; font-size: 16px; margin-bottom: 10px; display: none;">
+                    CONFIRM</h2>
+                <p id="confirm-modal-content" style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
+                    本当に実行しますか？
+                </p>
                 <div class="modal-controls">
-                    <button class="cancel-button" onclick="closeEditLogModal()">やめる</button>
-                    <button class="save-button" onclick="saveEditedLog()">これにする！</button>
+                    <button class="cancel-button" onclick="closeConfirmModal()">やめる</button>
+                    <button id="confirm-modal-ok" class="save-button" style="background: #e53e3e;">すてる</button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- コイン不足モーダル -->
-    <div id="coin-shortage-modal" class="modal hidden">
-        <div class="modal-content rpg-window" style="text-align: center;">
-            <h2 class="screen-title-mvp" style="color: #e53e3e; font-size: 16px; margin-bottom: 10px;">NOT ENOUGH
-                COINS
-            </h2>
-            <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
-                コインが足りません！<br>
-                勉強してコインを貯めよう。<br>
-                (1回 100コイン必要です)
-            </p>
-            <button class="ok-button" onclick="closeCoinShortageModal()"
-                style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
-        </div>
-    </div>
-
-    <!-- 確認モーダル -->
-    <div id="confirm-modal" class="modal hidden">
-        <div class="modal-content rpg-window" style="text-align: center;">
-            <h2 id="confirm-modal-title" class="screen-title-mvp"
-                style="color: #e53e3e; font-size: 16px; margin-bottom: 10px; display: none;">
-                CONFIRM</h2>
-            <p id="confirm-modal-content" style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
-                本当に実行しますか？
-            </p>
-            <div class="modal-controls">
-                <button class="cancel-button" onclick="closeConfirmModal()">やめる</button>
-                <button id="confirm-modal-ok" class="save-button" style="background: #e53e3e;">すてる</button>
+        <div id="message-modal" class="modal hidden">
+            <div class="modal-content rpg-window" style="text-align: center;">
+                <h2 id="message-modal-title" class="screen-title-mvp"
+                    style="color: #6b4400; font-size: 16px; margin-bottom: 10px;">
+                    MESSAGE</h2>
+                <p id="message-modal-content" style="font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
+                    メッセージ
+                </p>
+                <button class="ok-button" onclick="closeMessageModal()"
+                    style="width: 100%; padding: 12px; background: #4a5568;">とじる</button>
             </div>
         </div>
-    </div>
 
-    <div id="message-modal" class="modal hidden">
-        <div class="modal-content rpg-window" style="text-align: center;">
-            <h2 id="message-modal-title" class="screen-title-mvp"
-                style="color: #6b4400; font-size: 16px; margin-bottom: 10px;">
-                MESSAGE</h2>
-            <p id="message-modal-content" style="font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
-                メッセージ
-            </p>
-            <button class="ok-button" onclick="closeMessageModal()"
-                style="width: 100%; padding: 12px; background: #4a5568;">とじる</button>
-        </div>
-    </div>
-
-    <!-- 科目未選択モーダル -->
-    <div id="subject-warning-modal" class="modal hidden">
-        <div class="modal-content rpg-window" style="text-align: center;">
-            <h2 class="screen-title-mvp" style="color: #ecc94b; font-size: 16px; margin-bottom: 10px;">
-                ！ちゅうい！</h2>
-            <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
-                科目を選択してください！<br>
-                勉強する科目を選ばないと<br>
-                タイマーを開始できません。
-            </p>
-            <button class="ok-button" onclick="closeSubjectWarningModal()"
-                style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
-        </div>
-    </div>
-
-    <!-- 大ボスダメージ演出画面（ドラクエ風） -->
-    <div class="boss-damage-screen" id="bossDamageScreen" style="display: none;">
-        <div class="boss-damage-bg"></div>
-        <div class="boss-damage-content">
-            <div class="boss-display">
-                <img src="assets/bosses/zero_chronos.png" id="bossDisplayImage" class="boss-sprite-large" alt="大ボス">
+        <!-- 科目未選択モーダル -->
+        <div id="subject-warning-modal" class="modal hidden">
+            <div class="modal-content rpg-window" style="text-align: center;">
+                <h2 class="screen-title-mvp" style="color: #ecc94b; font-size: 16px; margin-bottom: 10px;">
+                    ！ちゅうい！</h2>
+                <p style="font-size: 12px; margin-bottom: 20px; line-height: 1.5;">
+                    科目を選択してください！<br>
+                    勉強する科目を選ばないと<br>
+                    タイマーを開始できません。
+                </p>
+                <button class="ok-button" onclick="closeSubjectWarningModal()"
+                    style="width: 100%; padding: 12px; background: #4a5568;">OK</button>
             </div>
-            <div class="boss-hp-display">
-                <h2 class="boss-name-large" id="bossNameLarge">刻喰い王ゼロ＝クロノス</h2>
-                <div class="boss-hp-bar-container">
-                    <div class="boss-hp-bar-fill" id="bossHPBarFill"></div>
+        </div>
+
+        <!-- 大ボスダメージ演出画面（ドラクエ風） -->
+        <div class="boss-damage-screen" id="bossDamageScreen" style="display: none;">
+            <div class="boss-damage-bg"></div>
+            <div class="boss-damage-content">
+                <div class="boss-display">
+                    <img src="assets/bosses/zero_chronos.png" id="bossDisplayImage" class="boss-sprite-large" alt="大ボス">
                 </div>
-                <p class="boss-hp-text">HP: <span id="bossCurrentHP"></span> / <span id="bossMaxHP"></span> 分</p>
-            </div>
-            <div class="damage-display" id="damageDisplay" style="display: none;">
-                <span class="damage-number" id="damageNumber"></span><span class="damage-text"> の ダメージ！</span>
-            </div>
-            <div class="boss-message-window" id="bossMessageWindow">
-                <div class="boss-message" id="bossMessage"></div>
+                <div class="boss-hp-display">
+                    <h2 class="boss-name-large" id="bossNameLarge">刻喰い王ゼロ＝クロノス</h2>
+                    <div class="boss-hp-bar-container">
+                        <div class="boss-hp-bar-fill" id="bossHPBarFill"></div>
+                    </div>
+                    <p class="boss-hp-text">HP: <span id="bossCurrentHP"></span> / <span id="bossMaxHP"></span> 分</p>
+                </div>
+                <div class="damage-display" id="damageDisplay" style="display: none;">
+                    <span class="damage-number" id="damageNumber"></span><span class="damage-text"> の ダメージ！</span>
+                </div>
+                <div class="boss-message-window" id="bossMessageWindow">
+                    <div class="boss-message" id="bossMessage"></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script src="script.js"></script>
+        <script src="script.js"></script>
 </body>
 
 </html>
