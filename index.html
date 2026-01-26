@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style-retro.css">
+    <link rel="stylesheet" href="victory.css">
 </head>
 
 <body>
@@ -595,6 +596,74 @@
     </div>
 
 
+
+    <!-- 討伐成功画面（モーダル） -->
+    <div id="victory-screen" class="victory-modal hidden" style="display: none;">
+        <div class="victory-overlay"></div>
+        <div class="victory-content" data-rank="EX">
+            <div class="victory-frame">
+                <div class="victory-title">
+                    <span class="title-text">🌟 伝説の討伐 🌟</span>
+                </div>
+                <div class="victory-monster">
+                    <img id="victory-boss-image" src="" alt="" class="monster-image">
+                    <div class="monster-aura"></div>
+                </div>
+                <div class="victory-boss-name">
+                    <span id="victory-boss-name-text">ボス名</span>
+                </div>
+                <div class="victory-stats">
+                    <div class="stat-row">
+                        <span class="stat-icon">📅</span>
+                        <span id="victory-date-range">----/--/-- 〜 ----/--/--</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-icon">⏱️</span>
+                        <span>総時間：</span>
+                        <span id="victory-total-time">0時間00分</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-icon">📈</span>
+                        <span>成長：</span>
+                        <span id="victory-level-change">Lv.1 → Lv.2</span>
+                    </div>
+                </div>
+                <div class="victory-rewards">
+                    <div class="rewards-title">🎁 獲得報酬</div>
+                    <div class="rewards-basic">
+                        <div class="reward-chip" data-reward="coins">
+                            <span class="reward-icon">💰</span>
+                            <span class="reward-value" id="victory-coins">+0</span>
+                        </div>
+                        <div class="reward-chip" data-reward="exp">
+                            <span class="reward-icon">⭐</span>
+                            <span class="reward-value" id="victory-exp">+0</span>
+                        </div>
+                    </div>
+
+                    <div class="rewards-special">
+                        <div class="special-item" data-reward="medal">
+                            <img id="victory-medal-icon" src="" class="medal-icon-large" alt="">
+                            <div class="special-name" id="victory-medal-name">勲章名</div>
+                        </div>
+                        <div id="victory-title-container" class="special-item" data-reward="title"
+                            style="display: none;">
+                            <img id="victory-title-icon" src="" class="medal-icon-large" alt="">
+                            <div class="special-name" id="victory-title-name">称号名</div>
+                        </div>
+                    </div>
+                </div>
+                <button id="victory-receive-btn" class="victory-button">
+                    報酬を受け取る
+                </button>
+            </div>
+            <div class="victory-effects">
+                <div class="effect-particles"></div>
+                <div class="effect-light-rays"></div>
+                <div class="effect-sparkles"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

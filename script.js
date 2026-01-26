@@ -49,9 +49,9 @@ const RANK_REWARDS = {
     'F-ERANK': { coins: 100, exp: 500, medal: "初心者の証" },
     'D-CRANK': { coins: 300, exp: 1500, medal: "努力の勲章" },
     'B-ARANK': { coins: 1000, exp: 3000, medal: "継続の証", title: "修行者" },
-    'SRANK': { coins: 3000, exp: 8000, medal: "超越の勲章", title: "求道者" },
-    'SSRANK': { coins: 8000, exp: 15000, medal: "伝説の勲章", title: "不屈の戦士" },
-    'EXRANK': { coins: 20000, exp: 30000, medal: "刻喰い征服者", title: "時の支配者", isSpecial: true }
+    'SRANK': { coins: 2000, exp: 8000, medal: "超越の勲章", title: "求道者" },
+    'SSRANK': { coins: 5000, exp: 15000, medal: "伝説の勲章", title: "不屈の戦士" },
+    'EXRANK': { coins: 10000, exp: 30000, medal: "刻喰い征服者", title: "時の支配者", isSpecial: true }
 };
 
 const MONSTER_MASTER = {
@@ -650,35 +650,41 @@ function selectMonsterForQuest() {
     updateMonsterUI();
 }
 
+let lastUpdateGrandBossData = null;
+
 function updateGrandBossUI() {
     const layer = document.getElementById('grand-boss-layer');
     if (!layer || !gameData.grandBoss) return;
 
-    layer.classList.remove('hidden');
     const { rank, monster, targetMinutes, currentDamage } = gameData.grandBoss;
 
-    // 大ボス名のラベルを更新 (2026/01/26)
+    // パフォーマンス向上：前回の更新と同じデータならスキップ (2026/01/26)
+    const currentDataKey = `${rank}-${monster.name}-${currentDamage}-${targetMinutes}`;
+    if (lastUpdateGrandBossData === currentDataKey) return;
+    lastUpdateGrandBossData = currentDataKey;
+
+    layer.classList.remove('hidden');
+
+    // 大ボス名のラベルを更新
     const label = document.querySelector('.grand-boss-label');
     if (label) {
         label.textContent = `${monster.name} 討伐までの道のり・・・`;
     }
 
-    // Set grand boss sprite
     const sprite = document.getElementById('grand-boss-sprite');
     if (sprite) {
-        sprite.src = `assets/monster/${rank}_${monster.name}.png`;
+        const expectedSrc = `assets/monster/${rank}_${monster.name}.png`;
+        if (sprite.getAttribute('src') !== expectedSrc) {
+            sprite.src = expectedSrc;
+        }
 
-        // Apply reveal effect based on progress
         const progress = Math.min(1, currentDamage / targetMinutes);
         const progressPercent = progress * 100;
 
-        // Remove all reveal classes
         sprite.classList.remove('reveal-10', 'reveal-25', 'reveal-50', 'reveal-75', 'reveal-100', 'defeated');
 
-        // Add appropriate reveal class
         if (progressPercent >= 100) {
-            sprite.classList.add('reveal-100');
-            sprite.classList.add('defeated'); // 完遂！モノクロになり昇天していく演出
+            sprite.classList.add('reveal-100', 'defeated');
         } else if (progressPercent >= 75) {
             sprite.classList.add('reveal-75');
         } else if (progressPercent >= 50) {
@@ -688,16 +694,13 @@ function updateGrandBossUI() {
         } else if (progressPercent >= 10) {
             sprite.classList.add('reveal-10');
         }
-
-
     }
 
-    // Update HP bar
-    const progress = Math.min(1, currentDamage / targetMinutes);
-    const hpPercent = (1 - progress) * 100;
-
     const fill = document.getElementById('grand-boss-hp-fill');
-    if (fill) fill.style.width = `${hpPercent}%`;
+    if (fill) {
+        const progress = Math.min(1, currentDamage / targetMinutes);
+        fill.style.width = `${(1 - progress) * 100}%`;
+    }
 
     const hpText = document.getElementById('grand-boss-hp-text');
     if (hpText) {
@@ -2991,7 +2994,11 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
                 // 4.0s: メッセージ「残り...分」（少し遅らせて表示）
                 setTimeout(() => {
                     const msg = document.getElementById('bossMessage');
-                    msg.innerHTML = `${activeBossName}にダメージを与えた！<br>大ボスの完全討伐まで あと ${remainingHP} 分...`;
+                    if (remainingHP <= 0) {
+                        msg.innerHTML = ` ついに ${activeBossName} を討伐した！！ `;
+                    } else {
+                        msg.innerHTML = `${activeBossName}にダメージを与えた！<br>大ボスの完全討伐まで あと ${remainingHP} 分...`;
+                    }
 
                     // 7.0s: 最終フェードアウト開始（たっぷり3秒見せる）
                     setTimeout(() => {
@@ -3006,13 +3013,18 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
                             gameData.currentChallenge.quest.completedMinutes += damageMinutes;
                             saveGameData();
 
-                            // 既存の報酬画面を表示 (レベルアップがあった場合は先に表示)
-                            if (levelUpInfo) {
-                                handleDeferredLevelUp(levelUpInfo, () => {
-                                    showQuestResult(damageMinutes, isComplete, earnedCoins);
-                                });
+                            if (remainingHP <= 0) {
+                                // 🏆 大ボス討伐成功！
+                                showVictoryScreen(gameData.currentSubject);
                             } else {
-                                showQuestResult(damageMinutes, isComplete, earnedCoins);
+                                // 通常の報酬画面を表示 (レベルアップがあった場合は先に表示)
+                                if (levelUpInfo) {
+                                    handleDeferredLevelUp(levelUpInfo, () => {
+                                        showQuestResult(damageMinutes, isComplete, earnedCoins);
+                                    });
+                                } else {
+                                    showQuestResult(damageMinutes, isComplete, earnedCoins);
+                                }
                             }
                         }, 1500);  // フェード完了待機を延長
                     }, 3000);
@@ -3021,6 +3033,141 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
         }, 1000);
     }, 500);
 }
+
+/**
+ * 🏆 討伐成功画面を表示 (Grand Boss Defeat)
+ */
+function showVictoryScreen(chapterName) {
+    const chapterData = gameData.chapters[chapterName];
+    if (!chapterData) return;
+
+    const rank = chapterData.bossRank;
+    const rewards = RANK_REWARDS[rank];
+    const screen = document.getElementById('victory-screen');
+    const content = screen.querySelector('.victory-content');
+
+    // ランク設定 (E, C, A, S, SS, EX に正規化)
+    let rankCode = 'E';
+    if (rank === 'EXRANK') rankCode = 'EX';
+    else if (rank === 'SSRANK') rankCode = 'SS';
+    else if (rank === 'SRANK') rankCode = 'S';
+    else if (rank === 'B-ARANK') rankCode = 'A';
+    else if (rank === 'D-CRANK') rankCode = 'C';
+    content.setAttribute('data-rank', rankCode);
+
+    // タイトル
+    let title = "🏆 討伐完了！";
+    if (rankCode === 'EX') title = "🌟 伝説の討伐 🌟";
+    else if (rankCode === 'SS') title = "👑 伝説の討伐！👑";
+    else if (rankCode === 'S') title = "⭐ 見事な討伐！⭐";
+    else if (rankCode === 'A') title = "✨ 討伐成功！✨";
+    screen.querySelector('.title-text').textContent = title;
+
+    // ボス画像
+    document.getElementById('victory-boss-image').src = `assets/monster/${rank}_${chapterData.boss}.png`;
+    document.getElementById('victory-boss-name-text').textContent = chapterData.boss;
+
+    // 統計
+    const startDate = chapterData.startDate ? new Date(chapterData.startDate) : new Date();
+    const endDate = new Date();
+    const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    document.getElementById('victory-date-range').textContent = `${formatDate(startDate)} 〜 ${formatDate(endDate)}`;
+
+    const h = Math.floor(chapterData.completedMinutes / 60);
+    const m = chapterData.completedMinutes % 60;
+    document.getElementById('victory-total-time').textContent = `${h}時間${String(m).padStart(2, '0')}分`;
+
+    // 報酬設定
+    document.getElementById('victory-coins').textContent = `+${rewards.coins}`;
+    document.getElementById('victory-exp').textContent = `+${rewards.exp}`;
+
+    // 勲章画像
+    document.getElementById('victory-medal-icon').src = `assets/medals/${rewards.medal}.png`;
+    document.getElementById('victory-medal-name').textContent = rewards.medal;
+
+    // 称号設定
+    const titleContainer = document.getElementById('victory-title-container');
+    if (rewards.title) {
+        titleContainer.style.display = 'flex';
+        document.getElementById('victory-title-name').textContent = rewards.title;
+        // 称号ファイル名のマッピング (assets/titles/)
+        let titleFileName = `${rank}＿${rewards.title}.png`; // 基本はこれ
+        if (rank === 'B-ARANK') titleFileName = `B-ARANK_修行者.png`;
+        if (rank === 'EXRANK') titleFileName = `EXRANK＿刻の支配者.png`;
+        document.getElementById('victory-title-icon').src = `assets/titles/${titleFileName}`;
+    } else {
+        titleContainer.style.display = 'none';
+    }
+
+    // レベル変化
+    const player = gameData.player;
+    const oldLevel = player.level;
+    // 仮計算（報酬加算後）
+    let tempExp = player.exp + rewards.exp;
+    let tempLevel = oldLevel;
+    while (LEVEL_TABLE[tempLevel + 1] && tempExp >= LEVEL_TABLE[tempLevel + 1]) {
+        tempLevel++;
+    }
+    document.getElementById('victory-level-change').textContent = `Lv.${oldLevel} → Lv.${tempLevel}`;
+
+    // 画面表示
+    screen.style.display = 'flex';
+    screen.classList.remove('hidden');
+
+    // 報酬受け取りボタンのイベント設定（上書きで確実に！）
+    const receiveBtn = document.getElementById('victory-receive-btn');
+    receiveBtn.onclick = null; // 一旦クリア
+    receiveBtn.onclick = () => {
+        if (receiveBtn.classList.contains('clicked')) return;
+
+        // 1. 演出開始
+        receiveBtn.classList.add('clicked');
+        receiveBtn.textContent = '✨ 受け取り中... ✨';
+
+        // 祝福アニメーション発動
+        if (typeof startCelebrationAnimation === 'function') {
+            startCelebrationAnimation();
+        }
+
+        // 7.0秒待ってから実際に報酬を付与して閉じる（最強にゆっくり）
+        setTimeout(() => {
+            // 2. データの反映
+            player.coins += rewards.coins;
+            player.exp += rewards.exp;
+            if (!player.medals.includes(rewards.medal)) player.medals.push(rewards.medal);
+            if (rewards.title && !player.titles.includes(rewards.title)) player.titles.push(rewards.title);
+            chapterData.completedDate = new Date().toISOString();
+
+            // 3. レベルアップ判定
+            const levelUpInfo = checkLevelUp(oldLevel);
+
+            // 4. データ保存
+            saveGameData();
+
+            // 5. 画面終了（CSSの2秒フェードに合わせてゆっくり消す）
+            screen.classList.add('hidden');
+            setTimeout(() => {
+                screen.style.display = 'none';
+                receiveBtn.classList.remove('clicked');
+                receiveBtn.textContent = '報酬を受け取る';
+                screen.classList.remove('hidden'); // 次回表示のために戻す
+                screen.style.opacity = '1';
+            }, 2500);
+
+            // 6. 遷移
+            if (levelUpInfo) {
+                handleDeferredLevelUp(levelUpInfo, () => {
+                    showScreen('home-screen');
+                    updateHomeScreen();
+                });
+            } else {
+                showScreen('home-screen');
+                updateHomeScreen();
+            }
+        }, 7000);
+    };
+}
+window.showVictoryScreen = showVictoryScreen;
 
 // --- 消しゴムのカス（努力の証）出現チェック ---
 function checkAndAwardEraserDust() {
@@ -4806,4 +4953,170 @@ function executeTimerRepair() {
 
     // 完了報告
     showMessageModal("✨ 修復完了", "時の魔法を　かけなおしました！<br>もういちど　試練に挑んでみてください。");
+}
+// ========================================
+// 報酬受け取りボタンのスペシャルアニメーション
+// ========================================
+
+function setupVictoryButton() {
+    const button = document.getElementById('victory-receive-btn');
+
+    button.addEventListener('click', function (e) {
+        // ボタンを押せないようにする
+        if (button.classList.contains('clicked')) return;
+
+        // クリック演出開始
+        button.classList.add('clicked');
+        button.textContent = '✨ 受け取り中... ✨';
+
+        // スペシャルアニメーション開始
+        startCelebrationAnimation();
+
+        // 1.5秒後に実際の処理を実行
+        setTimeout(() => {
+            receiveRewards();
+            closeVictoryScreen();
+        }, 1500);
+    });
+}
+
+// ========================================
+// 祝福アニメーションの生成
+// ========================================
+
+function startCelebrationAnimation() {
+    // 祝福エフェクトコンテナを作成
+    const celebration = document.createElement('div');
+    celebration.className = 'victory-celebration active';
+    document.body.appendChild(celebration);
+
+    // 1. レインボーフラッシュ
+    createRainbowFlash(celebration);
+
+    // 2. 成功メッセージ
+    createSuccessMessage(celebration);
+
+    // 3. 光の波（3回）
+    setTimeout(() => createLightWave(celebration), 0);
+    setTimeout(() => createLightWave(celebration), 300);
+    setTimeout(() => createLightWave(celebration), 600);
+
+    // 4. 花火（複数）
+    for (let i = 0; i < 8; i++) {
+        setTimeout(() => createFirework(celebration), i * 150);
+    }
+
+    // 5. 紙吹雪（大量）
+    for (let i = 0; i < 50; i++) {
+        setTimeout(() => createConfetti(celebration), i * 30);
+    }
+
+    // 6. キラキラ星
+    for (let i = 0; i < 20; i++) {
+        setTimeout(() => createSparkle(celebration), i * 80);
+    }
+
+    // 20秒後に完全にクリーンアップ（余韻を最長に）
+    setTimeout(() => {
+        celebration.remove();
+    }, 20000);
+}
+window.startCelebrationAnimation = startCelebrationAnimation;
+
+// レインボーフラッシュ
+function createRainbowFlash(container) {
+    const flash = document.createElement('div');
+    flash.className = 'rainbow-flash active';
+    container.appendChild(flash);
+
+    setTimeout(() => {
+        flash.classList.remove('active');
+    }, 1500);
+}
+
+// 成功メッセージ
+function createSuccessMessage(container) {
+    const message = document.createElement('div');
+    message.className = 'success-message';
+    message.textContent = ' GET! ';
+    container.appendChild(message);
+}
+
+// 光の波
+function createLightWave(container) {
+    const wave = document.createElement('div');
+    wave.className = 'light-wave';
+    container.appendChild(wave);
+
+    setTimeout(() => wave.remove(), 1500);
+}
+
+// 花火
+function createFirework(container) {
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight * 0.6;
+
+    // 花火の中心
+    const center = document.createElement('div');
+    center.style.position = 'absolute';
+    center.style.left = x + 'px';
+    center.style.top = y + 'px';
+    container.appendChild(center);
+
+    // 花火の粒子（30個）
+    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#95E1D3', '#F38181'];
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'firework';
+
+        const angle = (Math.PI * 2 * i) / 30;
+        const distance = 50 + Math.random() * 100;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.animationDelay = Math.random() * 0.2 + 's';
+
+        center.appendChild(particle);
+    }
+
+    setTimeout(() => center.remove(), 1000);
+}
+
+// 紙吹雪
+function createConfetti(container) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+
+    const x = Math.random() * window.innerWidth;
+    confetti.style.left = x + 'px';
+    confetti.style.top = '-10px';
+
+    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#95E1D3', '#F38181', '#A8E6CF'];
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+    confetti.style.animationDuration = (12 + Math.random() * 8) + 's'; // 12〜20秒かけて超ゆっくり落下
+
+    container.appendChild(confetti);
+
+    setTimeout(() => confetti.remove(), 20000); // 20秒間生存
+}
+
+// キラキラ星
+function createSparkle(container) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.textContent = '✨';
+
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+    sparkle.style.left = x + 'px';
+    sparkle.style.top = y + 'px';
+    sparkle.style.animationDelay = Math.random() * 0.5 + 's';
+
+    container.appendChild(sparkle);
+
+    setTimeout(() => sparkle.remove(), 5000); // キラキラを5秒間残す
 }
