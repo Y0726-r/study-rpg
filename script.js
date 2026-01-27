@@ -542,27 +542,28 @@ function selectMonsterForQuest() {
         if (grandMonster) {
             console.log(`🏰 クエストの主「${grandMonster.name}」を配置しました`);
         }
-    }
+        // まだボスが未定の場合（初回のクエスト開始時など）のみ新規抽選を行う
+        if (!grandMonster) {
+            // 1. 目標時間に基づいた「正しい」ボス情報を selectBoss から取得
+            const bossInfo = selectBoss(questTarget);
 
-    // まだボスが未定の場合（初回のクエスト開始時など）のみ新規抽選を行う
-    if (!grandMonster) {
-        if (questTarget >= 6000) grandRank = 'EXRANK';
-        else if (questTarget >= 4800) grandRank = 'SSRANK';
-        else if (questTarget >= 3000) grandRank = 'SRANK';
-        else if (questTarget >= 1800) grandRank = 'B-ARANK';
-        else if (questTarget >= 600) grandRank = 'D-CRANK';
+            // 2. MONSTER_MASTERから正しいモンスターデータを取得
+            const grandPool = MONSTER_MASTER[bossInfo.rank] || MONSTER_MASTER['F-ERANK'];
+            grandMonster = grandPool.find(m => m.name === bossInfo.name) || grandPool[0];
 
-        const grandPool = MONSTER_MASTER[grandRank] || MONSTER_MASTER['F-ERANK'];
-        grandMonster = grandPool[Math.floor(Math.random() * grandPool.length)];
-        console.log(`📜 このクエストの主を${grandMonster.name}に任命しました`);
+            console.log(`📜 このクエストの主を${grandMonster.name}に任命しました`);
 
-        // 未作成の場合は命名式で作成されるはずだが、ここでは安全に同期
-        if (gameData.chapters && gameData.chapters[currentSubject]) {
-            gameData.chapters[currentSubject].boss = grandMonster.name;
-            gameData.chapters[currentSubject].bossRank = grandRank;
-            gameData.chapters[currentSubject].bossImage = `assets/monster/${grandRank}_${grandMonster.name}.png`;
+            // 3. 章データ（chapters）を更新
+            if (gameData.chapters && gameData.chapters[currentSubject]) {
+                gameData.chapters[currentSubject].boss = bossInfo.name;
+                gameData.chapters[currentSubject].bossRank = bossInfo.rank;
+                gameData.chapters[currentSubject].bossImage = bossInfo.image; // selectBossの正しいパスを使う
+            }
         }
     }
+
+
+
 
     // gameData.grandBoss に「今戦っている大ボス」の情報を完全に固定
     gameData.grandBoss = {
