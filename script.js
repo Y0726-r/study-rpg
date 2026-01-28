@@ -156,12 +156,12 @@ function selectBoss(targetMinutes) {
 
     // selectMonsterForQuest とランク判定を統一 (2026/01/26)
     const bossTable = [
-        { maxHours: 10, name: "刻蝕のヒトガタ", rank: "F〜E", image: "assets/monster/F-ERANK_刻蝕のヒトガタ.png" },
-        { maxHours: 30, name: "怠惰のエテイン", rank: "D〜C", image: "assets/monster/D-CRANK_怠惰のエテイン.png" },
-        { maxHours: 50, name: "進捗断ちの番犬フェンリル", rank: "B〜A", image: "assets/monster/B-ARANK_進捗断ちの番犬フェンリル.png" },
-        { maxHours: 80, name: "時廻竜アークバーン", rank: "S", image: "assets/monster/SRANK_時廻竜アークバーン.png" },
-        { maxHours: 100, name: "刻喰い皇妃メリアノス", rank: "SS", image: "assets/monster/SSRANK_刻喰い皇妃メリアノス.png" },
-        { maxHours: Infinity, name: "刻喰い王ゼロ＝クロノス", rank: "EX", image: "assets/monster/EXRANK_刻喰い王ゼロ＝クロノス.png" }
+        { maxHours: 10, name: "刻蝕のヒトガタ", rank: "F-ERANK", image: "assets/monster/F-ERANK_刻蝕のヒトガタ.png" },
+        { maxHours: 30, name: "怠惰のエテイン", rank: "D-CRANK", image: "assets/monster/D-CRANK_怠惰のエテイン.png" },
+        { maxHours: 50, name: "進捗断ちの番犬フェンリル", rank: "B-ARANK", image: "assets/monster/B-ARANK_進捗断ちの番犬フェンリル.png" },
+        { maxHours: 80, name: "時廻竜アークバーン", rank: "SRANK", image: "assets/monster/SRANK_時廻竜アークバーン.png" },
+        { maxHours: 100, name: "刻喰い皇妃メリアノス", rank: "SSRANK", image: "assets/monster/SSRANK_刻喰い皇妃メリアノス.png" },
+        { maxHours: Infinity, name: "刻喰い王ゼロ＝クロノス", rank: "EXRANK", image: "assets/monster/EXRANK_刻喰い王ゼロ＝クロノス.png" }
     ];
 
     for (let boss of bossTable) {
@@ -547,11 +547,11 @@ function selectMonsterForQuest() {
             // 1. 目標時間に基づいた「正しい」ボス情報を selectBoss から取得
             const bossInfo = selectBoss(questTarget);
 
-            // 2. MONSTER_MASTERから正しいモンスターデータを取得
-            const grandPool = MONSTER_MASTER[bossInfo.rank] || MONSTER_MASTER['F-ERANK'];
+            grandRank = bossInfo.rank;
+            const grandPool = MONSTER_MASTER[grandRank] || MONSTER_MASTER['F-ERANK'];
             grandMonster = grandPool.find(m => m.name === bossInfo.name) || grandPool[0];
 
-            console.log(`📜 このクエストの主を${grandMonster.name}に任命しました`);
+            console.log(`📜 このクエストの主を${grandMonster.name}（${grandRank}）に任命しました`);
 
             // 3. 章データ（chapters）を更新
             if (gameData.chapters && gameData.chapters[currentSubject]) {
@@ -2367,20 +2367,31 @@ function showBossIntroScreen(chapterName) {
 
     // ボス画像
     const bossImage = document.getElementById('boss-intro-image');
-    bossImage.src = activeGrand ? `assets/monster/${bossRank}_${bossName}.png` : chapterData.bossImage;
+    // 修正：ランク名とボス名を繋いで画像パスを生成（ファイルの実態に合わせて半角アンダースコアを使用）
+    bossImage.src = `assets/monster/${bossRank}_${bossName}.png`;
     bossImage.alt = bossName;
 
     // ボス名・ランク
     document.getElementById('boss-intro-name').textContent = bossName;
     document.getElementById('boss-intro-rank').textContent = `（${bossRank} ランク）`;
+    // 🔴 みつきさんの手で書き換え！
+    // 目標が10時間なら targetMin は 600 である必要があります
+    const realTargetMin = 600; // 10時間を固定(600分)
+    const realCompletedMin = gameData.grandBoss ? gameData.grandBoss.currentDamage : 0;
 
-    // 進捗情報 (分を時間に変換)
-    const targetHours = Math.floor(targetMin / 60);
-    const completedHours = Math.floor(currentDamage / 60);
-    const progressPercent = Math.floor((currentDamage / targetMin) * 100);
+    const targetHours = Math.floor(realTargetMin / 60);
+    const completedHours = Math.floor(realCompletedMin / 60);
+    const completedMins = Math.floor(realCompletedMin % 60);
+
+    // パーセントが100%を超えないようにガード
+    const progressPercent = Math.min(100, Math.floor((realCompletedMin / realTargetMin) * 100));
 
     document.getElementById('boss-intro-target-time').textContent = `${targetHours}時間`;
-    document.getElementById('boss-intro-completed-time').textContent = `${completedHours}時間`;
+    document.getElementById('boss-intro-completed-time').textContent = `${completedHours}時間${completedMins}分`;
+    document.getElementById('boss-intro-progress-percent').textContent = `${progressPercent}%`;
+
+    document.getElementById('boss-intro-target-time').textContent = `${targetHours}時間`;
+    document.getElementById('boss-intro-completed-time').textContent = `${completedHours}時間${completedMins}分`;
     document.getElementById('boss-intro-total-time').textContent = `${targetHours}時間`;
     document.getElementById('boss-intro-progress-percent').textContent = `${progressPercent}%`;
 
@@ -2602,9 +2613,16 @@ function stopTimer(forcedComplete) {
     // 少しディレイを置いてリザルトを表示
     setTimeout(() => {
         if (elapsedSecondsInSession >= 60) {
+            // ① まず計算だけ行う
             saveStudySession(elapsedSecondsInSession, isComplete);
+
+            // ② 【ここが重要】ホームに戻らず、大ボスの演出画面だけを呼び出す
+            // アンチが作った演出用関数名を確認してください（おそらくこれです）
+            if (typeof showBossDamageAnimation === 'function') {
+                showBossDamageAnimation(Math.floor(elapsedSecondsInSession / 60), isComplete);
+            }
         } else {
-            // 1分未満で終了した場合も後片付けだけする
+            // 1分未満の時は演出なしでホームに戻る
             finishStudySessionCleanUp();
         }
     }, 1500);
@@ -2649,7 +2667,15 @@ function finishStudySessionCleanUp() {
     // ホーム画面に戻る
     showScreen('home-screen');
     updateHomeScreen();
+
+    // 🔴 追伸：大ボスの演出画面が残っていたら確実に消す
+    const bossScreen = document.getElementById('bossDamageScreen');
+    if (bossScreen) {
+        bossScreen.style.display = 'none';
+        bossScreen.classList.remove('active');
+    }
 }
+window.finishStudySessionCleanUp = finishStudySessionCleanUp;
 
 
 
@@ -2781,7 +2807,7 @@ function saveStudySession(actualSeconds, isComplete = false) {
     updateLogScreen();
 
     // 最後にデータクリアなどの終了処理
-    finishStudySessionCleanUp();
+    //finishStudySessionCleanUp();//
 }
 
 function showQuestResult(minutes, isComplete, earnedCoins = 0) {
@@ -2846,7 +2872,7 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0) {
     }
 
     html += `
-            <button class="settings-btn" style="position:static; transform:none; margin-top:25px; padding:10px 40px;" onclick="closeMessageModal()">里へもどる</button>
+            <button class="settings-btn" style="position:static; transform:none; margin-top:25px; padding:10px 40px;" onclick="finishStudySessionCleanUp(); closeMessageModal();">里へもどる</button>
         </div>
     `;
 
@@ -2898,6 +2924,13 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
         return;
     }
 
+    // 🔴 チラつき防止：修行画面をここで即・非表示にする
+    const studyScreen = document.getElementById('study-screen');
+    if (studyScreen) {
+        studyScreen.style.display = 'none';
+        studyScreen.classList.remove('active');
+    }
+
     // 念のため hidden クラスを削除
     screen.classList.remove('hidden');
 
@@ -2915,43 +2948,50 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
         return;
     }
 
-    const maxHP = quest.targetMinutes || 60;
-    const currentHP = quest.currentDamage !== undefined ? quest.currentDamage : (quest.completedMinutes || 0);
-    const remainingHP = Math.max(0, maxHP - (currentHP + damageMinutes));
+    const chapterData = gameData.chapters[gameData.currentSubject];
 
-    // 🔴 修正：演出画面に出すのは「今日倒した雑魚」ではなく「クエストの大ボス」に完全固定
+    // --- 🔴 修正1：10時間(600分)の壁を正しくセット ---
+    const maxHP = 600;
+
+    // 現在の累計ダメージを安全に取得
+    const realTotal = gameData.grandBoss ? gameData.grandBoss.currentDamage : (chapterData ? chapterData.completedMinutes : 0);
+
+    // ダメージを受ける「前」の残りHP（ここからゲージを動かします）
+    const hpBeforeDamage = maxHP - (realTotal - damageMinutes);
+    // ダメージを受けた「後」の本当の残りHP
+    const remainingHP = Math.max(0, maxHP - realTotal);
+
+    // --- 🔴 修正2：大ボスの情報を「ヒトガタ」に固定 ---
     const grandBoss = gameData.grandBoss;
-    let activeBossName = "大ボス";
+    let activeBossName = "刻蝕のヒトガタ"; // 10時間ボスの名前
+    let bossImagePath = "assets/monster/F-ERANK_刻蝕のヒトガタ.png";
 
-    if (!grandBoss) {
-        console.error("❌ showBossDamageAnimation: 大ボスのデータがありません！");
-        // 最悪の事態のフォールバック
-        const fallbackName = "刻喰い王ゼロ＝クロノス";
-        activeBossName = fallbackName;
-        document.getElementById('bossDisplayImage').src = 'assets/monster/EXRANK_刻喰い王ゼロ＝クロノス.png';
-        if (document.getElementById('bossNameLarge')) document.getElementById('bossNameLarge').textContent = fallbackName;
-    } else {
-        const { rank, monster } = grandBoss;
-        const bossImg = document.getElementById('bossDisplayImage');
-        const bossNameEl = document.getElementById('bossNameLarge');
-
-        activeBossName = monster.name;
-        bossImg.src = `assets/monster/${rank}_${monster.name}.png`;
-        if (bossNameEl) bossNameEl.textContent = monster.name;
-
-        console.log(`💥 演出開始：大ボス「${monster.name}」へのダメージを描写します`);
+    if (grandBoss && grandBoss.monster) {
+        activeBossName = grandBoss.monster.name;
+        bossImagePath = `assets/monster/${grandBoss.rank}_${grandBoss.monster.name}.png`;
     }
 
+    // 画面への反映
     const bossImg = document.getElementById('bossDisplayImage');
     const bossNameEl = document.getElementById('bossNameLarge');
-    bossImg.onerror = () => {
-        bossImg.src = 'assets/bosses/zero_chronos.png';
-    };
 
-    // 1. 初期表示セット
+    if (bossNameEl) bossNameEl.textContent = activeBossName;
+    if (bossImg) {
+        bossImg.src = bossImagePath;
+        bossImg.onerror = () => { bossImg.src = 'assets/monster/F-ERANK_刻蝕のヒトガタ.png'; };
+    }
+
+    console.log(`💥 演出開始：大ボス「${activeBossName}」へのダメージを描写します。HP: ${hpBeforeDamage} -> ${remainingHP}`);
+
+    // 1. 初期表示セット（ダメージ前の状態をセット）
     document.getElementById('bossMaxHP').textContent = maxHP;
-    document.getElementById('bossCurrentHP').textContent = maxHP - currentHP;
-    document.getElementById('bossHPBarFill').style.width = `${((maxHP - currentHP) / maxHP) * 100}%`;
+
+    // ★ここを追加！ 数字を「ダメージを食らう前」の数値にします
+    document.getElementById('bossCurrentHP').textContent = hpBeforeDamage;
+
+    // ゲージも「ダメージを食らう前」の長さにセット
+    document.getElementById('bossHPBarFill').style.width = `${(hpBeforeDamage / maxHP) * 100}%`;
+
     document.getElementById('damageDisplay').style.display = 'none';
     document.getElementById('bossMessage').textContent = "";
 
@@ -3001,34 +3041,26 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
                         msg.innerHTML = `${activeBossName}にダメージを与えた！<br>大ボスの完全討伐まで あと ${remainingHP} 分...`;
                     }
 
-                    // 7.0s: 最終フェードアウト開始（たっぷり3秒見せる）
+                    // --- モーダル・リザルト表示へ移行 ---
+                    // 🔴 フェードアウトを廃止し、この背景のまま結果を表示します
                     setTimeout(() => {
-                        screen.style.transition = 'opacity 1.5s';
-                        screen.style.opacity = '0';
+                        // データを保存（完了分を加算）
+                        gameData.currentChallenge.quest.completedMinutes += damageMinutes;
+                        saveGameData();
 
-                        // 8.5s: 画面非表示・次へ
-                        setTimeout(() => {
-                            screen.style.display = 'none';
-                            screen.classList.remove('active');
-
-                            gameData.currentChallenge.quest.completedMinutes += damageMinutes;
-                            saveGameData();
-
-                            if (remainingHP <= 0) {
-                                // 🏆 大ボス討伐成功！
-                                showVictoryScreen(gameData.currentSubject);
-                            } else {
-                                // 通常の報酬画面を表示 (レベルアップがあった場合は先に表示)
-                                if (levelUpInfo) {
-                                    handleDeferredLevelUp(levelUpInfo, () => {
-                                        showQuestResult(damageMinutes, isComplete, earnedCoins);
-                                    });
-                                } else {
+                        // 次の画面（報酬または討伐成功）へ直接移動
+                        if (remainingHP <= 0) {
+                            showVictoryScreen(gameData.currentSubject);
+                        } else {
+                            if (levelUpInfo) {
+                                handleDeferredLevelUp(levelUpInfo, () => {
                                     showQuestResult(damageMinutes, isComplete, earnedCoins);
-                                }
+                                });
+                            } else {
+                                showQuestResult(damageMinutes, isComplete, earnedCoins);
                             }
-                        }, 1500);  // フェード完了待機を延長
-                    }, 3000);
+                        }
+                    }, 2000); // メッセージを読ませるための余韻
                 }, 1000);
             }, 1000);
         }, 1000);
@@ -3064,10 +3096,17 @@ function showVictoryScreen(chapterName) {
     else if (rankCode === 'A') title = "✨ 討伐成功！✨";
     screen.querySelector('.title-text').textContent = title;
 
-    // ボス画像
-    document.getElementById('victory-boss-image').src = `assets/monster/${rank}_${chapterData.boss}.png`;
-    document.getElementById('victory-boss-name-text').textContent = chapterData.boss;
-
+    // ボス画像（今戦っていた大ボスのデータを直接使う）
+    const activeGrandBoss = gameData.grandBoss;
+    if (activeGrandBoss) {
+        // rank（EXRANKなど）と名前をガッチャンコして正しいファイル名にする
+        document.getElementById('victory-boss-image').src = `assets/monster/${activeGrandBoss.rank}_${activeGrandBoss.monster.name}.png`;
+        document.getElementById('victory-boss-name-text').textContent = activeGrandBoss.monster.name;
+    } else {
+        // もしデータが取れなかった時のための予備（元のコード）
+        document.getElementById('victory-boss-image').src = `assets/monster/${rank}_${chapterData.boss}.png`;
+        document.getElementById('victory-boss-name-text').textContent = chapterData.boss;
+    }
     // 統計
     const startDate = chapterData.startDate ? new Date(chapterData.startDate) : new Date();
     const endDate = new Date();
@@ -3158,12 +3197,20 @@ function showVictoryScreen(chapterName) {
             // 6. 遷移
             if (levelUpInfo) {
                 handleDeferredLevelUp(levelUpInfo, () => {
-                    showScreen('home-screen');
-                    updateHomeScreen();
+                    if (window.finishStudySessionCleanUp) {
+                        window.finishStudySessionCleanUp();
+                    } else {
+                        showScreen('home-screen');
+                        updateHomeScreen();
+                    }
                 });
             } else {
-                showScreen('home-screen');
-                updateHomeScreen();
+                if (window.finishStudySessionCleanUp) {
+                    window.finishStudySessionCleanUp();
+                } else {
+                    showScreen('home-screen');
+                    updateHomeScreen();
+                }
             }
         }, 7000);
     };
