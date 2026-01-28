@@ -1060,7 +1060,7 @@ const LEVEL_TABLE = {};
 
 const ITEM_CONFIG = {
     folder: "./assets/item/gacha_items/",
-    maxCapacity: 50
+    maxCapacity: 100
 };
 
 /**
@@ -1089,6 +1089,12 @@ const ITEM_MASTER = [
     { id: 16, name: "消しゴムのカス", rarity: 3, file: "eraser_dust.png", type: "consumable", useMessage: "これは君の努力の結晶だ。試験合格へ一歩近づいたよ！", description: "沢山の勉強を積み重ねた証。光り輝いている。", effects: { focus: 50, intellect: 50, strength: 50 } },
     { id: 17, name: "使い古したノート", rarity: 1, file: "使い古したノート.png", type: "consumable", useMessage: "これまでの努力が思い出される…よし、もう一踏ん張り！", description: "読み返すとやる気が湧いてくる。" },
     { id: 31, name: "布のズボン", rarity: 1, file: "布ズボン.png", type: "legs", effects: { strength: 2 }, description: "素朴で動きやすい旅人用ズボン。まずは“続ける力”を支えてくれる。", equipMessage: "布のズボンを装着した。準備完了。さあ、クエスト（勉強）に出発だ。", visuals: { x: 10, y: 35, width: 97 }, equipImage: "assets/item/gacha_equipment/布ズボン.png" },
+    { id: 40, name: "麦わら帽子", rarity: 1, file: "麦わら帽子.png", type: "head", effects: { strength: 2 }, description: "日差しから頭を守る。集中力が途切れにくい。", equipMessage: "麦わら帽子を被った。涼しくて快適だ！", iconSize: "240%", visuals: { x: 0, y: -20, scale: 10 } },
+    { id: 41, name: "木の杖", rarity: 1, file: "木の杖.png", type: "weapon", effects: { intellect: 2 }, description: "初心者魔法使いの相棒。", equipMessage: "木の杖を握った。魔力が少し感じられる。", iconSize: "240%", },
+    { id: 42, name: "旅人のマント", rarity: 1, file: "旅人のマント.png", type: "armor", effects: { focus: 2 }, description: "長旅に耐える丈夫なマント。", equipMessage: "旅人のマントを羽織った。冒険の準備は万全だ！", iconSize: "240%", visuals: { x: 0, y: 0, scale: 0.5 }, equipImage: "assets/item/gacha_equipment/旅人のマント.png" },
+    { id: 43, name: "おにぎり", rarity: 1, file: "おにぎり.png", type: "consumable", useMessage: "お腹いっぱい！", description: "シンプルだけど最高の一品。" },
+    { id: 44, name: "野菜スープ", rarity: 1, file: "野菜スープ.png", type: "consumable", useMessage: "体が温まった！栄養満点だ！", description: "母の味。疲れが癒える。" },
+
 
     // ★2 (Rarity 2)
     { id: 6, name: "鋼の剣", rarity: 2, file: "鋼の剣.png", type: "weapon", effects: { focus: 10 }, description: "鋭い切れ味で課題を切り裂く。", equipMessage: "鋼の剣を装備した。重厚な刃が心強い！", visuals: { x: 45, y: 10, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/鋼の剣.png" },
@@ -1104,6 +1110,8 @@ const ITEM_MASTER = [
     { id: 24, name: "静寂の耳栓", rarity: 2, file: "静寂の耳栓.png", type: "consumable", effects: { focus: 20 }, description: "周りの音が聞こえなくなる魔法の耳栓。", useMessage: "静寂の耳栓を装着。深い没入状態に入った...世界が静まり返る。", specialEffect: "silence" },
     { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "幸運のコインを使った！", description: "ガチャ運が上がるという噂がある。" },
     { id: 32, name: "革のズボン", rarity: 2, file: "革ズボン.png", type: "legs", effects: { strength: 8 }, description: "擦れに強い革製。足元が安定して、集中が途切れにくくなる。", equipMessage: "革のズボンを装着した。足さばきが良い…安定して集中できる。", visuals: { x: 6, y: 37, width: 97 }, equipImage: "assets/item/gacha_equipment/革ズボン.png" },
+    { id: 50, name: "銀の腕輪", rarity: 2, file: "銀の腕輪.png", type: "accessory", effects: { intellect: 5, focus: 5 }, description: "魔力を増幅させる腕輪。", equipMessage: "銀の腕輪を装着した。魔力が高まる！", visuals: { x: -14, y: 26, scale: 0.2 }, equipImage: "assets/item/gacha_equipment/銀の腕輪.png" },
+    { id: 51, name: "魔導書の断章", rarity: 2, file: "magic_scroll.png", type: "consumable", effects: { intellect: 15 }, description: "古代魔法の一部が記された巻物。", useMessage: "魔導書の断章を読んだ！未知の魔法が頭に刻まれた！" },
 
     // ★3 (Rarity 3)
     { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！", visuals: { x: 44, y: 9, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/伝説の剣.png" },
@@ -1113,7 +1121,8 @@ const ITEM_MASTER = [
     { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "consumable", effects: { intellect: 100 }, description: "まるで光を纏っているような服。一度袖を通せば、聖なる知恵が魂に刻まれる。", useMessage: "聖なる光に包まれた…！知力が永続的に上昇した！" },
     { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 7, y: -4, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/全知の眼鏡.png" },
     { id: 30, name: "虹色の鱗", rarity: 3, file: "rainbow.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" },
-    { id: 33, name: "竜鱗の脚当て（金縁）", rarity: 3, file: "竜鱗の脚当て.png", type: "legs", effects: { strength: 40, focus: 20 }, description: "竜の鱗を編み上げた脚当て。揺るがない集中と、伝説級の格を与える。", equipMessage: "竜鱗の脚当てを装着した。伝説の装備だ。ここからが本番。", visuals: { x: 8, y: 40, width: 98 }, equipImage: "assets/item/gacha_equipment/竜鱗の脚当て.png" }
+    { id: 33, name: "竜鱗の脚当て（金縁）", rarity: 3, file: "竜鱗の脚当て.png", type: "legs", effects: { strength: 40, focus: 20 }, description: "竜の鱗を編み上げた脚当て。揺るがない集中と、伝説級の格を与える。", equipMessage: "竜鱗の脚当てを装着した。伝説の装備だ。ここからが本番。", visuals: { x: 8, y: 40, width: 98 }, equipImage: "assets/item/gacha_equipment/竜鱗の脚当て.png" },
+    { id: 60, name: "賢者のローブ", rarity: 3, file: "賢者のローブ.png", type: "armor", effects: { intellect: 40, focus: 20 }, description: "知恵を極めし者が纏う神秘の衣。", equipMessage: "賢者のローブを纏った。叡智が体を巡る！", visuals: { x: -2, y: 0, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/賢者のローブ.png" },
 ];
 
 /**
@@ -1126,7 +1135,8 @@ function getItemSpriteStyle(item) {
 
     // CSS側で背景サイズを細かく調整できるように、URLのみを返す形にシンプル化
     return {
-        backgroundImage: `url('${fullPath}')`
+        backgroundImage: `url('${fullPath}')`,
+        backgroundSize: item.iconSize || 'contain' // ★ここを追加！
     };
 }
 
@@ -1168,6 +1178,33 @@ window.addCoins = function (amount = 1000) {
 };
 
 /**
+ * デバッグ用：指定したIDのアイテムを強制的に取得して演出を確認する
+ * コンソールで testItem(40) のように実行
+ */
+window.testItem = function (id) {
+    const item = ITEM_MASTER.find(it => it.id === id);
+    if (!item) {
+        console.error(`❌ ID:${id} のアイテムが見つかりません`);
+        return;
+    }
+    console.log(`🎁 Testing item: ${item.name} (ID: ${id})`);
+
+    // インベントリに追加
+    addItemToInventory(item);
+    saveGameData();
+
+    // ガチャ演出を開始
+    if (typeof playGachaAnimation === 'function') {
+        playGachaAnimation(item);
+    } else {
+        showGachaResult(item);
+    }
+
+    updateGachaScreen();
+    updateHomeScreen();
+};
+
+/**
  * デバッグ用：装備の配置デバッグ数値をリセットする
  * 例: resetItemVisuals(2) // 革の靴を 64x64 フルサイズ重ねにリセット
  */
@@ -1184,31 +1221,6 @@ window.resetItemVisuals = function (id) {
     console.log(`✅ Item ${id} (${item.name}) visuals reset to 64x64 overlay.`);
 };
 
-/**
- * デバッグ用：コインを消費せずにガチャを引く
- * ブラウザのコンソールで debugGacha() と入力して実行
- */
-window.debugGacha = function () {
-    console.log("🛠 Debug Gacha Pulled!");
-    const item = drawGachaItem();
-    addItemToInventory(item);
-    saveGameData();
-    showGachaResult(item);
-    updateGachaScreen();
-    updateHomeScreen();
-};
-
-/**
- * デバッグ用：コインを増やす
- * ブラウザのコンソールで addCoins(1000) と入力して実行
- */
-window.addCoins = function (amount = 1000) {
-    gameData.player.coins += amount;
-    saveGameData();
-    updateHomeScreen();
-    updateGachaScreen();
-    console.log(`💰 Added ${amount} coins!`);
-};
 
 // ========================================
 // 初期化とデータ読み込み
@@ -3515,12 +3527,16 @@ function drawGachaItem() {
     const rand = Math.random() * 100;
     let rarity;
 
-    if (rand < 60) {
-        rarity = 1; // ★1 (60%)
-    } else if (rand < 90) {
-        rarity = 2; // ★2 (30%)
+    if (rand < 50) {
+        rarity = 1; // ⭐ コモン (50%)
+    } else if (rand < 78) {
+        rarity = 2; // ⭐⭐ アンコモン (28%)
+    } else if (rand < 93) {
+        rarity = 3; // ⭐⭐⭐ レア (15%)
+    } else if (rand < 98) {
+        rarity = 4; // ⭐⭐⭐⭐ エピック (5%)
     } else {
-        rarity = 3; // ★3 (10%)
+        rarity = 5; // ⭐⭐⭐⭐⭐ レジェンド (2%)
     }
 
     // 指定レアリティのアイテムからランダム選択
@@ -3544,8 +3560,14 @@ function drawGachaItem() {
         console.log("🔓 10時間の壁突破済み: 消しゴムのカスチャンスあり");
     }
 
-    const randomItem = itemsOfRarity[Math.floor(Math.random() * itemsOfRarity.length)];
+    // ⭐ 安全装置：もしそのレアリティのアイテムがまだ登録されていない場合、
+    // まわした時にエラーにならないよう、ポーション(ID:1)などを返します
+    if (itemsOfRarity.length === 0) {
+        console.warn(`⚠️ レアリティ ${rarity} のアイテムが見つからないため、代わりにコモンを排出します`);
+        return ITEM_MASTER.find(i => i.id === 1) || ITEM_MASTER[0];
+    }
 
+    const randomItem = itemsOfRarity[Math.floor(Math.random() * itemsOfRarity.length)];
     return randomItem;
 }
 
