@@ -1123,6 +1123,9 @@ const ITEM_MASTER = [
     { id: 30, name: "虹色の鱗", rarity: 3, file: "rainbow.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" },
     { id: 33, name: "竜鱗の脚当て（金縁）", rarity: 3, file: "竜鱗の脚当て.png", type: "legs", effects: { strength: 40, focus: 20 }, description: "竜の鱗を編み上げた脚当て。揺るがない集中と、伝説級の格を与える。", equipMessage: "竜鱗の脚当てを装着した。伝説の装備だ。ここからが本番。", visuals: { x: 8, y: 40, width: 98 }, equipImage: "assets/item/gacha_equipment/竜鱗の脚当て.png" },
     { id: 60, name: "賢者のローブ", rarity: 3, file: "賢者のローブ.png", type: "armor", effects: { intellect: 40, focus: 20 }, description: "知恵を極めし者が纏う神秘の衣。", equipMessage: "賢者のローブを纏った。叡智が体を巡る！", visuals: { x: -2, y: 0, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/賢者のローブ.png" },
+    { id: 61, name: "竜の牙のペンダント", rarity: 3, file: "竜の牙のペンダント.png", type: "accessory", effects: { strength: 35, focus: 15 }, description: "竜の牙から作られた勇者の証。", equipMessage: "竜の牙のペンダントを首にかけた。勇気が湧き上がる！", visuals: { x: 0, y: 0, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/竜の牙のペンダント.png" },
+    { id: 62, name: "時を超える砂時計", rarity: 3, file: "時を超える砂時計.png", type: "consumable", effects: { focus: 50, intellect: 30 }, description: "一度だけ時の流れを操れる伝説の砂時計。", useMessage: "砂時計を逆さまにした...時が巻き戻る感覚！全能力が覚醒した！" },
+    { id: 63, name: "不屈の指輪", rarity: 3, file: "不屈の指輪.png", type: "consumable", effects: { strength: 45 }, description: "どんな困難にも挫けない意志を与える。", useMessage: "不屈の指輪を嵌めた。心が鋼のように強くなった！" },
 ];
 
 /**
