@@ -1081,7 +1081,7 @@ const ITEM_MASTER = [
     { id: 2, name: "革の靴", rarity: 1, file: "革の靴.png", type: "foot", effects: { focus: 1 }, description: "長時間の勉強（冒険）でも疲れない。", equipMessage: "革の靴を履いた！足取りが軽くなった気がする。", visuals: { x_L: 38, x_R: 58, y: 87.5, width: 16 }, equipImage: "./assets/item/gacha_equipment/Boots2M.png", equipImageR: "./assets/item/gacha_equipment/Boots2M.png" },
     { id: 3, name: "小さな盾", rarity: 1, file: "小さな盾.png", type: "shield", effects: { strength: 1 }, description: "誘惑を跳ね返すための盾。", equipMessage: "小さな盾を構えた！少しだけ守りが固くなった。", visuals: { x: 25, y: 70, width: 30 }, equipImage: "./assets/item/gacha_items/小さな盾_equipped.png" },
     { id: 4, name: "ポーション", rarity: 1, file: "ポーション.png", type: "consumable", useMessage: "ポーションを使った！", description: "疲れが少し取れる魔法の薬。" },
-    { id: 5, name: "パン", rarity: 1, file: "パン.png", type: "consumable", useMessage: "お腹いっぱい！", description: "腹が減っては勉強ができぬ。" },
+    { id: 5, name: "パン", rarity: 1, file: "パン.png", type: "consumable", useMessage: "お腹いっぱい！", description: "腹が減っては勉強ができぬ。" },
     { id: 12, name: "集中キャンディ", rarity: 1, file: "candy.png", type: "consumable", useMessage: "レモンの酸味で、集中力が研ぎ澄まされた！", description: "レモン味でリフレッシュ！" },
     { id: 13, name: "ひとくちチョコ", rarity: 1, file: "chocolate_mini.png", type: "consumable", useMessage: "糖分補給完了！脳が活性化していく…！", description: "疲れた脳には糖分が一番。" },
     { id: 14, name: "サクサクビスケット", rarity: 1, file: "biscuit.png", type: "consumable", useMessage: "お腹いっぱい！", description: "お茶が欲しくなる素朴な味。" },
@@ -1092,8 +1092,8 @@ const ITEM_MASTER = [
     { id: 40, name: "麦わら帽子", rarity: 1, file: "麦わら帽子.png", type: "head", effects: { strength: 2 }, description: "日差しから頭を守る。集中力が途切れにくい。", equipMessage: "麦わら帽子を被った。涼しくて快適だ！", iconSize: "240%", visuals: { x: 0, y: -20, scale: 10 } },
     { id: 41, name: "木の杖", rarity: 1, file: "木の杖.png", type: "weapon", effects: { intellect: 2 }, description: "初心者魔法使いの相棒。", equipMessage: "木の杖を握った。魔力が少し感じられる。", iconSize: "240%", },
     { id: 42, name: "旅人のマント", rarity: 1, file: "旅人のマント.png", type: "armor", effects: { focus: 2 }, description: "長旅に耐える丈夫なマント。", equipMessage: "旅人のマントを羽織った。冒険の準備は万全だ！", iconSize: "240%", visuals: { x: 0, y: 0, scale: 0.5 }, equipImage: "assets/item/gacha_equipment/旅人のマント.png" },
-    { id: 43, name: "おにぎり", rarity: 1, file: "おにぎり.png", type: "consumable", useMessage: "お腹いっぱい！", description: "シンプルだけど最高の一品。" },
-    { id: 44, name: "野菜スープ", rarity: 1, file: "野菜スープ.png", type: "consumable", useMessage: "体が温まった！栄養満点だ！", description: "母の味。疲れが癒える。" },
+    { id: 43, name: "おにぎり", rarity: 1, file: "おにぎり.png", type: "consumable", useMessage: "お腹いっぱい！", description: "シンプルだけど最高の一品。" },
+    { id: 44, name: "野菜スープ", rarity: 1, file: "野菜スープ.png", type: "consumable", useMessage: "体が温まった！栄養満点だ！", description: "母の味。疲れが癒える。" },
 
 
     // ★2 (Rarity 2)
@@ -1111,19 +1111,19 @@ const ITEM_MASTER = [
     { id: 25, name: "幸運のコイン", rarity: 2, file: "幸運のコイン.png", type: "consumable", useMessage: "幸運のコインを使った！", description: "ガチャ運が上がるという噂がある。" },
     { id: 32, name: "革のズボン", rarity: 2, file: "革ズボン.png", type: "legs", effects: { strength: 8 }, description: "擦れに強い革製。足元が安定して、集中が途切れにくくなる。", equipMessage: "革のズボンを装着した。足さばきが良い…安定して集中できる。", visuals: { x: 6, y: 37, width: 97 }, equipImage: "assets/item/gacha_equipment/革ズボン.png" },
     { id: 50, name: "銀の腕輪", rarity: 2, file: "銀の腕輪.png", type: "accessory", effects: { intellect: 5, focus: 5 }, description: "魔力を増幅させる腕輪。", equipMessage: "銀の腕輪を装着した。魔力が高まる！", visuals: { x: -14, y: 26, scale: 0.2 }, equipImage: "assets/item/gacha_equipment/銀の腕輪.png" },
-    { id: 51, name: "魔導書の断章", rarity: 2, file: "magic_scroll.png", type: "consumable", effects: { intellect: 15 }, description: "古代魔法の一部が記された巻物。", useMessage: "魔導書の断章を読んだ！未知の魔法が頭に刻まれた！" },
+    { id: 51, name: "魔導書の断章", rarity: 2, file: "魔導書の断章.png", type: "consumable", effects: { intellect: 15 }, description: "古代魔法の一部が記された巻物。", useMessage: "魔導書の断章を読んだ！未知の魔法が頭に刻まれた！" },
 
     // ★3 (Rarity 3)
     { id: 10, name: "伝説の剣", rarity: 3, file: "伝説の剣.png", type: "weapon", effects: { focus: 50 }, description: "選ばれし勉強家だけが持てる黄金の剣。", equipMessage: "伝説の剣を掲げた！まばゆい光が辺りを照らす！", visuals: { x: 44, y: 9, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/伝説の剣.png" },
     { id: 11, name: "ドラゴンの盾", rarity: 3, file: "ドラゴンの盾.png", type: "shield", effects: { strength: 50 }, description: "あらゆる雑念を無効化する。", equipMessage: "ドラゴンの盾を装備した！最強の守備を手に入れた！", visuals: { x: -3, y: 30, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/ドラゴンの盾.png" },
     { id: 26, name: "王家のショートケーキ", rarity: 3, file: "王家のショートケーキ.png", type: "consumable", useMessage: "究極の美味！今この瞬間、全能力が極限まで解放された！", description: "今日一番頑張った自分へのご褒美！" },
     { id: 27, name: "聖なる宝冠", rarity: 3, file: "聖なる宝冠.png", type: "accessory", effects: { intellect: 30, strength: 30 }, description: "高貴な輝きを放つティアラ。", equipMessage: "聖なる宝冠を頂いた。崇高な知恵を授かった。", visuals: { x: 0, y: -50, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/聖なる宝冠.png" },
-    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "consumable", effects: { intellect: 100 }, description: "まるで光を纏っているような服。一度袖を通せば、聖なる知恵が魂に刻まれる。", useMessage: "聖なる光に包まれた…！知力が永続的に上昇した！" },
+    { id: 28, name: "精霊のドレス", rarity: 3, file: "精霊のドレス.png", type: "consumable", effects: { intellect: 100 }, description: "まるで光を纏っているような服。一度袖を通せば、聖なる知恵が魂に刻まれる。", useMessage: "聖なる光に包まれた…！知力が永続的に上昇した！" },
     { id: 29, name: "全知の眼鏡", rarity: 3, file: "全知の眼鏡.png", type: "accessory", effects: { intellect: 200 }, description: "世界のすべてが見通せる伝説の眼鏡。", equipMessage: "全知の眼鏡をかけた。世界の真理がすべて視える...。", visuals: { x: 7, y: -4, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/全知の眼鏡.png" },
     { id: 30, name: "虹色の鱗", rarity: 3, file: "rainbow.png", type: "consumable", useMessage: "虹色の鱗から微かな鼓動を感じる……。", description: "いつか、大きな力が必要な時に道を示してくれるだろう。虹色に輝くドラゴンの鱗。" },
     { id: 33, name: "竜鱗の脚当て（金縁）", rarity: 3, file: "竜鱗の脚当て.png", type: "legs", effects: { strength: 40, focus: 20 }, description: "竜の鱗を編み上げた脚当て。揺るがない集中と、伝説級の格を与える。", equipMessage: "竜鱗の脚当てを装着した。伝説の装備だ。ここからが本番。", visuals: { x: 8, y: 40, width: 98 }, equipImage: "assets/item/gacha_equipment/竜鱗の脚当て.png" },
-    { id: 60, name: "賢者のローブ", rarity: 3, file: "賢者のローブ.png", type: "armor", effects: { intellect: 40, focus: 20 }, description: "知恵を極めし者が纏う神秘の衣。", equipMessage: "賢者のローブを纏った。叡智が体を巡る！", visuals: { x: -2, y: 0, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/賢者のローブ.png" },
-    { id: 61, name: "竜の牙のペンダント", rarity: 3, file: "竜の牙のペンダント.png", type: "accessory", effects: { strength: 35, focus: 15 }, description: "竜の牙から作られた勇者の証。", equipMessage: "竜の牙のペンダントを首にかけた。勇気が湧き上がる！", visuals: { x: 0, y: 0, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/竜の牙のペンダント.png" },
+    { id: 60, name: "賢者のローブ", rarity: 3, file: "賢者のローブ.png", type: "armor", effects: { intellect: 40, focus: 20 }, description: "知恵を極めし者が纏う神秘の衣。", equipMessage: "賢者のローブを纏った。叡智が体を巡る！", visuals: { x: -2, y: 0, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/賢者のローブ.png" },
+    { id: 61, name: "竜の牙のペンダント", rarity: 3, file: "竜の牙のペンダント.png", type: "accessory", effects: { strength: 35, focus: 15 }, description: "竜の牙から作られた勇者の証。", equipMessage: "竜の牙のペンダントを首にかけた。勇気が湧き上がる！", visuals: { x: 0, y: 0, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/竜の牙のペンダント.png" },
     { id: 62, name: "時を超える砂時計", rarity: 3, file: "時を超える砂時計.png", type: "consumable", effects: { focus: 50, intellect: 30 }, description: "一度だけ時の流れを操れる伝説の砂時計。", useMessage: "砂時計を逆さまにした...時が巻き戻る感覚！全能力が覚醒した！" },
     { id: 63, name: "不屈の指輪", rarity: 3, file: "不屈の指輪.png", type: "consumable", effects: { strength: 45 }, description: "どんな困難にも挫けない意志を与える。", useMessage: "不屈の指輪を嵌めた。心が鋼のように強くなった！" },
 ];
