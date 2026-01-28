@@ -2389,22 +2389,15 @@ function showBossIntroScreen(chapterName) {
     // ボス名・ランク
     document.getElementById('boss-intro-name').textContent = bossName;
     document.getElementById('boss-intro-rank').textContent = `（${bossRank} ランク）`;
-    // 🔴 みつきさんの手で書き換え！
-    // 目標が10時間なら targetMin は 600 である必要があります
-    const realTargetMin = 600; // 10時間を固定(600分)
-    const realCompletedMin = gameData.grandBoss ? gameData.grandBoss.currentDamage : 0;
+    // --- 目標時間・進捗の計算 ---
+    const targetHours = Math.floor(targetMin / 60);
+    const completedHours = Math.floor(currentDamage / 60);
+    const completedMins = Math.floor(currentDamage % 60);
 
-    const targetHours = Math.floor(realTargetMin / 60);
-    const completedHours = Math.floor(realCompletedMin / 60);
-    const completedMins = Math.floor(realCompletedMin % 60);
+    // パーセント計算（100%を超えないようにガード）
+    const progressPercent = Math.min(100, Math.floor((currentDamage / targetMin) * 100));
 
-    // パーセントが100%を超えないようにガード
-    const progressPercent = Math.min(100, Math.floor((realCompletedMin / realTargetMin) * 100));
-
-    document.getElementById('boss-intro-target-time').textContent = `${targetHours}時間`;
-    document.getElementById('boss-intro-completed-time').textContent = `${completedHours}時間${completedMins}分`;
-    document.getElementById('boss-intro-progress-percent').textContent = `${progressPercent}%`;
-
+    // UI反映
     document.getElementById('boss-intro-target-time').textContent = `${targetHours}時間`;
     document.getElementById('boss-intro-completed-time').textContent = `${completedHours}時間${completedMins}分`;
     document.getElementById('boss-intro-total-time').textContent = `${targetHours}時間`;
