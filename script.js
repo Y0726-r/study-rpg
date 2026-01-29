@@ -755,26 +755,31 @@ function updateMonsterUI() {
 }
 
 function updateHPBarUI() {
-    if (!gameData.activeQuest) return;
-    const { targetMinutes, currentDamage } = gameData.activeQuest;
-    const now = Date.now();
-    const elapsedMs = gameData.dailySession.startTime ? (now - gameData.dailySession.startTime) : gameData.dailySession.elapsedAtPause;
-    const sessionEarnedSeconds = Math.floor(elapsedMs / 1000);
-    const totalCurrentMinutes = currentDamage + (sessionEarnedSeconds / 60);
+    if (!gameData.dailySession || !gameData.dailySession.startTime) return; // セッション開始前は動かさない
 
-    const progress = Math.min(1, totalCurrentMinutes / targetMinutes);
+    const { targetMinutes } = gameData.dailySession; // 今日の目標分
+    const now = Date.now();
+
+    // 今の修行が始まってから、純粋に何秒経ったかだけを計算する
+    const elapsedMs = now - gameData.dailySession.startTime;
+    const elapsedSeconds = Math.floor(elapsedMs / 1000);
+    const elapsedMinutes = elapsedSeconds / 60;
+
+    // 進捗率を「今日の目標」だけで出す (0.0 ～ 1.0)
+    const progress = Math.min(1, elapsedMinutes / targetMinutes);
     const hpPercent = (1 - progress) * 100;
 
+    // ゲージの見た目を更新
     const fill = document.getElementById('monster-hp-fill');
     if (fill) fill.style.width = `${hpPercent}%`;
 
+    // テキストの更新
     const hpText = document.getElementById('monster-hp-text');
     if (hpText) {
-        const remainingMin = Math.max(0, targetMinutes - totalCurrentMinutes);
-        hpText.textContent = `${Math.ceil(remainingMin)} / ${targetMinutes} min`;
+        const remainingMin = Math.max(0, targetMinutes - Math.floor(elapsedMinutes));
+        hpText.textContent = `${remainingMin} / ${targetMinutes} min`;
     }
 }
-
 function updateHourglassUI() {
     if (!gameData.activeQuest) return;
     const { targetMinutes, currentDamage } = gameData.activeQuest;
@@ -1063,6 +1068,8 @@ const ITEM_CONFIG = {
     maxCapacity: 100
 };
 
+let isStopProcessing = false; // 連打・重複処理防止フラグ
+
 /**
  * アイテム・マスターデータ
  * spriteIndex: 0〜49 (5x10のグリッド位置)
@@ -1126,6 +1133,12 @@ const ITEM_MASTER = [
     { id: 61, name: "竜の牙のペンダント", rarity: 3, file: "dragon_fang_pendant.png", type: "accessory", effects: { strength: 35, focus: 15 }, description: "竜の牙から作られた勇者の証。", equipMessage: "竜の牙のペンダントを首にかけた. 勇気が湧き上がる！", visuals: { x: 0, y: 0, scale: 0.4 }, equipImage: "assets/item/gacha_equipment/dragon_fang_pendant_equip.png" },
     { id: 62, name: "時を超える砂時計", rarity: 3, file: "hourglass_of_time.png", type: "consumable", effects: { focus: 50, intellect: 30 }, description: "一度だけ時の流れを操れる伝説の砂時計。", useMessage: "砂時計を逆さまにした...時が巻き戻る感覚！全能力が覚醒した！" },
     { id: 63, name: "不屈の指輪", rarity: 3, file: "indomitable_ring.png", type: "consumable", effects: { strength: 45 }, description: "どんな困難にも挫けない意志を与える。", useMessage: "不屈の指輪を嵌めた。心が鋼のように強くなった！" },
+
+    // ★4 (Rarity 4)
+    { id: 70, name: "神話の大剣", rarity: 4, file: "mythic_greatsword.png", type: "weapon", effects: { focus: 100, strength: 50 }, description: "神々が鍛えたと言われる伝説の大剣。", equipMessage: "神話の大剣を掲げた！天空に雷鳴が轟く！", visuals: { x: 45, y: 8, scale: 1.1 }, equipImage: "assets/item/gacha_equipment/mythic_greatsword_equip.png" },
+
+
+
 ];
 
 /**
@@ -2590,10 +2603,16 @@ function startStudyWithAnimation() {
 
 
 function stopTimer(forcedComplete) {
+    if (isStopProcessing) return; // すでに終了処理中なら無視
+    isStopProcessing = true;
+
     const isComplete = (forcedComplete === true);
     console.log("stopTimer called. isComplete:", isComplete);
 
-    if (!timerInterval && gameData.dailySession && !gameData.dailySession.startTime) return;
+    if (!timerInterval && gameData.dailySession && !gameData.dailySession.startTime) {
+        isStopProcessing = false; // まだ開始していなければフラグを戻す
+        return;
+    }
 
     if (timerInterval) {
         clearInterval(timerInterval);
@@ -2652,6 +2671,8 @@ function finishStudySessionCleanUp() {
         isCompleted: false
     };
     gameData.activeQuest = null;
+
+    isStopProcessing = false; // 終了処理完了時にフラグをリセット
 
     // Reset Persisted Timer State
     gameData.timer = {
