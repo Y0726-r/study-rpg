@@ -36,7 +36,28 @@ document.addEventListener("DOMContentLoaded", () => {
 // ========================================
 
 const BASE_CHARACTER_SIZE = 64; // 主人公スプライトの基準キャンバスサイズ (64x64)
+// ========================================
+// 🎭 職業別プリセット定義
+// ========================================
+const OCCUPATION_PRESETS = {
+    'student': { label: '学生', q: '国語の聖典', l: '英語の詠唱', b: '数学の魔導', o: '自由研究' },
+    'business': { label: '社会人', q: '資格の試練', l: '語学の修行', b: '実務の鍛錬', o: '自己研鑽' },
+    'freeman': { label: '自由人', q: '探求の旅', l: '異界の言葉', b: '錬金術の儀', o: '日々の習慣' }
+};
 
+window.applyOccupation = function (jobKey) {
+    const preset = OCCUPATION_PRESETS[jobKey];
+    if (!preset) return;
+
+    localStorage.setItem('subject_qualification_label', preset.q);
+    localStorage.setItem('subject_language_label', preset.l);
+    localStorage.setItem('subject_business_label', preset.b);
+    localStorage.setItem('subject_other_label', preset.o);
+    localStorage.setItem('player_occupation', jobKey);
+
+    console.log(`✨ 職業「${preset.label}」の修行目録をセットしました`);
+    location.reload();
+};
 // 勉強科目の定義（カスタマイズ可能）
 const STUDY_SUBJECTS = [
     { id: 'subject-qualification', label: localStorage.getItem('subject_qualification_label') || '資格', targetMinutes: parseInt(localStorage.getItem('subject_qualification_target') || '0'), currentDamage: parseInt(localStorage.getItem('subject_qualification_damage') || '0'), type: 'qualification' },
@@ -1325,20 +1346,44 @@ function playOpeningMovie() {
 }
 
 function skipOpening() {
-    console.log("🚀 オープニングムービー終了 - ホーム画面へ");
+    console.log("🚀 オープニング終了 - ホーム画面へ");
     const openingElement = document.getElementById('opening-movie');
 
-    // 1. まずは「ふわっ」とムービーを暗くして消し始める
+    // ムービーをフェードアウト
     openingElement.style.opacity = '0';
-    openingElement.style.transition = 'opacity 2.0s ease-out'; // 2秒かけて消す
+    openingElement.style.transition = 'opacity 2.0s ease-out';
 
-    // 2. そのまま「3秒」待ってから、トップ画面を表示させる
     setTimeout(() => {
-        openingElement.classList.add('hidden'); // オープニングを完全に消す
-        showScreen('home-screen'); // ここでトップ画面（ホーム）を呼び出す
-    }, 1500); // 3000ミリ秒 ＝ 3秒
-    console.log("✅ ホーム画面表示完了");
+        openingElement.classList.add('hidden');
+        showScreen('home-screen'); // 既存の画面切り替え
+
+        // --- 🎭 職業選択の案内（ここから追加） ---
+        const msgEl = document.getElementById("characterMessage");
+        const jobUi = document.getElementById("job-selection-ui");
+
+        // 【重要】すでに職業が決まっている（localStorageにある）なら何もしない
+        if (localStorage.getItem('player_occupation')) {
+            updateCharacterMessage(true); // いつもの挨拶
+            return;
+        }
+
+        // 職業未設定の場合のみ、案内とボタンを表示
+        if (msgEl && jobUi) {
+            msgEl.textContent = "「これから共に歩む君の『職業』を教えてほしいんだ」";
+
+            jobUi.innerHTML = `
+                <div class="job-choice-container" style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
+                    <button onclick="applyOccupation('student')" class="settings-btn" style="position:static; transform:none; font-size:12px; padding:8px 12px; background:#2c1810; border:2px double #fff; color:#fff; cursor:pointer;">学生</button>
+                    <button onclick="applyOccupation('business')" class="settings-btn" style="position:static; transform:none; font-size:12px; padding:8px 12px; background:#2c1810; border:2px double #fff; color:#fff; cursor:pointer;">社会人</button>
+                    <button onclick="applyOccupation('freeman')" class="settings-btn" style="position:static; transform:none; font-size:12px; padding:8px 12px; background:#2c1810; border:2px double #fff; color:#fff; cursor:pointer;">自由人</button>
+                </div>
+            `;
+            jobUi.classList.remove('hidden');
+        }
+    }, 1500);
 }
+console.log("✅ ホーム画面表示完了");
+
 
 
 function loadGameData() {
