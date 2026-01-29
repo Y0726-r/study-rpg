@@ -1135,9 +1135,12 @@ const ITEM_MASTER = [
     { id: 63, name: "不屈の指輪", rarity: 3, file: "indomitable_ring.png", type: "consumable", effects: { strength: 45 }, description: "どんな困難にも挫けない意志を与える。", useMessage: "不屈の指輪を嵌めた。心が鋼のように強くなった！" },
 
     // ★4 (Rarity 4)
-    { id: 70, name: "神話の大剣", rarity: 4, file: "mythic_greatsword.png", type: "weapon", effects: { focus: 100, strength: 50 }, description: "神々が鍛えたと言われる伝説の大剣。", equipMessage: "神話の大剣を掲げた！天空に雷鳴が轟く！", visuals: { x: 45, y: 8, scale: 1.1 }, equipImage: "assets/item/gacha_equipment/mythic_greatsword_equip.png" },
-
-
+    { id: 70, name: "神話の大剣", rarity: 4, file: "mythic_greatsword.png", type: "weapon", effects: { focus: 100, strength: 50 }, description: "神々が鍛えたと言われる伝説の大剣。", equipMessage: "神話の大剣を掲げた！天空に雷鳴が轟く！", visuals: { x: 45, y: 8, scale: 1.1 }, equipImage: "assets/item/gacha_items/mythic_greatsword.png" },
+    { id: 71, name: "星霊の鎧", rarity: 4, file: "starlight_armor.png", type: "armor", effects: { intellect: 80, strength: 70 }, description: "星の力を宿した神聖なる鎧。", equipMessage: "星霊の鎧を纏った。星々の加護を感じる！", visuals: { x: 5, y: 22, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/starlight_armor.png" },
+    { id: 72, name: "天空の翼", rarity: 4, file: "sky_wings.png", type: "accessory", effects: { focus: 120 }, description: "空を飛べる幻の翼。集中力が極限まで高まる。", equipMessage: "天空の翼が背中に現れた！限界を超える力を手に入れた！", visuals: { x: 0, y: 0, scale: 0.3 }, equipImage: "assets/item/gacha_equipment/sky_wings.png" },
+    { id: 73, name: "叡智の王冠", rarity: 4, file: "crown_of_wisdom.png", type: "head", effects: { intellect: 150 }, description: "知の頂点に立つ者だけが被れる王冠。", equipMessage: "叡智の王冠を戴いた。全ての知識が手の内に！", visuals: { x: 0, y: -57, scale: 1.0 }, equipImage: "assets/item/gacha_equipment/crown_of_wisdom.png" },
+    { id: 74, name: "エリクサー", rarity: 4, file: "elixir.png", type: "consumable", effects: { intellect: 100, focus: 100, strength: 100 }, description: "全ての能力を極限まで引き上げる万能薬。", useMessage: "エリクサーを飲んだ！体が光り輝く...全能力が爆発的に上昇した！" },
+    { id: 75, name: "魔導の書・完全版", rarity: 4, file: "complete_grimoire.png", type: "consumable", effects: { intellect: 200 }, description: "全ての魔法が記された究極の書物。", useMessage: "魔導の書を読破した！世界の真理を理解した..." },
 
 ];
 
