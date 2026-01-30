@@ -1,19 +1,23 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log("🎬 アプリ起動 - オープニングムービーを最優先で開始します");
 
+    // 0. ゲームデータを先に読み込む（同期的に）
+    loadGameData();
+    window.isSelectingJob = gameData.isSelectingJob;
+
     // 1. 全ての画面を一旦隠す（リセット）
     const allScreens = document.querySelectorAll('.screen');
     allScreens.forEach(screen => {
         screen.classList.remove('active');
     });
 
-    // 2. オープニングムービーを強制的に表示する
+    // 2. 起動時は必ずオープニングムービーから開始する（みつきさんこだわりの演出）
     const openingMovie = document.getElementById('opening-movie');
     if (openingMovie) {
         openingMovie.classList.add('active'); // activeクラスを付けて見えるようにする
         openingMovie.style.display = 'flex';  // 確実に表示させる
         openingMovie.style.opacity = '1';     // 透明度を1にする
-        console.log("✅ 龍の舞台を整えました。冒険の始まりです！");
+        console.log("🎬 起動演出：龍の舞台を整えました。冒険の始まりです！");
     }
 
     // 3. 裏側でひっそりゲームデータを読み込む
@@ -35,7 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
 // グローバル変数とゲームデータ
 // ========================================
 
-const BASE_CHARACTER_SIZE = 64; // 主人公スプライトの基準キャンバスサイズ (64x64)
+const BASE_CHARACTER_SIZE = 64;
+// 🔴 修理：フラグはゲームデータと同期させる
+window.isSelectingJob = true;
+// チュートリアル用のメッセージタイマーを一括管理する
+window.onboardingTimers = [];
+
 // ========================================
 // 🎭 職業別プリセット定義
 // ========================================
@@ -49,15 +58,72 @@ window.applyOccupation = function (jobKey) {
     const preset = OCCUPATION_PRESETS[jobKey];
     if (!preset) return;
 
+    // データの保存
     localStorage.setItem('subject_qualification_label', preset.q);
     localStorage.setItem('subject_language_label', preset.l);
     localStorage.setItem('subject_business_label', preset.b);
     localStorage.setItem('subject_other_label', preset.o);
+
     localStorage.setItem('player_occupation', jobKey);
 
+    // 🔴 1. メモリ上の目録（STUDY_SUBJECTS）を即座に更新
+    STUDY_SUBJECTS.find(s => s.id === 'subject-qualification').label = preset.q;
+    STUDY_SUBJECTS.find(s => s.id === 'subject-language').label = preset.l;
+    STUDY_SUBJECTS.find(s => s.id === 'subject-business').label = preset.b;
+    STUDY_SUBJECTS.find(s => s.id === 'subject-other').label = preset.o;
+
+    // 🔴 2. 修行画面のボタンを再描画（リロードなしで反映）
+    if (typeof generateSubjectButtons === 'function') {
+        generateSubjectButtons();
+    }
+
+    // 🔴 重要：職業が確定した瞬間にオンボーディングフラグを更新
+    // ※ ここではまだ true にしておく（「まなぶ」を押した時のセリフ判定に使うため）
+    window.isSelectingJob = true;
+    gameData.isSelectingJob = true;
+    gameData.hasSeenOpening = true;
+
+    // 🎯 チュートリアル進行: Stage 1 へ
+    if (!gameData.tutorialProgress) {
+        gameData.tutorialProgress = { stage: 0, hasCompletedFirstQuest: false, hasReceivedWelcomeReward: false };
+    }
+    gameData.tutorialProgress.stage = 1;
+    saveGameData();
+
     console.log(`✨ 職業「${preset.label}」の修行目録をセットしました`);
-    location.reload();
-};
+
+    // 🔴 修正：リロードせず、ボタンを隠して「決定後の演出」へ
+    const jobUi = document.getElementById("job-selection-ui");
+    const msgEl = document.getElementById("characterMessage");
+
+    if (jobUi) {
+        jobUi.classList.add('hidden'); // ボタン窓を即・消去
+        jobUi.innerHTML = "";          // 中身も空にする
+    }
+    if (msgEl) {
+        // 1. 最初の感謝
+        msgEl.textContent = `「${preset.label}の道だね！ありがとう、これから一緒にがんばろう！」`;
+
+        // 2. 2.5秒後に準備を促す
+        const t1 = setTimeout(() => {
+            msgEl.textContent = "「まずは修行の準備を整えようか！」";
+
+            // 3. さらに2.5秒後にボタンを光らせて誘導
+            const t2 = setTimeout(() => {
+                msgEl.textContent = "「一番左の【まなぶ】ボタンを押して、作戦会議を開こう！」";
+
+                const studyBtn = document.querySelector('.nav-button'); // 最初のボタンがSTUDY
+                if (studyBtn) {
+                    studyBtn.classList.add('tutorial-highlight');
+                    console.log("✨ チュートリアル：STUDYボタンをハイライトしました");
+                }
+            }, 3500);
+            window.onboardingTimers.push(t2);
+        }, 3500);
+        window.onboardingTimers.push(t1);
+    }
+}; // 🔴 applyOccupation関数の終わり
+
 // 勉強科目の定義（カスタマイズ可能）
 const STUDY_SUBJECTS = [
     { id: 'subject-qualification', label: localStorage.getItem('subject_qualification_label') || '資格', targetMinutes: parseInt(localStorage.getItem('subject_qualification_target') || '0'), currentDamage: parseInt(localStorage.getItem('subject_qualification_damage') || '0'), type: 'qualification' },
@@ -133,6 +199,7 @@ let gameData = {
         pausedAt: null
     },
     hasSeenOpening: false,
+    isSelectingJob: true,
     // NEW: Two-tier Boss System
     // 1. Grand Boss: Quest-level boss (overall target, e.g., 800 hours)
     grandBoss: null, // { rank: string, monster: object, targetMinutes: number, currentDamage: number }
@@ -155,6 +222,13 @@ let gameData = {
     },
     // NEW: Pending effect for item usage
     pendingEffect: null, // { active: boolean, message: string, floatTexts: [{text, color}] }
+
+    // NEW: Tutorial Progress System
+    tutorialProgress: {
+        stage: 0,  // 0: 未開始, 1: 職業選択済み, 2: 命名式完了, 3: 初回修行中, 4: 完全終了
+        hasCompletedFirstQuest: false,
+        hasReceivedWelcomeReward: false
+    },
 
     // NEW: Chapter System
     chapters: {} // [chapterName]: { targetMinutes, completedMinutes, progress, boss, bossRank, bossImage, firstTime, ... }
@@ -914,6 +988,87 @@ function startTimer() {
     const timerDisplay = document.getElementById('timer-display');
     if (timerDisplay) timerDisplay.classList.add('timer-pulsing');
     updateStudyScreenUI();
+
+    // 🎯 チュートリアル初回修行の特別処理 (Stage 2 → 3)
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 2) {
+        gameData.tutorialProgress.stage = 3;
+        saveGameData();
+
+        // 🔴 作戦会議ボタンのハイライトを削除
+        const settingsWrapper = document.querySelector('.settings-btn-wrapper');
+        if (settingsWrapper) {
+            settingsWrapper.classList.remove('tutorial-highlight');
+            settingsWrapper.removeAttribute('data-tutorial-hint');
+        }
+
+        // 🔴 演出開始：ヘッダーを隠して画面をスッキリさせる
+        const header = document.querySelector('#study-screen .screen-header');
+        if (header) header.style.visibility = 'hidden';
+
+        // 🔴 イベントメッセージの表示
+        const magicOverlay = document.getElementById("tutorial-magic-overlay");
+        const magicTextEl = document.getElementById("magic-message-text");
+        const introText = `よし、修行開始だ！……でも今回は特別に、<br>僕が『時の魔法』で時間を進めてあげるね。`;
+        const magicSpell = `エイ！！`;
+
+        if (magicOverlay && magicTextEl) {
+            magicTextEl.innerHTML = introText; // 最初のセリフ
+            magicOverlay.classList.remove('hidden');
+        }
+
+        console.log("✨ チュートリアル：時の魔法の準備中...");
+
+        // 🔴 修正：2.2秒後に「エイ！！」と叫んで、高速カウントダウンを開始
+        setTimeout(() => {
+            if (magicTextEl) {
+                magicTextEl.innerHTML = `僕が『時の魔法』で時間を進めてあげるね。<br><span style="font-size: 26px; color: #ffd700; text-shadow: 0 0 10px #fff;">${magicSpell}</span>`;
+            }
+            console.log("⏰ 魔法発動！カウントダウン開始");
+            requestAnimationFrame(fastForwardAnimation);
+        }, 2200);
+
+        // 🔴 演出：タイマーとHPバーを高速で減らす (3.5秒の魔法)
+        let totalSeconds = 25 * 60; // 25分 = 1500秒
+        const animDuration = 3500;  // 3.5秒
+        const animStartTime = Date.now() + 2200; // 2.2秒後に開始予定
+
+        const fastForwardAnimation = () => {
+            const now = Date.now();
+            const elapsed = now - animStartTime; // 1000ms（開始前）などはマイナスになるが、progress計算でガードされる
+            const progress = Math.max(0, Math.min(1, elapsed / animDuration));
+
+            // タイマー表示を更新
+            const remaining = Math.floor(totalSeconds * (1 - progress));
+            renderTimer(remaining);
+
+            // HPバー表示を連動させるため、一時的にセッション情報をハック
+            if (gameData.dailySession) {
+                // 現在時刻から「経過すべき ms」を逆算して startTime をハックする
+                const fakeElapsedMs = totalSeconds * 1000 * progress;
+                gameData.dailySession.startTime = Date.now() - fakeElapsedMs;
+                updateHPBarUI();
+                updateGrandBossUI();
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(fastForwardAnimation);
+            } else {
+                console.log("⏰ 時の魔法が発動完了！");
+                renderTimer(0);
+
+                // 演出終了：メッセージを隠し、ヘッダーを戻す
+                if (magicOverlay) magicOverlay.classList.add('hidden');
+                if (header) header.style.visibility = 'visible';
+
+                setTimeout(() => stopTimer(true), 500); // 最後に少し余韻を置いて完遂
+            }
+        };
+
+        requestAnimationFrame(fastForwardAnimation);
+
+        // 🔴 重要：チュートリアル中はタイマーループを開始せず、ここで早期リターン
+        return;
+    }
 }
 
 // スリープ対応：Date.now()ベースで経過時間を計算
@@ -1346,45 +1501,84 @@ function playOpeningMovie() {
 }
 
 function skipOpening() {
-    console.log("🚀 オープニング終了 - ホーム画面へ");
+    console.log("🚀 オープニング終了 - 完璧な演出を開始します");
+
+    // 1. まずはお喋りガードを即座に有効化
+    gameData.hasSeenOpening = true;
+    saveGameData();
+
     const openingElement = document.getElementById('opening-movie');
+    if (openingElement) openingElement.style.display = 'none';
 
-    // ムービーをフェードアウト
-    openingElement.style.opacity = '0';
-    openingElement.style.transition = 'opacity 2.0s ease-out';
+    showScreen('home-screen');
 
+    // すでに職業を選んでいる場合はここで終了（ガード）
+    const storedJob = localStorage.getItem('player_occupation');
+    if (storedJob) {
+        window.isSelectingJob = false;
+        gameData.isSelectingJob = false;
+        saveGameData();
+        updateCharacterMessage(true);
+        console.log("🛡️ スキップガード：職業設定済みのためチュートリアルを回避しました");
+        return;
+    }
+
+    window.isSelectingJob = true;
+    gameData.isSelectingJob = true;
+    saveGameData();
+
+    // 🔴 ここが重要：700ms待たずに「今すぐ」書き換える！
+    const msgEl = document.getElementById("characterMessage");
+    const jobUi = document.getElementById("job-selection-ui");
+
+    if (msgEl) {
+        msgEl.textContent = "「よくきたね！待っていたよ」";
+    }
+
+    // 2. そのあとの「職業を教えて」と「ボタン出現」だけ時間差（タイマー）にする
     setTimeout(() => {
-        openingElement.classList.add('hidden');
-        showScreen('home-screen'); // 既存の画面切り替え
-
-        // --- 🎭 職業選択の案内（ここから追加） ---
-        const msgEl = document.getElementById("characterMessage");
-        const jobUi = document.getElementById("job-selection-ui");
-
-        // 【重要】すでに職業が決まっている（localStorageにある）なら何もしない
-        if (localStorage.getItem('player_occupation')) {
-            updateCharacterMessage(true); // いつもの挨拶
-            return;
-        }
-
-        // 職業未設定の場合のみ、案内とボタンを表示
-        if (msgEl && jobUi) {
+        if (msgEl) {
             msgEl.textContent = "「これから共に歩む君の『職業』を教えてほしいんだ」";
-
-            jobUi.innerHTML = `
-                <div class="job-choice-container" style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
-                    <button onclick="applyOccupation('student')" class="settings-btn" style="position:static; transform:none; font-size:12px; padding:8px 12px; background:#2c1810; border:2px double #fff; color:#fff; cursor:pointer;">学生</button>
-                    <button onclick="applyOccupation('business')" class="settings-btn" style="position:static; transform:none; font-size:12px; padding:8px 12px; background:#2c1810; border:2px double #fff; color:#fff; cursor:pointer;">社会人</button>
-                    <button onclick="applyOccupation('freeman')" class="settings-btn" style="position:static; transform:none; font-size:12px; padding:8px 12px; background:#2c1810; border:2px double #fff; color:#fff; cursor:pointer;">自由人</button>
-                </div>
-            `;
-            jobUi.classList.remove('hidden');
         }
-    }, 1500);
+
+        setTimeout(() => {
+            if (jobUi) {
+                // 表示の準備（位置やスタイルの設定）
+                jobUi.classList.remove('hidden');
+                jobUi.style.position = "absolute";
+                jobUi.style.top = "5%"; // みつきさん指定の「もっと上」の位置
+                jobUi.style.left = "50%";
+                jobUi.style.transform = "translateX(-50%)";
+                jobUi.style.pointerEvents = "none";
+                jobUi.style.opacity = "0";
+
+                jobUi.innerHTML = `
+                    <div class="job-choice-box" style="background: rgba(44, 24, 16, 0.9); border: 3px double #f3e5ab; padding: 10px; display: flex; gap: 10px; border-radius: 4px; box-shadow: 0 0 15px rgba(0,0,0,0.8); pointer-events: auto;">
+                        <button class="settings-btn job-opt" 
+                            onmouseover="document.getElementById('characterMessage').textContent='「学校の勉強にはもってこいだよ！」'" 
+                            onmouseout="document.getElementById('characterMessage').textContent='「これから共に歩む君の『職業』を教えてほしいんだ」'"
+                            onclick="applyOccupation('student')" 
+                            style="position:static; transform:none; padding:8px 10px; font-size:14px; min-width:70px; color:#f3e5ab; cursor:pointer; background:none; border:1px solid #f3e5ab;">学生</button>
+                        <button class="settings-btn job-opt" 
+                            onmouseover="document.getElementById('characterMessage').textContent='「実務や資格の修行に励むんだね！」'" 
+                            onmouseout="document.getElementById('characterMessage').textContent='「これから共に歩む君の『職業』を教えてほしいんだ」'"
+                            onclick="applyOccupation('business')" 
+                            style="position:static; transform:none; padding:8px 10px; font-size:14px; min-width:70px; color:#f3e5ab; cursor:pointer; background:none; border:1px solid #f3e5ab;">社会人</button>
+                        <button class="settings-btn job-opt" 
+                            onmouseover="document.getElementById('characterMessage').textContent='「自由な探求こそ、真の冒険だよ！」'" 
+                            onmouseout="document.getElementById('characterMessage').textContent='「これから共に歩む君の『職業』を教えてほしいんだ」'"
+                            onclick="applyOccupation('freeman')" 
+                            style="position:static; transform:none; padding:8px 10px; font-size:14px; min-width:70px; color:#f3e5ab; cursor:pointer; background:none; border:1px solid #f3e5ab;">自由人</button>
+                    </div>
+                `;
+
+                jobUi.style.transition = "opacity 0.8s ease-in";
+                setTimeout(() => { jobUi.style.opacity = "1"; }, 10);
+            }
+        }, 1600); // 職業を聞いてからボタンが出るまでの「間」
+
+    }, 3000); // 「よくきたね！」を読んでから次のセリフにいくまでの「間」
 }
-console.log("✅ ホーム画面表示完了");
-
-
 
 function loadGameData() {
     const savedData = localStorage.getItem('studyQuestData');
@@ -1469,8 +1663,19 @@ function loadGameData() {
 
         // オープニング・ドラゴンの初期化
         if (gameData.hasSeenOpening === undefined) gameData.hasSeenOpening = false;
+        if (gameData.isSelectingJob === undefined) gameData.isSelectingJob = true;
+        window.isSelectingJob = gameData.isSelectingJob;
         if (!gameData.dragon) {
             gameData.dragon = { obtained: false, hatched: false, type: null };
+        }
+
+        // Tutorial Progress System initialization
+        if (!gameData.tutorialProgress) {
+            gameData.tutorialProgress = {
+                stage: 0,
+                hasCompletedFirstQuest: false,
+                hasReceivedWelcomeReward: false
+            };
         }
 
         // NEW: Monster Quest System initialization
@@ -1563,8 +1768,59 @@ function showScreen(screenId) {
     }
 
     if (screenId === 'home-screen') {
+        // 🔴 ガード強化：既に職業が決まっているならオンボーディングは強制終了
+        if (localStorage.getItem('player_occupation')) {
+            window.isSelectingJob = false;
+            gameData.isSelectingJob = false;
+        }
+
         // データを読み直さず、今の状態のまま表示を更新
         updateHomeScreen();
+
+        // 🎯 チュートリアル最終段階 (Stage 3 → 4)
+        if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 3 &&
+            gameData.tutorialProgress.hasReceivedWelcomeReward) {
+
+            setTimeout(() => {
+                const msgEl = document.getElementById("characterMessage");
+                if (msgEl) {
+                    msgEl.textContent = `「すごい、修行の成果で レベル2 になったよ！お祝いでガチャ1回分のコインも用意しておいたから、左から二番目の【たからばこ】を覗いてみてね！」`;
+                }
+
+                // 🔴 重要：全てのナビゲーションボタンのハイライトを削除
+                const navButtons = document.querySelectorAll('.nav-button');
+                navButtons.forEach(btn => {
+                    btn.classList.remove('tutorial-highlight');
+                    btn.removeAttribute('data-tutorial-hint');
+                });
+
+                // 🔴 重要：「たからばこ」ボタンだけを光らせる（左から2番目のナビゲーションボタン）
+                if (navButtons.length >= 2) {
+                    const gachaBtn = navButtons[1]; // 0: まなぶ, 1: たからばこ
+                    gachaBtn.classList.add('tutorial-highlight');
+                    gachaBtn.setAttribute('data-tutorial-hint', '👆ここだよ！');
+                }
+
+                // チュートリアル完全終了
+                gameData.tutorialProgress.stage = 4;
+                window.isSelectingJob = false;
+                gameData.isSelectingJob = false;
+                saveGameData();
+
+                // 通常のランダムセリフモードへ移行
+                setTimeout(() => {
+                    updateCharacterMessage(true);
+
+                    // ハイライトを解除
+                    const navButtons = document.querySelectorAll('.nav-button');
+                    navButtons.forEach(btn => {
+                        btn.classList.remove('tutorial-highlight');
+                        btn.removeAttribute('data-tutorial-hint');
+                    });
+                }, 8000);
+            }, 1000);
+        }
+
         // 確実に画面が出てから、一回だけ呼ぶ
         setTimeout(() => {
             triggerPendingEffect();
@@ -1609,6 +1865,44 @@ function showScreen(screenId) {
             btn.classList.toggle('active', btn.dataset.subject === gameData.currentSubject);
         });
     }
+    // 🎯 チュートリアル：作戦会議ボタンのハイライト
+    // Stage 1（職業選択後、目標設定前）の時だけハイライト
+    const isTutorialStage1 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 1;
+    const isNoOccupation = window.isSelectingJob && STUDY_SUBJECTS.length > 0 && !localStorage.getItem('player_occupation');
+    let firstSubjName = (STUDY_SUBJECTS.length > 0) ? STUDY_SUBJECTS[0].label : "科目";
+
+    const settingsWrapper = document.querySelector('.settings-btn-wrapper');
+    if (settingsWrapper) {
+        if (isTutorialStage1 || isNoOccupation) {
+            settingsWrapper.classList.add('tutorial-highlight');
+            settingsWrapper.setAttribute('data-tutorial-hint', '👆ここだよ！');
+        } else {
+            // Stage 2 以降は確実に消す
+            settingsWrapper.classList.remove('tutorial-highlight');
+            settingsWrapper.removeAttribute('data-tutorial-hint');
+        }
+    }
+
+    // 吹き出しの初期化
+    const studyBubble = document.getElementById('characterMessageStudy');
+    if (studyBubble) {
+        // 通常は隠しておく（チュートリアル演出中だけ出す）
+        studyBubble.parentElement.style.display = 'none';
+
+        // Stage 2（科目選んで冒険に出る段階）ならヒントとして出す
+        if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 2) {
+            studyBubble.textContent = `「${firstSubjName}」のボタンを押して選んでから、「冒険に出る」ボタンを押してね！`;
+            studyBubble.parentElement.style.display = 'block';
+        }
+    }
+
+    // ホーム画面のメッセージ（職業未設定の場合のみ）
+    if (isNoOccupation) {
+        const msgEl = document.getElementById("characterMessage");
+        if (msgEl) {
+            msgEl.textContent = `「君のために冒険をセットしておいたよ！まずは練習で『${firstSubjName}』をやってみよう！」`;
+        }
+    }
 
     // 天体レイヤーの表示制御（ホーム画面のみ表示）
     const celestial = document.getElementById('celestial-layer');
@@ -1622,7 +1916,64 @@ function showScreen(screenId) {
 
     // 画面切り替え時に天体サイクルも更新（オープニングスキップ後の表示復帰などに対応）
     updateCelestialCycle();
+
+    // 確実に画面が出てから、一回だけ呼ぶ（gacha用などの演出トリガー）
+    if (screenId === 'home-screen') {
+        setTimeout(() => {
+            triggerPendingEffect();
+        }, 300);
+    }
 }
+
+window.openSubjectSettings = function () {
+    // 1. ⚙️ボタンの光を消して、視線を巻物へ集中させる
+    const settingsBtn = document.querySelector('.settings-btn-wrapper');
+    if (settingsBtn) {
+        settingsBtn.classList.remove('tutorial-highlight');
+    }
+
+    // 🔴 2. 場面転換！巻物が開いた「あと」の天の声
+    if (window.isSelectingJob && STUDY_SUBJECTS.length > 0) {
+        const firstSubjectName = STUDY_SUBJECTS[0].label;
+        const msgEl = document.getElementById("characterMessage");
+        if (msgEl && (!gameData.tutorialProgress || gameData.tutorialProgress.stage !== 1)) {
+            // 巻物の内容を指し示すセリフに更新（命名式以外の時のみ）
+            msgEl.textContent = `「よし、まずは『${firstSubjectName}』を選んで、修行の目標を刻もう！」`;
+        }
+    }
+
+    // 3. 巻物（モーダル）の中身を作成
+    let html = `
+        <div style="text-align:center; width:100%; display:flex; flex-direction:column; align-items:center;">
+            <p style="margin-bottom:30px; font-size:12.5px; color:#2c1810; font-weight:bold;">
+                次の冒険に向けて、どの作戦会議をする？
+            </p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; width:100%; max-width:200px; margin-bottom:35px;">
+    `;
+
+    // 科目ボタンをループで生成
+    STUDY_SUBJECTS.forEach((subj, index) => {
+        // 🔴 修正：index が 0（1番目）かつチュートリアル中ならハイライト
+        const isTutorialTarget = (window.isSelectingJob && index === 0);
+        const highlightClass = isTutorialTarget ? "tutorial-highlight" : "";
+
+        html += `
+            <button class="settings-btn ${highlightClass}" style="width:85px; height:42px;" 
+                onclick="window.startRenamingSubject('${subj.id}', '${subj.label}')">
+                ${subj.label}
+            </button>
+        `;
+    });
+
+    html += `
+            </div>
+            <button class="scroll-cancel-btn" onclick="closeMessageModal()">〜やめる〜</button>
+        </div>
+    `;
+
+    showMessageModal("-冒険の作戦会議室-", html, true);
+}; // ⬅ 正しく関数を閉じる
+
 
 // ========================================
 // ホーム画面の更新
@@ -2033,19 +2384,36 @@ document.addEventListener('visibilitychange', () => {
 
 // 1. 設定メニューを開く (どの科目を変えるか選ぶ)
 window.openSubjectSettings = function () {
+    // 🎯 チュートリアル中かどうかを判定
+    const isTutorial = gameData.tutorialProgress && gameData.tutorialProgress.stage === 1;
+
+    // 🔍 デバッグ：現在のチュートリアル状態を確認
+    console.log("📋 openSubjectSettings 呼び出し");
+    console.log("  - tutorialProgress:", gameData.tutorialProgress);
+    console.log("  - isTutorial:", isTutorial);
+    console.log("  - isSelectingJob:", window.isSelectingJob);
+
+    // チュートリアル用の特別なガイドメッセージ
+    const guideMessage = isTutorial
+        ? `まずは、一番左の「${STUDY_SUBJECTS[0].label}」のボタンを押して、<br>目標時間を決めよう！`
+        : `次の冒険に向けて、どの作戦会議をする？<br>記録を書き換えよう！`;
+
     let html = `
         <div style="text-align:center; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <p style="margin-bottom:30px; font-size:12.5px; color:#2c1810; line-height:1.8; font-family: 'DotGothic16', sans-serif; font-weight:bold;">
-                次の冒険に向けて、どの作戦会議をする？<br>
-                記録を書き換えよう！
+                ${guideMessage}
             </p>
             <div style="display:grid; grid-template-columns: 1fr 1fr; row-gap:8px; column-gap:2px; width:100%; max-width:200px; margin-bottom:35px; justify-items:center;">
     `;
 
     // 現在の科目リストをボタンとして並べる
-    STUDY_SUBJECTS.forEach((subj) => {
+    STUDY_SUBJECTS.forEach((subj, index) => {
+        // チュートリアル中は1番目のボタンをハイライト
+        const highlightClass = (isTutorial && index === 0) ? 'tutorial-highlight' : '';
+        const highlightAttr = (isTutorial && index === 0) ? 'data-tutorial-hint="👆ここだよ！"' : '';
+
         html += `
-            <button class="settings-btn" style="position:static; transform:none; width:85px; height:42px; font-size:16px; color:#fff;" 
+            <button class="settings-btn ${highlightClass}" ${highlightAttr} style="position:static; transform:none; width:85px; height:42px; font-size:16px; color:#fff;" 
                 onclick="this.style.filter='brightness(0.7)'; setTimeout(() => window.startRenamingSubject('${subj.id}', '${subj.label}'), 400)">
                 ${subj.label}
             </button>
@@ -2065,6 +2433,11 @@ window.openSubjectSettings = function () {
 window.startRenamingSubject = function (id, currentName) {
     const subj = STUDY_SUBJECTS.find(s => s.id === id);
     const currentTargetHours = subj ? (subj.targetMinutes / 60) : 0;
+
+    // 🔴 修正：チュートリアル中で1番目の科目の場合は「10」を、そうでなければ既存の値をセット
+    const isTutorialFirstSubject = (window.isSelectingJob && STUDY_SUBJECTS.length > 0 && currentName === STUDY_SUBJECTS[0].label);
+    const defaultHours = isTutorialFirstSubject ? 10 : (currentTargetHours || 0);
+
 
     let html = `
         <div style="text-align:center; padding:10px;">
@@ -2094,7 +2467,7 @@ window.startRenamingSubject = function (id, currentName) {
             </div>
 
             <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
-                <input type="number" id="subject-target-input" value="" placeholder="${currentTargetHours}" min="0" step="1"
+                <input type="number" id="subject-target-input" value="${defaultHours}" placeholder="${currentTargetHours}" min="0" step="1"
                     style="width:80px; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; text-align:center; outline:none; border-radius:0;">
                 <span style="font-size:14px; color:#2c1810; font-weight:bold;">時間</span>
             </div>
@@ -2108,12 +2481,44 @@ window.startRenamingSubject = function (id, currentName) {
 
     showMessageModal("-聖なる命名式-", html, true);
 
+    // 🎯 チュートリアル中の特別演出 (Stage 1) - セリフを即座に強制表示
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 1) {
+        // 🔴 重要：モーダルが完全に表示された後にセリフを設定（50ms遅延で確実に）
+        setTimeout(() => {
+            const msgEl = document.getElementById("characterMessage");
+            if (msgEl) {
+                msgEl.textContent = `今回はこの科目をやってみようか、ためしに10時間に目標設定しておいたよ！`;
+                console.log("🎯 チュートリアルメッセージを設定しました:", msgEl.textContent);
+            }
+        }, 50);
+    }
+
     // 入力欄に自動フォーカス
     setTimeout(() => {
         const input = document.getElementById('subject-rename-input');
         if (input) {
             input.focus();
             input.select();
+        }
+
+        // 🎯 チュートリアル中の視覚的ハイライト (Stage 1)
+        if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 1) {
+
+            // 入力欄を金色にハイライト
+            const targetInput = document.getElementById('subject-target-input');
+            if (targetInput) {
+                targetInput.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+                targetInput.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.6)';
+            }
+
+            // 「これにする！」ボタンを光らせる
+            setTimeout(() => {
+                const saveBtn = document.querySelector('[onclick*="saveSubjectRename"]');
+                if (saveBtn) {
+                    saveBtn.classList.add('tutorial-highlight');
+                    saveBtn.setAttribute('data-tutorial-hint', '👆ここだよ！');
+                }
+            }, 800);
         }
     }, 150);
 };
@@ -2214,6 +2619,50 @@ window.saveSubjectRename = function (id) {
     // 演出：キラキラ
     createSparkleEffect();
 
+    // 🔴 チュートリアル誘導の解除
+    const settingsWrapper = document.querySelector('.settings-btn-wrapper');
+    if (settingsWrapper) settingsWrapper.classList.remove('tutorial-highlight');
+
+    // 🎯 チュートリアル進行チェック (Stage 1 → 2)
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 1) {
+        gameData.tutorialProgress.stage = 2;
+        saveGameData();
+
+        // 魔法の粉演出を発動
+        createSparkleEffect();
+
+        // モーダルを閉じた後、「冒険に出る」ボタンを光らせる
+        setTimeout(() => {
+            closeMessageModal();
+
+            setTimeout(() => {
+                // 修行画面のアドバイスメッセージを更新
+                const adviceEl = document.getElementById("hero-advice-message");
+                if (adviceEl) {
+                    const firstSubject = STUDY_SUBJECTS[0].label;
+                    adviceEl.textContent = `「${firstSubject}」のボタンを押して選んでから、「冒険に出る」ボタンを押してね！`;
+                }
+
+                // 「冒険に出る」ボタンを探して光らせる
+                const adventureBtn = document.querySelector('[onclick*="startStudyWithAnimation"]');
+                if (adventureBtn) {
+                    adventureBtn.classList.add('tutorial-highlight');
+                    adventureBtn.setAttribute('data-tutorial-hint', '👆ここだよ！');
+                }
+            }, 800);
+        }, 2000); // 魔法演出の時間を確保
+
+        return; // 通常の成功メッセージをスキップ
+    }
+
+    if (window.isSelectingJob) {
+        window.isSelectingJob = false; // チュートリアル終了、お喋り解禁
+        gameData.isSelectingJob = false;
+        saveGameData();
+        const msgEl = document.getElementById("characterMessage");
+        if (msgEl) msgEl.textContent = "「準備完了だ！【冒険に出る】を押して、修行を開始しよう！」";
+    }
+
     // 成功メッセージ
     showMessageModal("✨ 冒険の成功！", `
         <div style="text-align:center; padding:10px;">
@@ -2269,8 +2718,64 @@ function generateSubjectButtons() {
         // ラッパーをコンテナに追加
         container.appendChild(wrapper);
     });
+
+    // 主人公からのアドバイスメッセージを更新
+    updateHeroAdviceMessage();
 }
 
+/**
+ * 科目選択画面で主人公からのアドバイスメッセージを表示する
+ */
+function updateHeroAdviceMessage() {
+    const messageEl = document.getElementById('hero-advice-message');
+    if (!messageEl) return;
+
+    // 🎯 チュートリアル中（Stage 1）
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 1) {
+        const firstSubject = STUDY_SUBJECTS[0]?.label || '科目';
+        messageEl.textContent = `まずは右上の「作戦会議」ボタン（⚙️）を押して、「${firstSubject}」の目標時間を設定しよう！`;
+        return;
+    }
+
+    // 🎯 チュートリアル中（Stage 2）
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 2) {
+        const firstSubject = STUDY_SUBJECTS[0]?.label || '科目';
+        messageEl.textContent = `「${firstSubject}」のボタンを押して選んでから、「冒険に出る」ボタンを押してね！`;
+        return;
+    }
+
+    const level = gameData?.player?.level || 1;
+    const messages = [
+        "どの修行に挑む？ 自分のペースで選んでね！",
+        "今日はどの科目を勉強する？",
+        "焦らなくて大丈夫。一歩ずつ進もう！",
+        "好きな科目から始めてみよう！",
+        "継続は力なり。今日も頑張ろう！",
+        "小さな積み重ねが大きな成長につながるよ！"
+    ];
+
+    // レベルに応じた特別なメッセージを追加
+    if (level >= 30) {
+        messages.push("君の成長、本当にすごいね！");
+        messages.push("この調子で、さらに高みを目指そう！");
+    }
+
+    if (level >= 50) {
+        messages.push("ここまで来れたのは、君の努力の証だよ！");
+        messages.push("もう立派な冒険者だね。誇りに思うよ！");
+    }
+
+    if (level >= 99) {
+        messages.push("伝説の領域に到達した君なら、何でもできる！");
+        messages.push("君と一緒に冒険できて、本当に幸せだよ！");
+    }
+
+    // ランダムにメッセージを選択
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    messageEl.textContent = randomMessage;
+
+    console.log(`💬 主人公のアドバイス: "${randomMessage}"`);
+}
 
 
 function selectSubject(button) {
@@ -2332,15 +2837,25 @@ function activateTimerUI() {
 
 function showDailyGoalModal() {
     const subjectLabel = gameData.currentSubject;
-    // 前回入力した時間を取得（なければ0分）
+    // 🎯 チュートリアル中（Stage 2）は25分に設定
+    const isTutorial = gameData.tutorialProgress && gameData.tutorialProgress.stage === 2;
     const lastGoal = localStorage.getItem('last_daily_goal_' + subjectLabel);
-    const defaultMins = lastGoal ? parseInt(lastGoal) : 0;
+    const defaultMins = isTutorial ? 25 : (lastGoal ? parseInt(lastGoal) : 0);
+
+    // 🎯 チュートリアル用のコメント
+    const tutorialComment = isTutorial
+        ? `<p style="margin-bottom:15px; font-size:13px; color:#8b4513; background:rgba(255,248,220,0.8); padding:10px; border-radius:8px; border:2px solid #8b4513; line-height:1.6;">
+               💬 今回は、25分に設定しておいたよ！<br>
+               「修行をはじめる！」ボタンを押してね！
+           </p>`
+        : '';
 
     const html = `
         <div style="text-align:center; padding:10px;">
             <p style="margin-bottom:15px; font-size:14px; color:#2c1810; font-weight:bold;">
                 「${subjectLabel}」の修行を開始します
             </p>
+            ${tutorialComment}
             <p style="margin-bottom:20px; font-size:12px; color:#2c1810;">
                 今日は何分間、修行に励みますか？<br>
                 <small>(完遂すると特別な報酬がもらえます！)</small>
@@ -2380,6 +2895,16 @@ window.startQuestSession = function () {
     }
 
     localStorage.setItem('last_daily_goal_' + gameData.currentSubject, mins.toString());
+
+    // 🔴 修理：修行開始＝チュートリアル卒業とみなしてフラグを完全に折る
+    window.isSelectingJob = false;
+    gameData.isSelectingJob = false;
+    // 生き残っているオンボーディングタイマーを全て破棄
+    if (window.onboardingTimers) {
+        window.onboardingTimers.forEach(t => clearTimeout(t));
+        window.onboardingTimers = [];
+    }
+    saveGameData();
 
     // 🔴 修正ポイント：セッションデータに今の科目を「絶対」に保存する
     gameData.dailySession = {
@@ -2685,19 +3210,29 @@ function stopTimer(forcedComplete) {
     const elapsedMs = gameData.dailySession.startTime ? (now - gameData.dailySession.startTime) : 0;
     const elapsedSecondsInSession = Math.floor(elapsedMs / 1000);
 
+    // 🎯 チュートリアル中かどうかを判定
+    const isTutorial = gameData.tutorialProgress && gameData.tutorialProgress.stage === 3;
+
     // 少しディレイを置いてリザルトを表示
     setTimeout(() => {
-        if (elapsedSecondsInSession >= 60) {
-            // ① まず計算だけ行う
-            saveStudySession(elapsedSecondsInSession, isComplete);
+        // 🔴 修正：チュートリアル中は経過時間に関わらず必ずリザルト画面を表示
+        if (elapsedSecondsInSession >= 60 || isTutorial) {
+            // ① まず計算を行い、獲得したコイン等を受け取る
+            // チュートリアル時は最低60秒として計算（レベルアップのため）
+            const actualSeconds = isTutorial ? Math.max(60, elapsedSecondsInSession) : elapsedSecondsInSession;
+            const result = saveStudySession(actualSeconds, isComplete);
 
-            // ② 【ここが重要】ホームに戻らず、大ボスの演出画面だけを呼び出す
-            // アンチが作った演出用関数名を確認してください（おそらくこれです）
+            // ② 大ボスの演出画面を呼び出す（獲得コインも渡す）
             if (typeof showBossDamageAnimation === 'function') {
-                showBossDamageAnimation(Math.floor(elapsedSecondsInSession / 60), isComplete);
+                showBossDamageAnimation(
+                    Math.floor(actualSeconds / 60),
+                    isComplete,
+                    null,
+                    result ? result.earnedCoins + (isComplete ? 50 : 0) : 0 // 基本 + デイリー完遂ボーナス
+                );
             }
         } else {
-            // 1分未満の時は演出なしでホームに戻る
+            // 1分未満の時は演出なしでホームに戻る（チュートリアル以外）
             finishStudySessionCleanUp();
         }
     }, 1500);
@@ -2744,6 +3279,18 @@ function finishStudySessionCleanUp() {
     // ホーム画面に戻る
     showScreen('home-screen');
     updateHomeScreen();
+
+    // 🎯 チュートリアル：ホーム画面に戻った直後の準備 (Stage 3)
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 3) {
+        // 🔴 重要：hasReceivedWelcomeRewardフラグを立てる
+        // これにより、showScreen('home-screen')内のStage 3→4処理が実行される
+        gameData.tutorialProgress.hasReceivedWelcomeReward = true;
+
+        // 🎁 お祝いの100コインを付与
+        gameData.player.coins += 100;
+        saveGameData();
+        console.log("💰 チュートリアル：お祝いの100コインを付与しました");
+    }
 
     // 🔴 追伸：大ボスの演出画面が残っていたら確実に消す
     const bossScreen = document.getElementById('bossDamageScreen');
@@ -2821,10 +3368,29 @@ function saveStudySession(actualSeconds, isComplete = false) {
     // --- Check if Eraser Dust should be awarded ---
     checkAndAwardEraserDust();
 
+    // 🎯 チュートリアル初回報酬 (Stage 3)
+    let tutorialBonusExp = 0;
+    let tutorialBonusCoins = 0;
+
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 3 &&
+        !gameData.tutorialProgress.hasCompletedFirstQuest) {
+
+        // 🔴 重要：LEVEL_TABLE[2] を正確に参照してLv.2に確実に上がるように計算
+        const currentExp = gameData.player.exp + earnedExp; // 通常報酬込みの現在経験値
+        const expForLv2 = LEVEL_TABLE[2] || 200; // Lv.2に必要な累積経験値
+        tutorialBonusExp = Math.max(0, expForLv2 - currentExp);
+        tutorialBonusCoins = 100; // ガチャ1回分
+
+        gameData.tutorialProgress.hasCompletedFirstQuest = true;
+        gameData.tutorialProgress.hasReceivedWelcomeReward = true;
+
+        console.log(`🎁 チュートリアル報酬: +${tutorialBonusExp} EXP (Lv.2確定), +${tutorialBonusCoins} Coins`);
+    }
+
     // プレイヤーデータ更新
     const oldLevel = gameData.player.level;
-    gameData.player.exp += earnedExp;
-    gameData.player.coins += earnedCoins;
+    gameData.player.exp += earnedExp + tutorialBonusExp;
+    gameData.player.coins += earnedCoins + tutorialBonusCoins;
 
     // ダメージ（累積時間）を科目データに保存
     const subjIndexForDamage = STUDY_SUBJECTS.findIndex(s => s.label === gameData.currentSubject);
@@ -2846,23 +3412,14 @@ function saveStudySession(actualSeconds, isComplete = false) {
         }
     }
 
-    // 完遂時の特別報酬
+    // 完遂時の特別報酬（デイリー目標達成）
     if (isComplete) {
-        gameData.player.coins += 100; // ボーナスコイン
-        console.log("🎁 修行完遂！特別報酬を付与しました");
-
-        // ランク報酬（EXP/Coin/Medal/Title）をここで付与（画面表示前にデータを確定させるため）
-        if (gameData.activeQuest) {
-            const { rank } = gameData.activeQuest;
-            const rewards = RANK_REWARDS[rank];
-            if (rewards) {
-                gameData.player.exp += rewards.exp;
-                gameData.player.coins += rewards.coins;
-                if (!gameData.player.medals.includes(rewards.medal)) gameData.player.medals.push(rewards.medal);
-                if (rewards.title && !gameData.player.titles.includes(rewards.title)) gameData.player.titles.push(rewards.title);
-                console.log(`🎁 Quest Rank Bonus: +${rewards.exp} EXP, +${rewards.coins} Coins`);
-            }
-        }
+        // ✨ 修正：デイリー達成は一律のボーナスにする（大ボス報酬と混同しないように）
+        const dailyBonusCoins = 50;
+        const dailyBonusExp = 100;
+        gameData.player.coins += dailyBonusCoins;
+        gameData.player.exp += dailyBonusExp;
+        console.log(`🎁 デイリー修行完遂！ +${dailyBonusCoins} Coins, +${dailyBonusExp} EXP`);
     }
 
     // レベルアップチェック (モーダル抑制モード: 結果だけ受け取る)
@@ -2883,8 +3440,8 @@ function saveStudySession(actualSeconds, isComplete = false) {
     calculateTodayStats();
     updateLogScreen();
 
-    // 最後にデータクリアなどの終了処理
-    //finishStudySessionCleanUp();//
+    // 獲得した情報を返す
+    return { earnedCoins, earnedExp, levelUpInfo };
 }
 
 function showQuestResult(minutes, isComplete, earnedCoins = 0) {
@@ -2909,11 +3466,11 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0) {
                 </div>
                 <div class="reward-item">
                     <span class="reward-icon">✨</span>
-                    <span>獲得経験値：+${minutes * 10}${isComplete ? ' (+' + rewards.exp + ' Bonus!)' : ''} EXP</span>
+                    <span>獲得経験値：+${minutes * 10}${isComplete ? ' (+100 Bonus!)' : ''} EXP</span>
                 </div>
                 <div class="reward-item">
                     <span class="reward-icon">💰</span>
-                    <span>獲得コイン：+${earnedCoins}</span>
+                    <span>獲得コイン：+${earnedCoins + (isComplete ? 50 : 0)}</span>
                 </div>
             </div>
     `;
@@ -2955,6 +3512,17 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0) {
 
     showMessageModal("- 修行の成果 -", html, true);
     saveGameData();
+
+    // 🎯 チュートリアル祝福メッセージ (Stage 3)
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 3 &&
+        gameData.tutorialProgress.hasReceivedWelcomeReward) {
+        setTimeout(() => {
+            const msgEl = document.getElementById("characterMessage");
+            if (msgEl) {
+                msgEl.textContent = `「すごい、修行の成果で レベル2 になったよ！お祝いでガチャ1回分のコインも用意しておいたから、左から二番目の【たからばこ】を覗いてみてね！」`;
+            }
+        }, 2000);
+    }
 }
 
 /**
@@ -3027,8 +3595,8 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
 
     const chapterData = gameData.chapters[gameData.currentSubject];
 
-    // --- 🔴 修正1：10時間(600分)の壁を正しくセット ---
-    const maxHP = 600;
+    // --- 🔴 修正：大ボスの最大HPを設定（ハードコードの600分=10時間を廃止） ---
+    const maxHP = (quest && quest.targetMinutes > 0) ? quest.targetMinutes : 600;
 
     // 現在の累計ダメージを安全に取得
     const realTotal = gameData.grandBoss ? gameData.grandBoss.currentDamage : (chapterData ? chapterData.completedMinutes : 0);
@@ -4795,8 +5363,13 @@ window.setTestStats = function (focus, intellect, strength) {
 
 /**
  * キャラクターのセリフをランダムに変更、またはリセットする
- */
-function updateCharacterMessage(force = false) {
+ */function updateCharacterMessage(force = false) {
+    // 🔴 追加：window.isSelectingJob が true の間は、システムからの上書きを100%遮断
+    if (window.isSelectingJob) {
+        console.log("🛑 職業選択/チュートリアル中のため、メッセージ更新をスキップします");
+        return;
+    }
+
     const messages = [
         "きょうも すこしずつ いこう！",
         "5分 できたら だいせいこう！",
@@ -4852,8 +5425,11 @@ function updateCharacterMessage(force = false) {
 
         console.log(`📝 メッセージ候補数: ${messages.length}`);
         const randomIndex = Math.floor(Math.random() * messages.length);
-        messageEl.textContent = messages[randomIndex];
-        console.log(`💬 選ばれたメッセージ: "${messages[randomIndex]}"`);
+        const selectedMessage = messages[randomIndex];
+        messageEl.textContent = selectedMessage;
+
+        // 🎤 天の声：コンソールに主人公のセリフを表示
+        console.log(`💬 主人公のセリフ: "${selectedMessage}"`);
     }
 }
 

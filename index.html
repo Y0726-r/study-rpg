@@ -10,6 +10,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="style-retro.css">
     <link rel="stylesheet" href="victory.css">
+    <link rel="stylesheet" href="tutorial-styles.css">
 </head>
 
 <body>
@@ -27,7 +28,7 @@
     </div>
 
     <!-- オープニングムービー・オーバーレイ -->
-    <div id="opening-movie" class="opening-overlay screen active">
+    <div id="opening-movie" class="opening-overlay screen">
         <div class="movie-scene">
             <div class="movie-bg-layer"></div>
             <div class="movie-cloud-layer cloud-far"></div>
@@ -152,8 +153,20 @@
             </div>
         </div>
 
+        <!-- 修行画面用のイベントメッセージ（時の魔法などで使用） -->
+        <div id="tutorial-magic-overlay" class="tutorial-magic-overlay hidden">
+            <div class="magic-message-box">
+                <p id="magic-message-text">魔法を発動中...</p>
+            </div>
+        </div>
+
         <!-- 【戦闘開始前のみ表示】 -->
         <div id="pre-battle-ui" class="pre-battle-ui">
+            <!-- 主人公からのアドバイスメッセージ -->
+            <div class="hero-advice-box">
+                <p id="hero-advice-message" class="hero-advice-text">どの修行に挑む？ 自分のペースで選んでね！</p>
+            </div>
+
             <div class="subject-selector-mvp">
                 <div class="subject-item-wrapper">
                     <button type="button" class="subject-btn-mvp" data-subject="資格">
