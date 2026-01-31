@@ -955,9 +955,11 @@ function startTimer() {
         console.log("⏱️ タイマー初回開始");
     } else if (gameData.dailySession.pausedTime) {
         // 一時停止からの再開
-        console.log("▶️ タイマー再開（一時停止から復帰）");
+        const elapsedSeconds = Math.floor(gameData.dailySession.elapsedAtPause / 1000);
+        console.log(`▶️ タイマー再開（一時停止から復帰）: 保存されていた経過時間 ${elapsedSeconds}秒`);
         gameData.dailySession.startTime = now - gameData.dailySession.elapsedAtPause;
         gameData.dailySession.pausedTime = null;
+        console.log(`📍 新しい startTime を設定: ${new Date(gameData.dailySession.startTime).toLocaleTimeString()}`);
     }
 
     gameData.timer.isRunning = true;
@@ -1111,11 +1113,16 @@ function pauseTimer() {
         timerInterval = null;
     }
 
-    // 経過時間を保存（スリープから戻った時に正確に再開できるように）
+    // 🔴 重要：一時停止時点での「実際の経過時間」を保存
+    // バックグラウンド復帰時に時間が飛ばないよう、pausedTime を基準にする
     const now = Date.now();
     if (gameData.dailySession && gameData.dailySession.startTime) {
-        gameData.dailySession.elapsedAtPause = now - gameData.dailySession.startTime;
-        gameData.dailySession.pausedTime = now;
+        // 一時停止時点での経過時間を計算
+        const actualElapsed = now - gameData.dailySession.startTime;
+        gameData.dailySession.elapsedAtPause = actualElapsed;
+        gameData.dailySession.pausedTime = now; // 一時停止した時刻を記録
+
+        console.log(`⏸️ タイマー一時停止: 経過時間 ${Math.floor(actualElapsed / 1000)}秒`);
     }
 
     gameData.timer.isRunning = false;
@@ -3207,7 +3214,19 @@ function stopTimer(forcedComplete) {
 
     // 修行済みの時間を計算
     const now = Date.now();
-    const elapsedMs = gameData.dailySession.startTime ? (now - gameData.dailySession.startTime) : 0;
+    let elapsedMs = 0;
+
+    // 🔴 重要：一時停止していた場合は、pausedTime時点での経過時間を使う
+    if (gameData.dailySession.pausedTime && gameData.dailySession.elapsedAtPause) {
+        // 一時停止中だった → 保存されていた経過時間を使用
+        elapsedMs = gameData.dailySession.elapsedAtPause;
+        console.log(`⏸️ 一時停止中に終了: 保存されていた経過時間 ${Math.floor(elapsedMs / 1000)}秒を使用`);
+    } else if (gameData.dailySession.startTime) {
+        // タイマー実行中だった → 現在時刻から計算
+        elapsedMs = now - gameData.dailySession.startTime;
+        console.log(`▶️ 実行中に終了: 経過時間 ${Math.floor(elapsedMs / 1000)}秒`);
+    }
+
     const elapsedSecondsInSession = Math.floor(elapsedMs / 1000);
 
     // 🎯 チュートリアル中かどうかを判定
