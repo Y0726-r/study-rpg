@@ -3304,11 +3304,11 @@ textarea {
     border: none !important;
 
     width: 100% !important;
-    max-width: 680px !important;
-    min-height: 450px !important;
+    max-width: 840px !important;
+    min-height: 640px !important;
     /* 550pxから450pxに調整 */
 
-    padding: 40px 30px !important;
+    padding: 50px 40px !important;
     /* 上下のパディングを増やして内容が背景に収まるように */
 
     display: flex !important;
@@ -3591,11 +3591,11 @@ textarea {
 
     /* 巻物モーダルをスマホで見やすく */
     .rpg-scroll-window {
-        min-height: 400px !important;
+        min-height: 500px !important;
         padding: 30px 20px !important;
         background-size: cover !important;
         /* スマホでは背景を画面いっぱいに */
-        max-width: 95% !important;
+        max-width: 98% !important;
     }
 }
 
