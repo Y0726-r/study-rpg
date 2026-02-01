@@ -3540,8 +3540,10 @@ textarea {
 
     .character-wrapper {
         width: 100px;
-        bottom: 80px;
-        /* Move up slightly to make room for the bubble below */
+        bottom: 0px;
+        /* 地面に足をつける（浮かないように） */
+        height: 100px;
+        /* スマホ用にサイズも調整 */
     }
 
     .character-message {
@@ -3552,7 +3554,8 @@ textarea {
         /* Position BELOW the character for mobile visibility */
         bottom: auto;
         top: 100%;
-        margin-top: 25px;
+        margin-top: 10px;
+        /* 25pxから10pxに調整（キャラクターの足元近くに） */
         z-index: 40;
     }
 
