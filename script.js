@@ -186,7 +186,7 @@ let gameData = {
         exp: 0,
         coins: 0,
         stats: { hp: 100, maxHp: 100, atk: 10, def: 5, focus: 10, intellect: 10, strength: 10 },
-        equipment: { weapon: null, armor: null, accessory: null, legs: null, head: null, foot: null, shield: null },
+        equipment: { weapon: null, armor: null, accessory: null, legs: null, head: null, foot: null, shield: null, cloak: null },
         titles: [],
         medals: []
     },
@@ -1281,7 +1281,7 @@ const ITEM_MASTER = [
     { id: 31, name: "布のズボン", rarity: 1, file: "cloth_pants.png", type: "legs", effects: { strength: 2 }, description: "素朴で動きやすい旅人用ズボン。まずは“続ける力”を支えてくれる。", equipMessage: "布のズボンを装着した。準備完了。さあ、クエスト（勉強）に出発だ。", visuals: { x: 10, y: 35, width: 97 }, equipImage: "assets/item/gacha_equipment/cloth_pants_equip.png" },
     { id: 40, name: "麦わら帽子", rarity: 1, file: "straw_hat.png", type: "head", effects: { strength: 2 }, description: "日差しから頭を守る。集中力が途切れにくい。", equipMessage: "麦わら帽子を被った。涼しくて快適だ！", iconSize: "240%", visuals: { x: 0, y: -20, scale: 10 } },
     { id: 41, name: "木の杖", rarity: 1, file: "wooden_staff.png", type: "weapon", effects: { intellect: 2 }, description: "初心者魔法使いの相棒。", equipMessage: "木の杖を握った。魔力が少し感じられる。", iconSize: "240%", },
-    { id: 42, name: "旅人のマント", rarity: 1, file: "traveler_cloak.png", type: "armor", effects: { focus: 2 }, description: "長旅に耐える丈夫なマント。", equipMessage: "旅人のマントを羽織った。冒険の準備は万全だ！", iconSize: "240%", visuals: { x: 0, y: 0, scale: 0.5 }, equipImage: "assets/item/gacha_equipment/traveler_cloak_equip.png" },
+    { id: 42, name: "旅人のマント", rarity: 1, file: "traveler_cloak.png", type: "cloak", effects: { focus: 2 }, description: "長旅に耐える丈夫なマント。", equipMessage: "旅人のマントを羽織った。冒険の準備は万全だ！", iconSize: "240%", visuals: { x: 0, y: 0, scale: 0.5 }, equipImage: "assets/item/gacha_equipment/traveler_cloak_equip.png" },
     { id: 43, name: "おにぎり", rarity: 1, file: "onigiri.png", type: "consumable", useMessage: "お腹いっぱい！", description: "シンプルだけど最高の一品。" },
     { id: 44, name: "野菜スープ", rarity: 1, file: "vegetable_soup.png", type: "consumable", useMessage: "体が温まった！栄養満点だ！", description: "母の味。疲れが癒える。" },
 
@@ -1611,7 +1611,7 @@ function loadGameData() {
                 exp: 0,
                 coins: 0,
                 stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 },
-                equipment: { head: null, armor: null, weapon: null, accessory: null, shield: null }
+                equipment: { head: null, armor: null, weapon: null, accessory: null, shield: null, legs: null, foot: null, cloak: null }
             };
         }
         if (!gameData.dragonMilestones) {
@@ -2061,22 +2061,23 @@ function updateCharacterAppearance() {
     }
 
     // Define Render Order (Z-Index equivalent)
-    // Armor (Body) -> Shield (Back/Hand) -> Weapon (Hand) -> Accessory (Misc) -> Head (Top)
+    // Armor (Body) -> Cloak (Over Armor) -> Shield (Back/Hand) -> Weapon (Hand) -> Accessory (Misc) -> Head (Top)
     const renderOrder = [
         { slot: 'foot', zIndex: 2 },
         { slot: 'legs', zIndex: 3 },
         { slot: 'armor', zIndex: 4 },
-        { slot: 'shield', zIndex: 5 },
-        { slot: 'weapon', zIndex: 6 },
-        { slot: 'accessory', zIndex: 7 },
-        { slot: 'head', zIndex: 8 }
+        { slot: 'cloak', zIndex: 5 },  // マントはarmorの上に表示
+        { slot: 'shield', zIndex: 6 },
+        { slot: 'weapon', zIndex: 7 },
+        { slot: 'accessory', zIndex: 8 },
+        { slot: 'head', zIndex: 9 }
     ];
 
     renderOrder.forEach(order => {
         const equippedItem = equipment[order.slot];
         if (equippedItem) {
             const masterItem = ITEM_MASTER.find(mi => mi.id === Number(equippedItem.id));
-            const validTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot', 'legs'];
+            const validTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot', 'legs', 'cloak'];
 
             if (masterItem && validTypes.includes(masterItem.type)) {
                 const visuals = masterItem.visuals || { x: 0, y: 0, width: BASE_CHARACTER_SIZE };
@@ -3439,6 +3440,29 @@ function saveStudySession(actualSeconds, isComplete = false) {
         gameData.player.coins += dailyBonusCoins;
         gameData.player.exp += dailyBonusExp;
         console.log(`🎁 デイリー修行完遂！ +${dailyBonusCoins} Coins, +${dailyBonusExp} EXP`);
+
+        // 🔴 重要：モンスター討伐ボーナスも加算
+        if (gameData.activeQuest) {
+            const { rank } = gameData.activeQuest;
+            const rewards = RANK_REWARDS[rank];
+
+            if (rewards) {
+                gameData.player.coins += rewards.coins;
+                gameData.player.exp += rewards.exp;
+
+                // 勲章を追加（重複チェック）
+                if (rewards.medal && !gameData.player.medals.includes(rewards.medal)) {
+                    gameData.player.medals.push(rewards.medal);
+                }
+
+                // 称号を追加（重複チェック）
+                if (rewards.title && !gameData.player.titles.includes(rewards.title)) {
+                    gameData.player.titles.push(rewards.title);
+                }
+
+                console.log(`🏆 討伐ボーナス (${rank}): +${rewards.coins} Coins, +${rewards.exp} EXP, ${rewards.medal}`);
+            }
+        }
     }
 
     // レベルアップチェック (モーダル抑制モード: 結果だけ受け取る)
@@ -3515,12 +3539,7 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0) {
             </div>
         `;
 
-        // データの反映は saveStudySession で完了済み
-        // gameData.player.exp += rewards.exp;
-        // gameData.player.coins += rewards.coins;
-        // if (!gameData.player.medals.includes(rewards.medal)) gameData.player.medals.push(rewards.medal);
-        // if (rewards.title && !gameData.player.titles.includes(rewards.title)) gameData.player.titles.push(rewards.title);
-
+        // 🔴 報酬の加算は saveStudySession 内で完了済み（討伐ボーナス含む）
         createSparkleEffect();
     }
 
@@ -4463,6 +4482,7 @@ function toggleEquip(itemId) {
     else if (item.type === 'head') targetSlot = 'head';
     else if (item.type === 'foot') targetSlot = 'foot';
     else if (item.type === 'legs') targetSlot = 'legs';
+    else if (item.type === 'cloak') targetSlot = 'cloak';  // マント用スロット
     else if (item.type === 'accessory') targetSlot = 'accessory';
 
     // 全てのスロットを確認し、このアイテムがどこかに装備されていたら外す（重複防止）

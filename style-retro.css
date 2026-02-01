@@ -3296,7 +3296,8 @@ textarea {
 /* Special Parchment Scroll (Subject Settings Only) */
 .rpg-scroll-window {
     background-image: url('assets/menu_settings.png') !important;
-    background-size: 100% 100% !important;
+    background-size: 100% auto !important;
+    /* 横幅100%、高さは自動（縦横比維持） */
     background-repeat: no-repeat !important;
     background-position: center !important;
     background-color: transparent !important;
@@ -3304,9 +3305,11 @@ textarea {
 
     width: 100% !important;
     max-width: 680px !important;
-    min-height: 550px !important;
+    min-height: 450px !important;
+    /* 550pxから450pxに調整 */
 
-    padding: 20px 20px !important;
+    padding: 40px 30px !important;
+    /* 上下のパディングを増やして内容が背景に収まるように */
 
     display: flex !important;
     flex-direction: column !important;
@@ -3581,6 +3584,15 @@ textarea {
     .pixel-back-btn {
         top: 50%;
         left: 10px;
+    }
+
+    /* 巻物モーダルをスマホで見やすく */
+    .rpg-scroll-window {
+        min-height: 400px !important;
+        padding: 30px 20px !important;
+        background-size: cover !important;
+        /* スマホでは背景を画面いっぱいに */
+        max-width: 95% !important;
     }
 }
 
