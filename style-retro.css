@@ -5191,6 +5191,107 @@ body.silence-mode #home-screen {
     }
 }
 
+/* --- 画面暗転エフェクト（ブラックアウト） --- */
+.black-out {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: 50000;
+    pointer-events: none;
+    animation: blackout-anim 2s forwards;
+}
+
+@keyframes blackout-anim {
+    0% {
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* --- アカシック・ユニバース：宇宙背景 --- */
+.akashic-universe-bg {
+    background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 50%, #000000 100%) !important;
+    overflow: hidden !important;
+}
+
+.akashic-universe-bg::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image:
+        radial-gradient(2px 2px at 20px 30px, #eee, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 90px 40px, #fff, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 130px 80px, #fff, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0, 0, 0, 0));
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    animation: stars-move 100s linear infinite;
+    opacity: 0.5;
+}
+
+@keyframes stars-move {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- アカシック・ユニバース：浮遊と回転 --- */
+/* --- アカシック・ユニバース：浮遊と回転 --- */
+.floating-rotation {
+    animation: akashic-combined 12s linear infinite !important;
+    transform-origin: center center !important;
+    filter: drop-shadow(0 0 15px rgba(100, 150, 255, 0.8)) !important;
+    bottom: auto !important;
+    /* bottomを無効化 */
+    transition: left 2s ease-in-out, top 2s ease-in-out;
+    /* 宇宙空間での移動を滑らかに */
+}
+
+@keyframes akashic-combined {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg) translateY(0);
+    }
+
+    25% {
+        transform: translate(-50%, -50%) rotate(90deg) translateY(-20px);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) rotate(180deg) translateY(0);
+    }
+
+    75% {
+        transform: translate(-50%, -50%) rotate(270deg) translateY(20px);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg) translateY(0);
+    }
+}
+
 /* モーダルの縦幅を無理やりコンパクトにする */
 .rpg-window {
     padding: 10px 15px !important;

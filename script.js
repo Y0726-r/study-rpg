@@ -409,11 +409,170 @@ function triggerPendingEffect() {
         });
     }
 
+    // 5. Newton's Apple Animation
+    if (effectData.specialEffect === 'mega_inspiration') {
+        playAppleFallAnimation();
+    }
+
+    // 6. Akashic Records Transition
+    if (effectData.specialEffect === 'akashic_universe') {
+        applyAkashicVisuals();
+    }
+
     console.log("✨ Pending Effect Triggered Successfully DONE.");
 
     // Reset Flag
     gameData.pendingEffect = null;
     saveGameData();
+}
+
+/**
+ * アカシックレコードの演出：背景を宇宙にし、主人公を浮遊回転させる（期間限定）
+ */
+function applyAkashicVisuals() {
+    console.log("🌌 アカシック・ユニバース展開！");
+
+    // 背景エフェクト
+    const overlay = document.getElementById('time-effect-layer');
+    if (overlay) {
+        overlay.classList.add('akashic-universe-bg');
+    }
+
+    // 主人公の浮遊とランダム配置
+    const hero = document.querySelector('.character-wrapper');
+    if (hero) {
+        // --- 🪐 無重力ランダムワープ処理 ---
+        const randomX = Math.floor(Math.random() * 70) + 15; // 15% - 85%
+        const randomY = Math.floor(Math.random() * 50) + 15; // 15% - 65%
+
+        hero.style.left = randomX + '%';
+        hero.style.top = randomY + '%';
+        hero.classList.add('floating-rotation');
+    }
+
+    // メッセージ更新（アカシック専用セリフを即座に反映）
+    updateCharacterMessage(true);
+
+    // 🔴 演出時間が終わったら元に戻す
+    setTimeout(() => {
+        if (overlay) overlay.classList.remove('akashic-universe-bg');
+        if (hero) {
+            hero.classList.remove('floating-rotation');
+            // 位置をリセット
+            hero.style.left = '';
+            hero.style.top = '';
+        }
+        if (gameData.player && gameData.player.stats) {
+            gameData.player.stats.akashic_universe = false;
+        }
+        updateCharacterMessage(true); // メッセージを通常に戻す
+        saveGameData();
+    }, 18000);
+}
+
+/**
+ * ニュートンのリンゴの演出：空から青リンゴ(🍏)が落ちてきて主人公の頭に当たる
+ */
+function playAppleFallAnimation() {
+    const target = document.querySelector('.player-layers-container');
+    if (!target) return;
+
+    // 1. 主人公の画面上の位置を計算
+    const rect = target.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const topY = rect.top;
+
+    console.log("🍏 青リンゴ演出開始！ 位置:", centerX, topY);
+
+    // 2. リンゴ要素の作成（bodyに直接追加してクリッピングを防ぐ）
+    const apple = document.createElement('div');
+    apple.textContent = '🍏';
+    apple.style.position = 'fixed';
+    apple.style.fontSize = '50px';
+    apple.style.left = (centerX - 25) + 'px';
+    apple.style.top = '-100px';
+    apple.style.zIndex = '20000';
+    apple.style.pointerEvents = 'none';
+    apple.style.transition = 'top 0.6s cubic-bezier(0.47, 0, 0.745, 0.715)';
+
+    document.body.appendChild(apple);
+
+    // 3. 衝突時の☆エフェクト用コンテナ（これもbody）
+    const starContainer = document.createElement('div');
+    starContainer.style.position = 'fixed';
+    starContainer.style.left = centerX + 'px';
+    starContainer.style.top = (topY + 20) + 'px';
+    starContainer.style.zIndex = '20001';
+    starContainer.style.pointerEvents = 'none';
+    document.body.appendChild(starContainer);
+
+    // 4. 落下実行
+    setTimeout(() => {
+        apple.style.top = topY + 'px'; // 主人公の頭まで落下
+
+        setTimeout(() => {
+            // 衝撃！主人公がビクッとする
+            target.style.transition = 'transform 0.1s';
+            target.style.transform = 'translateY(15px) scaleY(0.85)';
+
+            // 星が出る
+            for (let i = 0; i < 8; i++) {
+                const star = document.createElement('div');
+                star.textContent = '★';
+                star.style.position = 'absolute';
+                star.style.color = '#ffd700';
+                star.style.fontSize = '24px';
+                star.style.textShadow = '0 0 5px #fff';
+                star.style.transition = 'all 0.6s ease-out';
+                starContainer.appendChild(star);
+
+                const angle = (i / 8) * Math.PI * 2;
+                const dist = 80;
+                setTimeout(() => {
+                    star.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
+                    star.style.opacity = '0';
+                    star.style.fontSize = '10px';
+                }, 10);
+            }
+
+            // リンゴが跳ねて転がる
+            apple.style.transition = 'all 0.5s ease-out';
+            apple.style.transform = 'translate(-60px, -40px) rotate(-120deg)';
+            apple.style.opacity = '0.8';
+
+            // --- 🍏 衝撃の後の駄洒落タイム ---
+            const puns = [
+                "「あいたっ！…これが本当の『アップル（あっぷる）』デートなのかな？」",
+                "「ニュートンも驚く、頭への『入湯（ニュートン）』だね……！」",
+                "「この衝撃…まさに万有引力（バンユウ・インリョク）！ インパクト抜群だよ！」",
+                "「アイタタ！ リンゴが落ちて、僕の運命（リンゴ）が動き出したかも…？」",
+                "「りんごが落ちて、あーりんご（ありがとう）！…なんてね。」"
+            ];
+            const randomPun = puns[Math.floor(Math.random() * puns.length)];
+            const msgEl = document.getElementById("characterMessage");
+            if (msgEl) {
+                msgEl.textContent = randomPun;
+                // 5秒後に元の挨拶に戻す
+                setTimeout(() => {
+                    updateCharacterMessage(true);
+                }, 9000);
+            }
+
+            setTimeout(() => {
+                target.style.transform = '';
+
+                // リンゴが消える
+                setTimeout(() => {
+                    apple.style.opacity = '0';
+                    setTimeout(() => {
+                        apple.remove();
+                        starContainer.remove();
+                    }, 500);
+                }, 1200);
+            }, 100);
+
+        }, 600);
+    }, 100);
 }
 
 /**
@@ -1421,6 +1580,57 @@ const ITEM_MASTER = [
     { id: 74, name: "エリクサー", rarity: 4, file: "elixir.png", type: "consumable", effects: { intellect: 100, focus: 100, strength: 100 }, description: "全ての能力を極限まで引き上げる万能薬。", useMessage: "エリクサーを飲んだ！体が光り輝く...全能力が爆発的に上昇した！" },
     { id: 75, name: "魔導の書・完全版", rarity: 4, file: "complete_grimoire.png", type: "consumable", effects: { intellect: 200 }, description: "全ての魔法が記された究極の書物。", useMessage: "魔導の書を読破した！世界の真理を理解した..." },
 
+    //★５（Rarity ５）
+    {
+        id: 94,
+        name: "ソクラテスの無知",
+        rarity: 5,
+        file: "socrates_ignorance.png",
+        type: "consumable",
+        effects: { learning_speed: 9, intellect: -999 },
+        description: "無知の知。「使用」することで現在の知力（INT）をすべて失うが、その代わり【一度の修行で得られる経験値が10倍】になる。何も知らないからこそ、全てを吸収できる。",
+        useMessage: "ソクラテスの無知を自覚した！全てを忘れた...だが、次の修行は10倍効率だ！",
+        specialEffect: "knowledge_reset_boost"
+    },
+
+    {
+        id: 95,
+        name: "プラトンのイデア",
+        rarity: 5,
+        file: "plato_idea.png",
+        type: "consumable",
+        effects: { all_stat_boost: true },
+        description: "物事の本質を理解する。「使用」することで、次の修行において【全ステータス（集中・知力・筋力）が同時に、かつ5倍の速度で上昇】する。",
+        useMessage: "プラトンのイデアに触れた！世界の『真の姿』を垣間見、あらゆる学びが本質へと繋がった！",
+        specialEffect: "idea_stat_boost"
+    },
+
+
+    {
+        id: 97,
+        name: "ニュートンのリンゴ",
+        rarity: 5,
+        file: "newton_apple.png",
+        type: "consumable",
+        effects: { inspiration: 100 },
+        description: "万有引力を発見した伝説の青リンゴ。閃きの確率が100倍。君も世界を変える発見を。",
+        useMessage: "ニュートンの青リンゴを食べた！頭上にリンゴが落ちる...ひらめいた！",
+        specialEffect: "mega_inspiration"
+    },
+    {
+        id: 102,
+        name: "アカシックレコード",
+        rarity: 5,
+        file: "akashic_records.png",
+        type: "consumable",
+        effects: { akashic_universe: true },
+        description: "宇宙の全記憶にアクセスする。使用中、ホーム画面が【宇宙空間】に変わり、重力から解き放たれる。",
+        useMessage: "アカシックレコードに接続した...宇宙の全ての情報が流れ込んできた！",
+        specialEffect: "akashic_universe"
+    },
+
+
+
 ];
 
 /**
@@ -1723,7 +1933,7 @@ function loadGameData() {
                 level: 1,
                 exp: 0,
                 coins: 0,
-                stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10 },
+                stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10, learning_speed: 1 },
                 equipment: { head: null, armor: null, weapon: null, accessory: null, shield: null, legs: null, foot: null, cloak: null }
             };
         }
@@ -1736,6 +1946,9 @@ function loadGameData() {
             // Migration for focus, intellect, strength (formerly spirit)
             if (gameData.player.stats.focus === undefined) gameData.player.stats.focus = 10;
             if (gameData.player.stats.intellect === undefined) gameData.player.stats.intellect = 10;
+            if (gameData.player.stats.learning_speed === undefined) gameData.player.stats.learning_speed = 1;
+            if (gameData.player.stats.all_stat_boost === undefined) gameData.player.stats.all_stat_boost = false;
+            if (gameData.player.stats.akashic_universe === undefined) gameData.player.stats.akashic_universe = false;
             if (gameData.player.stats.strength === undefined) {
                 gameData.player.stats.strength = gameData.player.stats.spirit || 10;
                 delete gameData.player.stats.spirit;
@@ -2145,6 +2358,11 @@ function showScreen(screenId) {
 
     // 確実に画面が出てから、一回だけ呼ぶ（gacha用などの演出トリガー）
     if (screenId === 'home-screen') {
+        // 現在アカシック状態なら、遷移後も維持する
+        if (gameData.player && gameData.player.stats && gameData.player.stats.akashic_universe) {
+            applyAkashicVisuals();
+        }
+
         setTimeout(() => {
             triggerPendingEffect();
         }, 300);
@@ -3611,7 +3829,10 @@ function saveStudySession(actualSeconds, isComplete = false) {
     const bonusCoins = Math.floor(minutes / 60) * 40;
     const earnedCoins = baseCoins + bonusCoins;
 
-    const earnedExp = minutes * 10;
+    // 学習速度倍率の適用（ソクラテスの無知などの効果）
+    const currentStats = getCurrentStats();
+    const learningMultiplier = currentStats.learning_speed || 1;
+    const earnedExp = Math.floor(minutes * 10 * learningMultiplier);
 
     // パラメーターの上昇量 (1分 = 0.5ポイント)
     const statIncrease = minutes * 0.5;
@@ -3628,9 +3849,25 @@ function saveStudySession(actualSeconds, isComplete = false) {
         statKey = 'focus';
     }
 
-    // ステータス加算と上限チェック
-    if (gameData.player.stats[statKey] !== undefined) {
-        gameData.player.stats[statKey] = Math.min(statCap, gameData.player.stats[statKey] + statIncrease);
+    // ステータス加算ロジック (プラトンのイデア効果判定)
+    const isAllStatBoost = gameData.player.stats.all_stat_boost;
+    const boostMultiplier = isAllStatBoost ? 5 : 1;
+    const finalStatIncrease = statIncrease * boostMultiplier;
+
+    if (isAllStatBoost) {
+        // 全ステータス上昇
+        const statsToGrow = ['strength', 'intellect', 'focus'];
+        statsToGrow.forEach(key => {
+            if (gameData.player.stats[key] !== undefined) {
+                gameData.player.stats[key] = Math.min(statCap, gameData.player.stats[key] + finalStatIncrease);
+            }
+        });
+        console.log(`✨ プラトンのイデア効果: 全ステータスが +${finalStatIncrease} 上昇！`);
+    } else {
+        // 通常の個別ステータス上昇
+        if (gameData.player.stats[statKey] !== undefined) {
+            gameData.player.stats[statKey] = Math.min(statCap, gameData.player.stats[statKey] + finalStatIncrease);
+        }
     }
 
     // 勉強ログに追加
@@ -3640,7 +3877,7 @@ function saveStudySession(actualSeconds, isComplete = false) {
         minutes: minutes,
         exp: earnedExp,
         coins: earnedCoins,
-        statGrown: { key: statKey, amount: statIncrease }
+        statGrown: isAllStatBoost ? { key: 'all', amount: finalStatIncrease } : { key: statKey, amount: finalStatIncrease }
     };
     gameData.studyLogs.push(log);
 
@@ -3726,6 +3963,11 @@ function saveStudySession(actualSeconds, isComplete = false) {
 
     // レベルアップチェック (モーダル抑制モード: 結果だけ受け取る)
     const levelUpInfo = checkLevelUp(oldLevel, true);
+
+    // 次の修行のためにステータスリセット（ソクラテス/プラトン/アカシック限定効果解除）
+    gameData.player.stats.learning_speed = 1;
+    gameData.player.stats.all_stat_boost = false;
+    gameData.player.stats.akashic_universe = false;
 
     // データ保存
     saveGameData();
@@ -5086,6 +5328,43 @@ function useItem(itemId) {
     if (!inventoryItem || inventoryItem.count <= 0) return;
 
     const masterItem = ITEM_MASTER.find(mi => Number(mi.id) === Number(itemId));
+    if (!masterItem) return;
+
+    // 確認が必要なアイテム
+    if (itemId === 94) {
+        showConfirmModal(
+            "⚠️ 無知の自覚 ⚠️",
+            "このアイテムを使うと【知力(INT)がほぼ0】になります。\nその代わり、次の修行の経験値が【10倍】になります。\n本当によろしいですか？",
+            () => executeUseItem(itemId),
+            null,
+            "自覚する"
+        );
+    } else if (itemId === 95) {
+        showConfirmModal(
+            "✨ イデアの想起 ✨",
+            "プラトンのイデアに触れますか？\n次の修行で【全ステータスが5倍の速度で同時に成長】するようになります。\n本当によろしいですか？",
+            () => executeUseItem(itemId),
+            null,
+            "想起する"
+        );
+    } else if (itemId === 102) {
+        showConfirmModal(
+            "🌌 宇宙との接続 🌌",
+            "アカシックレコードにアクセスしますか？\n使用中、ホーム画面が【宇宙】に変わります",
+            () => executeUseItem(itemId),
+            null,
+            "接続する"
+        );
+    } else {
+        executeUseItem(itemId);
+    }
+}
+
+function executeUseItem(itemId) {
+    const inventoryItem = gameData.inventory.find(i => Number(i.id) === Number(itemId));
+    if (!inventoryItem || inventoryItem.count <= 0) return;
+
+    const masterItem = ITEM_MASTER.find(mi => Number(mi.id) === Number(itemId));
     if (masterItem && (masterItem.type === 'consumable' || masterItem.type === 'infinite')) {
 
         // --- A. 特殊演出の実行（pendingEffectより先に実行） ---
@@ -5093,6 +5372,23 @@ function useItem(itemId) {
             applySilenceEffect();
             // 演出のために一度ホーム画面に戻すとより効果的
             showScreen('home-screen');
+        }
+
+        if (masterItem.specialEffect === 'akashic_universe') {
+            // 1. 暗転用レイヤーの生成
+            const fade = document.createElement('div');
+            fade.className = 'black-out';
+            document.body.appendChild(fade);
+
+            // 2. 暗転中にホーム画面へ強制移動
+            setTimeout(() => {
+                showScreen('home-screen');
+                // モーダルが浮いていたら閉じる
+                closeMessageModal();
+            }, 500);
+
+            // 3. アニメーション終了後にレイヤーを削除
+            setTimeout(() => fade.remove(), 2500);
         }
 
         const message = masterItem.useMessage || `${masterItem.name}を使用した！`;
@@ -5106,13 +5402,26 @@ function useItem(itemId) {
             Object.keys(masterItem.effects).forEach(stat => {
                 if (gameData.player.stats[stat] !== undefined) {
                     const amount = masterItem.effects[stat];
-                    gameData.player.stats[stat] += amount;
+
+                    if (stat === 'all_stat_boost') {
+                        gameData.player.stats.all_stat_boost = true;
+                    } else if (stat === 'akashic_universe') {
+                        gameData.player.stats.akashic_universe = true;
+                    } else {
+                        gameData.player.stats[stat] += amount;
+                    }
+
+                    // 知力がマイナスにならないようにクランプ（ソクラテスの無知用）
+                    if (stat === 'intellect' && gameData.player.stats[stat] < 1) {
+                        gameData.player.stats[stat] = 1;
+                    }
 
                     // Prepare Floating Text data
                     let label = stat.toUpperCase();
                     if (stat === 'intellect') label = 'INT';
                     if (stat === 'strength') label = 'STR';
                     if (stat === 'focus') label = 'FCS';
+                    if (stat === 'learning_speed') label = 'LRN';
 
                     floatTexts.push({ text: `+${amount} ${label}`, color: '#ffd700' });
                 }
@@ -5127,7 +5436,8 @@ function useItem(itemId) {
             rarity: masterItem.rarity || 1, // Store rarity
             // Item-specific message
             message: pendingMessage,
-            floatTexts: floatTexts
+            floatTexts: floatTexts,
+            specialEffect: masterItem.specialEffect // 追加：特殊演出キー
         };
 
         // --- 強制保存とログ確認 ---
@@ -5810,6 +6120,17 @@ window.setTestStats = function (focus, intellect, strength) {
             messages.push("たまに 空に ふしぎな形の雲が 流れていくんだ");
             messages.push("古い書物に『試練を乗り越えし者に、龍は姿を現す』って書いてあったよ。");
             console.log("✨ Lv30+ 龍メッセージ追加");
+        }
+
+        // 🌌 アカシック・ユニバース専用（最優先）
+        if (gameData.player.stats.akashic_universe) {
+            messages.length = 0; // 他のメッセージをクリア
+            messages.push("「……繋がった。宇宙の特異点に、僕は今立っている……」");
+            messages.push("「過去も未来も、すべては今この瞬間に 記録されているんだね」");
+            messages.push("「この浮遊感……体は軽いのに、知識の重みが見えるようだ……」");
+            messages.push("「見える……宇宙の果て。そして、君が頑張ってきたすべての歩みが」");
+            messages.push("「ボクたちは星の屑から生まれ、そして真理へと還っていくんだ」");
+            console.log("✨ アカシック専用メッセージモード");
         }
 
         console.log(`📝 メッセージ候補数: ${messages.length}`);
