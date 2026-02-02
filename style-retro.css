@@ -1410,6 +1410,7 @@ textarea {
 
 .screen.active {
     display: flex !important;
+    flex-direction: column !important;
 }
 
 

@@ -1789,13 +1789,16 @@ function loadGameData() {
             gameData.dragon = { obtained: false, hatched: false, type: null };
         }
 
-        // Tutorial Progress System initialization
+        // Tutorial Progress System initialization & Migration for existing players
         if (!gameData.tutorialProgress) {
+            // Lv.2以上なら完了したとみなす
+            const initialStage = (gameData.player && gameData.player.level > 1) ? 4 : 0;
             gameData.tutorialProgress = {
-                stage: 0,
-                hasCompletedFirstQuest: false,
-                hasReceivedWelcomeReward: false
+                stage: initialStage,
+                hasCompletedFirstQuest: initialStage === 4,
+                hasReceivedWelcomeReward: initialStage === 4
             };
+            console.log(`📊 既プレイ者のチュートリアルを自動完了しました (Stage: ${initialStage})`);
         }
 
         // NEW: Monster Quest System initialization
