@@ -1073,7 +1073,7 @@ function startTimer() {
         // 🔴 修正：2.2秒後に「エイ！！」と叫んで、高速カウントダウンを開始
         setTimeout(() => {
             if (magicTextEl) {
-                magicTextEl.innerHTML = `僕が『時の魔法』で時間を進めてあげるね。<br><span style="font-size: 26px; color: #ffd700; text-shadow: 0 0 10px #fff;">${magicSpell}</span>`;
+                magicTextEl.innerHTML = `僕が『時の魔法』で時間を進めてあげるね。<br><span style="font-size: 22px; color: #ffd700; text-shadow: 0 0 10px #fff; display: block; margin-top: 5px;">${magicSpell}</span>`;
             }
             console.log("⏰ 魔法発動！カウントダウン開始");
             requestAnimationFrame(fastForwardAnimation);
