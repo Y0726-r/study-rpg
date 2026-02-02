@@ -235,7 +235,7 @@ let gameData = {
         level: 1,
         exp: 0,
         coins: 0,
-        stats: { hp: 100, maxHp: 100, atk: 10, def: 5, focus: 10, intellect: 10, strength: 10 },
+        stats: { hp: 100, maxHp: 100, atk: 10, def: 5, focus: 10, intellect: 10, strength: 10, quantum_superposition: false, laplace_factor: false, paradox_logic: false },
         equipment: { weapon: null, armor: null, accessory: null, legs: null, head: null, foot: null, shield: null, cloak: null },
         titles: [],
         medals: []
@@ -419,6 +419,11 @@ function triggerPendingEffect() {
         applyAkashicVisuals();
     }
 
+    // 7. Schrödinger's Cat Superposition
+    if (effectData.specialEffect === 'quantum_superposition') {
+        playQuantumSuperpositionAnimation();
+    }
+
     console.log("✨ Pending Effect Triggered Successfully DONE.");
 
     // Reset Flag
@@ -573,6 +578,31 @@ function playAppleFallAnimation() {
 
         }, 600);
     }, 100);
+}
+
+/**
+ * シュレディンガーの猫・ラプラスの悪魔：演出の更新
+ */
+function playQuantumSuperpositionAnimation() {
+    updateCharacterAppearance();
+
+    // 修行画面（バトル画面）のキャラクターにも適用を試みる
+    const battleHero = document.querySelector('.player-layers-container');
+    if (battleHero) {
+        // 量子重ね合わせ
+        if (gameData.player.stats.quantum_superposition) {
+            applyQuantumVisualsToContainer(battleHero);
+        } else {
+            removeQuantumVisualsFromContainer(battleHero);
+        }
+
+        // ラプラスの悪魔
+        if (gameData.player.stats.laplace_factor) {
+            applyLaplaceVisualsToContainer(battleHero);
+        } else {
+            removeLaplaceVisualsFromContainer(battleHero);
+        }
+    }
 }
 
 /**
@@ -1459,9 +1489,25 @@ function updateStudyScreenUI() {
         if (battle) battle.classList.remove('hidden');
     } else {
         // 未開始状態...
-        if (startBtn) startBtn.classList.remove('hidden');
         if (preBattle) preBattle.classList.remove('hidden');
         if (battle) battle.classList.add('hidden');
+    }
+
+    // --- ✨ 特殊アイテム効果の視覚反映 (修行画面) ---
+    if (battle) {
+        // ラプラスの悪魔
+        if (gameData.player.stats.laplace_factor) {
+            applyLaplaceVisualsToContainer(battle);
+        } else {
+            removeLaplaceVisualsFromContainer(battle);
+        }
+
+        // シュレディンガーの猫
+        if (gameData.player.stats.quantum_superposition) {
+            applyQuantumVisualsToContainer(battle);
+        } else {
+            removeQuantumVisualsFromContainer(battle);
+        }
     }
 }
 
@@ -1627,6 +1673,53 @@ const ITEM_MASTER = [
         description: "宇宙の全記憶にアクセスする。使用中、ホーム画面が【宇宙空間】に変わり、重力から解き放たれる。",
         useMessage: "アカシックレコードに接続した...宇宙の全ての情報が流れ込んできた！",
         specialEffect: "akashic_universe"
+    },
+    {
+        id: 98,
+        name: "シュレディンガーの猫",
+        rarity: 5,
+        file: "schrodinger_cat.png",
+        type: "consumable",
+        effects: { quantum_superposition: true },
+        description: "箱を開けるまで報酬は決まらない。修行後のコインが<span style='color: #ffcc00; font-weight: bold;'>【3倍】</span>に跳ね上がるか、完全に<span style='color: #ff3300; font-weight: bold;'>【消滅（ゼロ）】</span>するか……運命を二分する禁断の箱。",
+        useMessage: "シュレディンガーの猫の箱に触れた...君は今、成功と失敗が重なり合う『運命の試練』の最中だ。",
+        specialEffect: "quantum_superposition"
+    },
+
+    {
+        id: 99,
+        name: "ラプラスの悪魔",
+        rarity: 5,
+        file: "laplace_demon.png",
+        type: "consumable",
+        effects: { laplace_factor: true },
+        description: "全ての因果を読み解く悪魔の知恵。この修行における<span style='color: #00ffff; font-weight: bold;'>全リターン（ダメージ・EXP・コイン）が【2倍】</span>で確定する。絶対的な修行効率を約束しよう。",
+        useMessage: "ラプラスの悪魔を召喚した！未来の計算は完了した...この修行の全てが【2倍】になることが確定した！",
+        specialEffect: "laplace_factor"
+    },
+
+    {
+        id: 100,
+        name: "パラドックスの扉",
+        rarity: 5,
+        file: "paradox_door.png",
+        type: "consumable",
+        effects: { paradox_logic: true },
+        description: "論理が反転する禁断の扉。反転の魔力により、常識ではあり得ない『逆説的成功』を引き起こす。<br><br>①<span style='color: #ff00ff; font-weight: bold;'>【不完全は成功】</span>：修行を途中で終了しても、完遂ボーナスの3倍が与えられる。<br>②<span style='color: #00ffff; font-weight: bold;'>【絶望は反転】</span>：『シュレディンガーの猫』の失敗（0倍）を観測した瞬間、それが<span style='color: #ffff00; font-weight: bold;'>【コイン9倍】</span>へと反転する。",
+        useMessage: "パラドックスの扉を開いた……世界が反転し、不可能な成功が現実となる！",
+        specialEffect: "paradox_logic"
+    },
+
+    {
+        id: 101,
+        name: "エントロピーの逆流",
+        rarity: 5,
+        file: "entropy_reversal.png",
+        type: "consumable",
+        effects: { time_reverse: true },
+        description: "熱力学第二法則に逆らう禁断の力。時間を逆行させて、失敗を成功に変える。秩序を取り戻せ。",
+        useMessage: "エントロピーの逆流を発動！時が逆流する...失敗が成功に書き換えられた！",
+        specialEffect: "reverse_failure"
     },
 
 
@@ -1933,7 +2026,7 @@ function loadGameData() {
                 level: 1,
                 exp: 0,
                 coins: 0,
-                stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10, learning_speed: 1 },
+                stats: { hp: 100, maxHp: 100, focus: 10, intellect: 10, strength: 10, learning_speed: 1, quantum_superposition: false, laplace_factor: false, paradox_logic: false },
                 equipment: { head: null, armor: null, weapon: null, accessory: null, shield: null, legs: null, foot: null, cloak: null }
             };
         }
@@ -1949,6 +2042,9 @@ function loadGameData() {
             if (gameData.player.stats.learning_speed === undefined) gameData.player.stats.learning_speed = 1;
             if (gameData.player.stats.all_stat_boost === undefined) gameData.player.stats.all_stat_boost = false;
             if (gameData.player.stats.akashic_universe === undefined) gameData.player.stats.akashic_universe = false;
+            if (gameData.player.stats.quantum_superposition === undefined) gameData.player.stats.quantum_superposition = false;
+            if (gameData.player.stats.laplace_factor === undefined) gameData.player.stats.laplace_factor = false;
+            if (gameData.player.stats.paradox_logic === undefined) gameData.player.stats.paradox_logic = false;
             if (gameData.player.stats.strength === undefined) {
                 gameData.player.stats.strength = gameData.player.stats.spirit || 10;
                 delete gameData.player.stats.spirit;
@@ -2363,6 +2459,11 @@ function showScreen(screenId) {
             applyAkashicVisuals();
         }
 
+        // シュレディンガー状態なら維持する
+        if (gameData.player && gameData.player.stats && gameData.player.stats.quantum_superposition) {
+            playQuantumSuperpositionAnimation();
+        }
+
         setTimeout(() => {
             triggerPendingEffect();
         }, 300);
@@ -2565,17 +2666,176 @@ function updateCharacterAppearance() {
 
                     // 読み込み監視
                     img.onload = () => console.log(`✅ Gear [${order.slot}] Loaded: ${img.src}`);
-                    img.onerror = () => {
-                        console.error(`❌ Gear [${order.slot}] Failed: ${img.src}`);
-                        img.style.display = 'none';
-                    };
+                    img.onerror = () => console.warn(`❌ Gear [${order.slot}] Failed: ${img.src}`);
 
-                    // 全装備、共通のコンテナ（#equipment-layers）に直接入れる
-                    layerContainer.appendChild(img);
+                    if (order.slot === 'foot' && footLayer) {
+                        footLayer.appendChild(img);
+                    } else {
+                        layerContainer.appendChild(img);
+                    }
                 });
             }
         }
     });
+
+    // --- 🐱 シュレディンガーの猫：量子重ね合わせ演出の統合 ---
+    if (gameData.player.stats.quantum_superposition) {
+        applyQuantumVisualsToContainer(layerContainer.parentElement);
+    } else {
+        removeQuantumVisualsFromContainer(layerContainer.parentElement);
+    }
+
+    // --- 😈 ラプラスの悪魔：絶対予知演出の統合 ---
+    if (gameData.player.stats.laplace_factor) {
+        applyLaplaceVisualsToContainer(layerContainer.parentElement);
+    } else {
+        removeLaplaceVisualsFromContainer(layerContainer.parentElement);
+    }
+
+    // --- 🌀 パラドックスの扉：論理逆転演出の統合 ---
+    if (gameData.player.stats.paradox_logic) {
+        applyParadoxVisualsToContainer(layerContainer.parentElement);
+    } else {
+        removeParadoxVisualsFromContainer(layerContainer.parentElement);
+    }
+}
+
+/**
+ * 特定のキャラクターコンテナに量子エフェクトを適用する
+ */
+function applyQuantumVisualsToContainer(container) {
+    if (!container) return;
+    container.classList.add('quantum-superposition');
+
+    // 既存の装飾を一旦消す（重複防止）
+    const elementsToRemove = ['.quantum-ghost', '.quantum-cat-mascot', '.quantum-box-mark', '.quantum-cat-status', '.quantum-cat-battle'];
+    elementsToRemove.forEach(sel => {
+        const el = container.querySelector(sel);
+        if (el) el.remove();
+    });
+
+    const isHomeScreen = document.getElementById('home-screen').classList.contains('active');
+    const isBattleScreen = document.getElementById('study-screen').classList.contains('active');
+
+    // 1. 巨大な横断猫の管理 (画面全体を歩く猫)
+    let globalCat = document.getElementById('global-quantum-cat');
+    if (isHomeScreen) {
+        // ホーム画面（トップ）の場合のみ、存在しなければ一匹だけ作成
+        if (!globalCat) {
+            globalCat = document.createElement('div');
+            globalCat.id = 'global-quantum-cat';
+            globalCat.className = 'quantum-cat-mascot';
+            document.body.appendChild(globalCat);
+            console.log("🐱 量子猫がトップ画面に現れました");
+        }
+    } else {
+        // 他の画面（ガチャ・メニュー・戦闘など）では猫を消去
+        if (globalCat) {
+            globalCat.remove();
+            console.log("🐱 量子猫は別の時間軸へ去っていきました");
+        }
+    }
+
+    // 2. 👻 量子ゴースト演出 (キャラクターの分身)
+    // 既存のゴーストを消してから作成
+    const oldGhost = container.querySelector('.quantum-ghost');
+    if (oldGhost) oldGhost.remove();
+
+    // キャラクターのコンテナがある場合のみ分身を作成
+    const layerContainer = container.querySelector('#equipment-layers') || container.querySelector('.player-layers-container');
+    if (layerContainer && layerContainer !== container) {
+        const ghost = document.createElement('div');
+        ghost.className = 'quantum-ghost';
+        ghost.innerHTML = layerContainer.innerHTML;
+        container.insertBefore(ghost, layerContainer);
+    }
+
+    // 3. 📦 運命の箱 (頭上に浮くマーク) - ホーム画面のみ
+    if (isHomeScreen) {
+        if (!container.querySelector('.quantum-box-mark')) {
+            const boxMark = document.createElement('div');
+            boxMark.className = 'quantum-box-mark';
+            boxMark.textContent = '📦';
+            container.appendChild(boxMark);
+        }
+    }
+
+    // 4. ⚔️ 戦闘画面用の猫（右下） - バトル中のみ
+    if (isBattleScreen) {
+        const battleUI = document.getElementById('battle-ui');
+        if (battleUI && !battleUI.querySelector('.quantum-cat-battle')) {
+            const catBattle = document.createElement('div');
+            catBattle.className = 'quantum-cat-battle';
+            battleUI.appendChild(catBattle);
+        }
+    }
+}
+
+/**
+ * 量子エフェクトを削除する
+ */
+function removeQuantumVisualsFromContainer(container) {
+    if (!container) return;
+    container.classList.remove('quantum-superposition');
+    const elementsToRemove = ['.quantum-ghost', '.quantum-cat-mascot', '.quantum-box-mark', '.quantum-cat-status', '.quantum-cat-battle'];
+    elementsToRemove.forEach(sel => {
+        const el = container.querySelector(sel);
+        if (el) el.remove();
+    });
+
+    // 追加：画面全体を歩くグローバルな猫も削除
+    const globalCat = document.getElementById('global-quantum-cat');
+    if (globalCat) {
+        globalCat.remove();
+        console.log("🐱 グローバル量子猫を観測対象から外しました（削除）");
+    }
+}
+
+/**
+ * 特定のキャラクターコンテナにラプラスのオーラを適用する
+ */
+function applyLaplaceVisualsToContainer(container) {
+    if (!container) return;
+
+    // 重複防止
+    if (container.querySelector('.laplace-aura')) return;
+
+    const aura = document.createElement('div');
+    aura.className = 'laplace-aura';
+    // 主人公の後ろに表示されるよう、最初の要素（背後）として挿入
+    container.insertBefore(aura, container.firstChild);
+}
+
+/**
+ * ラプラスのオーラを削除する
+ */
+function removeLaplaceVisualsFromContainer(container) {
+    if (!container) return;
+    const aura = container.querySelector('.laplace-aura');
+    if (aura) aura.remove();
+}
+
+/**
+ * 特定のキャラクターコンテナにパラドックスの扉を適用する
+ */
+function applyParadoxVisualsToContainer(container) {
+    if (!container) return;
+    container.classList.add('paradox-logic');
+
+    if (container.querySelector('.paradox-door')) return;
+    const door = document.createElement('div');
+    door.className = 'paradox-door';
+    container.insertBefore(door, container.firstChild);
+}
+
+/**
+ * パラドックスの扉を削除する
+ */
+function removeParadoxVisualsFromContainer(container) {
+    if (!container) return;
+    container.classList.remove('paradox-logic');
+    const door = container.querySelector('.paradox-door');
+    if (door) door.remove();
 }
 
 /* ========================================
@@ -3308,9 +3568,56 @@ function activateTimerUI() {
         return;
     }
 
+    // --- 😈 ラプラスの悪魔：修行開始前の宣告演出 ---
+    if (gameData.player.stats.laplace_factor) {
+        showLaplaceWhisper(() => {
+            console.log("Starting new session, showing goal modal.");
+            showDailyGoalModal();
+        });
+        return;
+    }
+
     console.log("Starting new session, showing goal modal.");
     // 新規修行開始：目標時間入力モーダルを表示
     showDailyGoalModal();
+}
+
+/**
+ * ラプラスの悪魔：修行開始前の囁き演出
+ */
+function showLaplaceWhisper(callback) {
+    const overlay = document.createElement('div');
+    overlay.className = 'laplace-whisper-overlay';
+
+    const messages = [
+        { main: "「……未来は確定した」", sub: "案ずるな、お前の努力は必ず報われる（2倍にな）" },
+        { main: "「因果の計算は完了した」", sub: "絶対的な効率を、お前に授けよう……" },
+        { main: "「すべては計算通り……」", sub: "勝利（リターン2倍）への道は既に拓かれた" }
+    ];
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+
+    overlay.innerHTML = `
+        <div class="laplace-whisper-content">
+            <p class="laplace-whisper-text">${msg.main}</p>
+            <p class="laplace-whisper-text sub">${msg.sub}</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // 強制リフロー
+    overlay.offsetHeight;
+
+    // 表示開始
+    overlay.classList.add('active');
+
+    // 3.5秒後に消える
+    setTimeout(() => {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+            overlay.remove();
+            if (callback) callback();
+        }, 800);
+    }, 3500);
 }
 
 function showDailyGoalModal() {
@@ -3821,18 +4128,89 @@ function saveStudySession(actualSeconds, isComplete = false) {
     const pastTotalMinutes = gameData.studyLogs.reduce((sum, log) => sum + log.minutes, 0);
     const currentTotalMinutes = pastTotalMinutes + minutes;
 
-    // コイン計算ロジック変更 (2026/01/26)
-    // 1. 基本レート: 1分につき1コイン
-    // 2. 集中ボーナス: 60分(連続)ごとに +40コイン
-    // これにより 60分 = 60(基本) + 40(ボーナス) = 100コイン (ガチャ1回分) となる
-    const baseCoins = minutes * 1;
-    const bonusCoins = Math.floor(minutes / 60) * 40;
-    const earnedCoins = baseCoins + bonusCoins;
-
-    // 学習速度倍率の適用（ソクラテスの無知などの効果）
+    // 1. 報酬計算（経験値を先に計算してチュートリアル報酬の不足分を出す）
     const currentStats = getCurrentStats();
     const learningMultiplier = currentStats.learning_speed || 1;
-    const earnedExp = Math.floor(minutes * 10 * learningMultiplier);
+    let earnedExp = Math.floor(minutes * 10 * learningMultiplier);
+
+    // 2. コイン計算
+    const baseCoins = minutes * 1;
+    const bonusCoins = Math.floor(minutes / 60) * 40;
+    let earnedCoins = baseCoins + bonusCoins;
+
+    // --- 😈 ラプラスの悪魔：因果の支配 ---
+    let isLaplaceActive = false;
+    if (gameData.player.stats.laplace_factor) {
+        earnedExp *= 2;
+        earnedCoins *= 2;
+        isLaplaceActive = true;
+        console.log("😈 ラプラスの悪魔：全ての報酬を2倍に確定しました。");
+
+        // 演出用メッセージ：少し遅れて表示（修行結果画面などと被らないように）
+        setTimeout(() => {
+            showMessageModal("😈 因果の支配 😈", "未来の計算通り、すべての修行成果（経験値・コイン・ダメージ）が<span style='color: #00ffff; font-weight: bold; font-size: 1.2em;'>【2倍】</span>になった！");
+        }, 800);
+    }
+
+    // --- 🌀 パラドックスの扉：論理逆転 ---
+    const isParadox = gameData.player.stats.paradox_logic;
+    if (isParadox) {
+        console.log("🌀 パラドックス発動：論理が反転します。");
+        // 1. 完遂ロジックの反転：もし未完遂なら、本来貰えないはずの完遂ボーナスを【3倍】にして付与
+        if (!isComplete) {
+            const paradoxBonusCoins = 150;
+            const paradoxBonusExp = 300;
+            gameData.player.coins += paradoxBonusCoins;
+            gameData.player.exp += paradoxBonusExp;
+            console.log(`🎁 逆説的成功：中断したにも関わらずボーナス付与！ +${paradoxBonusCoins} Coins, +${paradoxBonusExp} EXP`);
+            setTimeout(() => {
+                showMessageModal("🌀 逆説的成功 🌀", "矛盾の力が働いた！\\n修行を中断したことで、逆に<span style='color: #ff00ff; font-weight: bold;'>【最大級の報酬】</span>が観測された。");
+            }, 1200);
+        }
+    }
+
+    // --- 🐱 シュレディンガーの猫：報酬ガイガーカウンター ---
+    if (gameData.player.stats.quantum_superposition) {
+        const isLive = Math.random() < 0.5;
+        if (isLive) {
+            console.log("🐱 観測結果：猫は生きていた！ 報酬3倍！");
+            earnedCoins *= 3;
+            setTimeout(() => {
+                showMessageModal("✨ 観測成功 ✨", "成功！\n因果が成功に収束し、コイン報酬が<span style='color: #ffcc00; font-weight: bold; font-size: 1.2em;'>【3倍】</span>になった！");
+            }, 1000);
+        } else {
+            console.log("💀 観測結果：猫は死んでいた...");
+            if (isParadox) {
+                // パラドックスによる反転：失敗が最高の成功（9倍）になる
+                earnedCoins *= 9;
+                console.log("🌀 逆説反転：死が九生に変わった！ 報酬9倍！");
+                setTimeout(() => {
+                    showMessageModal("🌀 終焉の逆説 🌀", "失敗……のはずだったが、パラドックスにより事象が反転！\\n死が最大級の生となり、コイン報酬が<span style='color: #ffff00; font-weight: bold; font-size: 1.5em; text-shadow: 0 0 10px #ff00ff;'>【9倍】</span>に跳ね上がった！！");
+                }, 1000);
+            } else {
+                earnedCoins = 0;
+                setTimeout(() => {
+                    showMessageModal("💀 観測失敗 💀", "失敗...\n世界は残酷な結果に収束し、コイン報酬が<span style='color: #ff3300; font-weight: bold; font-size: 1.2em;'>【0枚】</span>になった。");
+                }, 1000);
+            }
+        }
+    }
+
+    // 3. チュートリアル初回報酬 (Stage 3)
+    let tutorialBonusExp = 0;
+    let tutorialBonusCoins = 0;
+
+    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 3 &&
+        !gameData.tutorialProgress.hasCompletedFirstQuest) {
+        const currentTotalExp = gameData.player.exp + earnedExp;
+        const expForLv2 = LEVEL_TABLE[2] || 200;
+        tutorialBonusExp = Math.max(0, expForLv2 - currentTotalExp);
+        tutorialBonusCoins = 100;
+
+        gameData.tutorialProgress.hasCompletedFirstQuest = true;
+        gameData.tutorialProgress.hasReceivedWelcomeReward = true;
+        console.log(`🎁 チュートリアル報酬: +${tutorialBonusExp} EXP, +${tutorialBonusCoins} Coins`);
+    }
 
     // パラメーターの上昇量 (1分 = 0.5ポイント)
     const statIncrease = minutes * 0.5;
@@ -3884,41 +4262,25 @@ function saveStudySession(actualSeconds, isComplete = false) {
     // --- Check if Eraser Dust should be awarded ---
     checkAndAwardEraserDust();
 
-    // 🎯 チュートリアル初回報酬 (Stage 3)
-    let tutorialBonusExp = 0;
-    let tutorialBonusCoins = 0;
-
-    if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 3 &&
-        !gameData.tutorialProgress.hasCompletedFirstQuest) {
-
-        // 🔴 重要：LEVEL_TABLE[2] を正確に参照してLv.2に確実に上がるように計算
-        const currentExp = gameData.player.exp + earnedExp; // 通常報酬込みの現在経験値
-        const expForLv2 = LEVEL_TABLE[2] || 200; // Lv.2に必要な累積経験値
-        tutorialBonusExp = Math.max(0, expForLv2 - currentExp);
-        tutorialBonusCoins = 100; // ガチャ1回分
-
-        gameData.tutorialProgress.hasCompletedFirstQuest = true;
-        gameData.tutorialProgress.hasReceivedWelcomeReward = true;
-
-        console.log(`🎁 チュートリアル報酬: +${tutorialBonusExp} EXP (Lv.2確定), +${tutorialBonusCoins} Coins`);
-    }
-
-    // プレイヤーデータ更新
+    // プレイヤーの値を更新
     const oldLevel = gameData.player.level;
     gameData.player.exp += earnedExp + tutorialBonusExp;
     gameData.player.coins += earnedCoins + tutorialBonusCoins;
 
+    // 獲得ダメージ（通常は分、悪魔がいれば2倍）
+    const finalDamageMinutes = isLaplaceActive ? minutes * 2 : minutes;
+
     // ダメージ（累積時間）を科目データに保存
     const subjIndexForDamage = STUDY_SUBJECTS.findIndex(s => s.label === gameData.currentSubject);
     if (subjIndexForDamage !== -1) {
-        STUDY_SUBJECTS[subjIndexForDamage].currentDamage += minutes;
+        STUDY_SUBJECTS[subjIndexForDamage].currentDamage += finalDamageMinutes;
         localStorage.setItem(STUDY_SUBJECTS[subjIndexForDamage].id.replace(/-/g, '_') + '_damage', STUDY_SUBJECTS[subjIndexForDamage].currentDamage.toString());
     }
 
     // 大ボスへのダメージも蓄積
     if (gameData.grandBoss) {
-        gameData.grandBoss.currentDamage += minutes;
-        console.log(`👹 Grand Boss damaged: +${minutes} min (Total: ${gameData.grandBoss.currentDamage}/${gameData.grandBoss.targetMinutes})`);
+        gameData.grandBoss.currentDamage += finalDamageMinutes;
+        console.log(`👹 Grand Boss damaged: +${finalDamageMinutes} min (Total: ${gameData.grandBoss.currentDamage}/${gameData.grandBoss.targetMinutes})`);
 
         // 章（Chapter）データ側の進捗も同期させる
         if (gameData.chapters && gameData.chapters[gameData.currentSubject]) {
@@ -3964,10 +4326,13 @@ function saveStudySession(actualSeconds, isComplete = false) {
     // レベルアップチェック (モーダル抑制モード: 結果だけ受け取る)
     const levelUpInfo = checkLevelUp(oldLevel, true);
 
-    // 次の修行のためにステータスリセット（ソクラテス/プラトン/アカシック限定効果解除）
+    // 次の修行のためにステータスリセット（ソクラテス/プラトン/アカシック/シュレディンガー限定効果解除）
     gameData.player.stats.learning_speed = 1;
     gameData.player.stats.all_stat_boost = false;
     gameData.player.stats.akashic_universe = false;
+    gameData.player.stats.quantum_superposition = false;
+    gameData.player.stats.laplace_factor = false;
+    gameData.player.stats.paradox_logic = false;
 
     // データ保存
     saveGameData();
@@ -4020,16 +4385,13 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0, tutorialBonus = 0
     `;
 
     if (isComplete) {
-        // 🎯 チュートリアルStage 3の特別処理
-        const isTutorialStage3 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 3;
-
         // 🔴 完遂報酬エリア全体をクリック可能に（中央揃えを強化）
-        const rewardAreaOnclick = isTutorialStage3 ? ' onclick="handleTutorialRewardClick()"' : '';
-        const rewardAreaStyle = ' style="cursor: ' + (isTutorialStage3 ? 'pointer' : 'default') + '; position: relative; display: flex; flex-direction: column; align-items: center; width: 100%;"';
+        const rewardAreaOnclick = ' onclick="handleQuestRewardClick()"';
+        const rewardAreaStyle = ' style="cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; width: 100%;"';
 
         html += `
             <div class="reward-completion-area"${rewardAreaOnclick}${rewardAreaStyle}>
-                <div class="reward-chest" style="cursor: ${isTutorialStage3 ? 'pointer' : 'default'}; animation: ${isTutorialStage3 ? 'bounce 1s infinite' : 'none'};">🎁</div>
+                <div class="reward-chest" style="cursor: pointer; animation: bounce 1s infinite;">🎁</div>
                 <p style="font-size:14px; color:#d32f2f; font-weight:bold; margin-bottom:10px;">完遂報酬をゲット！</p>
                 <div class="result-rewards" style="background: rgba(255,215,0,0.1); padding:10px; border-radius:8px;">
                     <div class="reward-item">
@@ -4053,13 +4415,11 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0, tutorialBonus = 0
         createSparkleEffect();
     }
 
-    // 🎯 チュートリアル中は「里へもどる」ボタンを最初は非表示、それ以外は中央配置
-    const isTutorialStage3 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 3;
-    const initialDisplay = isTutorialStage3 ? 'none' : 'block';
-    const backButtonId = isTutorialStage3 ? ' id="tutorial-back-button"' : '';
+    // 🎯 修行完了時は、報酬（宝箱）を受け取ってからボタンを出す
+    const initialDisplay = isComplete ? 'none' : 'block';
 
     html += `
-            <button class="settings-btn"${backButtonId} style="display: ${initialDisplay}; position:static; transform:none; margin: 25px auto 0 auto; padding:10px 40px;" onclick="finishStudySessionCleanUp(); closeMessageModal();">里へもどる</button>
+            <button class="settings-btn" id="quest-return-button" style="display: ${initialDisplay}; position:static; transform:none; margin: 25px auto 0 auto; padding:10px 40px;" onclick="finishStudySessionCleanUp(); closeMessageModal();">里へもどる</button>
         </div>
     `;
 
@@ -4079,10 +4439,10 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0, tutorialBonus = 0
 }
 
 /**
- * 🎯 チュートリアル：完遂報酬エリアクリックハンドラー
+ * 🎁 完遂報酬エリアクリックハンドラー（全クエスト共通）
  */
-window.handleTutorialRewardClick = function () {
-    console.log('🎁 チュートリアル：完遂報酬エリアをクリック');
+window.handleQuestRewardClick = function () {
+    console.log('🎁 報酬エリアをクリック');
 
     // 報酬エリアを非表示にする
     const rewardArea = document.querySelector('.reward-completion-area');
@@ -4096,27 +4456,37 @@ window.handleTutorialRewardClick = function () {
         }, 500);
     }
 
-    // コインが降ってくるアニメーション
+    // 💰 コインが降ってくるアニメーション
     setTimeout(() => {
         createCoinRainAnimation();
     }, 600);
 
-    // アニメーション後に「里へもどる」ボタンを表示・光らせる
+    // アニメーション後に「里へもどる」ボタンを表示
     setTimeout(() => {
-        const backButton = document.getElementById('tutorial-back-button');
+        const backButton = document.getElementById('quest-return-button');
         if (backButton) {
             backButton.style.display = 'block';
-            backButton.classList.add('tutorial-highlight');
-            backButton.setAttribute('data-tutorial-hint', '👆ここだよ！');
-        }
 
-        // 主人公のメッセージを更新
-        const msgEl = document.getElementById("characterMessage");
-        if (msgEl) {
-            msgEl.textContent = '「報酬を受け取ったね！【里へもどる】ボタンを押して、冒険を終えよう！」';
+            // チュートリアル中なら光らせる
+            if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 3) {
+                backButton.classList.add('tutorial-highlight');
+                backButton.setAttribute('data-tutorial-hint', '👆ここだよ！');
+
+                // 主人公のメッセージを更新
+                const msgEl = document.getElementById("characterMessage");
+                if (msgEl) {
+                    msgEl.textContent = '「報酬を受け取ったね！【里へもどる】ボタンを押して、冒険を終えよう！」';
+                }
+            } else {
+                // 通常時も少しだけアピール
+                backButton.style.animation = 'pulse 1s 3';
+            }
         }
     }, 3000); // コインアニメーションの時間を考慮
 };
+
+// チュートリアル用エイリアス（互換性のため）
+window.handleTutorialRewardClick = window.handleQuestRewardClick;
 
 // 🔴 旧関数は削除（互換性のため残す場合はエイリアスに）
 window.handleTutorialChestClick = window.handleTutorialRewardClick;
@@ -5355,6 +5725,30 @@ function useItem(itemId) {
             null,
             "接続する"
         );
+    } else if (itemId === 98) {
+        showConfirmModal(
+            "📦 シュレディンガーの猫 🐱",
+            "運命の箱を開けますか？\n修行が終わるまで報酬は確定しません。コイン報酬が<span style='color: #ffcc00; font-weight: bold;'>【3倍】</span>に跳ね上がるか、完全に<span style='color: #ff3300; font-weight: bold;'>【消滅】</span>するか……運命を賭けた観測を開始します。",
+            () => executeUseItem(itemId),
+            null,
+            "運命を観測する"
+        );
+    } else if (itemId === 99) {
+        showConfirmModal(
+            "😈 ラプラスの悪魔 😈",
+            "因果の計算を開始しますか？\n修行の未来を確定させ、<span style='color: #00ffff; font-weight: bold;'>全ての修行成果（ダメージ・EXP・コイン）を【2倍】</span>に固定します。",
+            () => executeUseItem(itemId),
+            null,
+            "因果を支配する"
+        );
+    } else if (itemId === 100) {
+        showConfirmModal(
+            "🌀 パラドックスの扉 🌀",
+            "禁断の扉を開きますか？\n世界の論理が反転し、<span style='color: #ff00ff; font-weight: bold;'>【途中で修行を終えてもボーナス3倍】</span>が手に入り、さらにシュレティンガーの猫と使うと・・・？<span style='color: #ffff00; font-weight: bold;'>【最大報酬が・・・！】",
+            () => executeUseItem(itemId),
+            null,
+            "扉を開く"
+        );
     } else {
         executeUseItem(itemId);
     }
@@ -5407,6 +5801,12 @@ function executeUseItem(itemId) {
                         gameData.player.stats.all_stat_boost = true;
                     } else if (stat === 'akashic_universe') {
                         gameData.player.stats.akashic_universe = true;
+                    } else if (stat === 'quantum_superposition') {
+                        gameData.player.stats.quantum_superposition = true;
+                    } else if (stat === 'laplace_factor') {
+                        gameData.player.stats.laplace_factor = true;
+                    } else if (stat === 'paradox_logic') {
+                        gameData.player.stats.paradox_logic = true;
                     } else {
                         gameData.player.stats[stat] += amount;
                     }

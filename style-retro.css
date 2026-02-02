@@ -4428,7 +4428,35 @@ body.gacha-mode {
    Timer Polish
    ======================================== */
 .timer-pulsing {
-    /* animation disabled to stop floating movement */
+    text-shadow: 0 0 8px rgba(182, 255, 122, 0.8) !important;
+}
+
+/* --- 😈 修行画面用：グリッド演出 --- */
+.battle-ui.laplace-aura::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -2;
+    /* 影よりもさらに後ろ */
+    pointer-events: none;
+    animation: grid-scroll 10s linear infinite;
+}
+
+@keyframes grid-scroll {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 40px;
+    }
 }
 
 @keyframes timerPulse {
@@ -5290,6 +5318,401 @@ body.silence-mode #home-screen {
     100% {
         transform: translate(-50%, -50%) rotate(360deg) translateY(0);
     }
+}
+
+/* --- シュレディンガーの猫：量子猫マスコット演出 --- */
+.quantum-superposition {
+    position: relative;
+}
+
+/* 量子ゴースト演出 */
+.quantum-ghost {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    width: 100%;
+    height: 100%;
+    opacity: 0.4;
+    filter: hue-rotate(180deg) brightness(1.5) blur(1px);
+    pointer-events: none;
+    z-index: -1;
+    animation: quantum-ghost-pulse 2s infinite alternate ease-in-out;
+}
+
+@keyframes quantum-ghost-pulse {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: translate(-8px, -4px) scale(1.02);
+        opacity: 0.5;
+    }
+}
+
+/* 画面を横断する量子猫 (サイズ半分・お散歩版) */
+.quantum-cat-mascot {
+    position: fixed;
+    bottom: 50px;
+    left: -150px;
+    width: 128px;
+    /* サイズを半分に (256px -> 128px) */
+    height: 128px;
+    background-image: url('./assets/effect/uKLyzzga.png');
+    background-size: 400% 200%;
+    background-repeat: no-repeat;
+    z-index: 10005;
+    opacity: 0.7;
+    filter: drop-shadow(0 0 10px rgba(0, 180, 255, 0.6)) brightness(1.2);
+    pointer-events: none;
+    image-rendering: pixelated;
+    animation:
+        quantum-cat-traverse 50s infinite linear,
+        cat-walk 1s infinite step-start;
+}
+
+@keyframes quantum-cat-traverse {
+    0% {
+        left: -150px;
+        transform: scaleX(1);
+    }
+
+    45% {
+        left: 110vw;
+        transform: scaleX(1);
+    }
+
+    50% {
+        left: 110vw;
+        transform: scaleX(-1);
+    }
+
+    95% {
+        left: -150px;
+        transform: scaleX(-1);
+    }
+
+    100% {
+        left: -150px;
+        transform: scaleX(1);
+    }
+}
+
+/* 4x2の8コマを順番に巡るアニメーション */
+@keyframes cat-walk {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    /* 1枚目 (上段左1) */
+    12.5% {
+        background-position: 33.33% 0%;
+    }
+
+    /* 2枚目 (上段左2) */
+    25% {
+        background-position: 66.66% 0%;
+    }
+
+    /* 3枚目 (上段左3) */
+    37.5% {
+        background-position: 100% 0%;
+    }
+
+    /* 4枚目 (上段左4) */
+    50% {
+        background-position: 0% 100%;
+    }
+
+    /* 5枚目 (下段左1) */
+    62.5% {
+        background-position: 33.33% 100%;
+    }
+
+    /* 6枚目 (下段左2) */
+    75% {
+        background-position: 66.66% 100%;
+    }
+
+    /* 7枚目 (下段左3) */
+    87.5% {
+        background-position: 100% 100%;
+    }
+
+    /* 8枚目 (下段左4) */
+}
+
+/* 戦闘画面用も半分に */
+.battle-ui .quantum-cat-battle {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 90px;
+    height: 90px;
+    background-image: url('./assets/effect/uKLyzzga.png');
+    background-size: 400% 200%;
+    background-repeat: no-repeat;
+    z-index: 100;
+    opacity: 0.6;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 5px rgba(0, 150, 255, 0.6));
+    animation:
+        quantum-cat-blink 5s infinite,
+        cat-walk 1.2s infinite step-start;
+}
+
+@keyframes quantum-cat-blink {
+
+    0%,
+    90%,
+    100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+
+    95% {
+        opacity: 0.2;
+        transform: scale(0.9);
+    }
+}
+
+/* --- 😈 ラプラスの悪魔：絶対予知演出 --- */
+.laplace-aura {
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background-image: url('./assets/effect/laplace_demon_aura.png');
+    background-size: contain;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    z-index: 1;
+    /* ホーム画面：主人公の後ろ */
+    opacity: 0.7;
+    pointer-events: none;
+    /* --- 🦋 ホーム画面用：自由浮遊アニメーション --- */
+    animation: laplace-drifting 8s infinite ease-in-out;
+    filter: drop-shadow(0 0 20px rgba(128, 0, 128, 0.5));
+}
+
+@keyframes laplace-drifting {
+    0% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        opacity: 0.5;
+    }
+
+    20% {
+        transform: translate(80px, -50px) scale(1.1) rotate(10deg);
+        opacity: 0.8;
+    }
+
+    40% {
+        transform: translate(-60px, -100px) scale(0.9) rotate(-15deg);
+        opacity: 0.6;
+    }
+
+    60% {
+        transform: translate(40px, -150px) scale(1.2) rotate(5deg);
+        opacity: 0.9;
+    }
+
+    80% {
+        transform: translate(-100px, -40px) scale(1.0) rotate(-10deg);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        opacity: 0.5;
+    }
+}
+
+/* 戦闘画面用：最背面に配置してUIを邪魔しないようにする */
+.battle-ui .laplace-aura {
+    position: fixed;
+    /* 画面全体に固定 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.5);
+    width: 100vw;
+    height: 100vw;
+    z-index: -1;
+    /* 全てのUI（タイマー、モンスター）の後ろ */
+    opacity: 0.15;
+    /* かなり薄くする */
+    pointer-events: none;
+    background-position: center;
+    animation: pulse-aura-battle 5s infinite ease-in-out;
+}
+
+@keyframes pulse-aura-battle {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0.1;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.6);
+        opacity: 0.2;
+    }
+}
+
+/* --- 😈 ラプラスの悪魔：天からの囁き（宣告） --- */
+.laplace-whisper-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at top, rgba(0, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0.7) 100%);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.laplace-whisper-overlay.active {
+    opacity: 1;
+}
+
+.laplace-whisper-content {
+    text-align: center;
+    padding: 20px;
+}
+
+.laplace-whisper-text {
+    color: #00ffff;
+    font-family: 'PixelMplus12', sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.8), 0 0 30px rgba(0, 255, 255, 0.4);
+    margin: 10px 0;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: whisper-in 1.5s forwards ease-out;
+}
+
+.laplace-whisper-text.sub {
+    font-size: 14px;
+    color: #b0ffff;
+    animation-delay: 1s;
+}
+
+@keyframes whisper-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- 🌀 パラドックスの扉：論理逆転演出 --- */
+.paradox-logic {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.paradox-door {
+    position: absolute;
+    top: -120%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background-image: url('./assets/effect/paradox_door.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+    /* 主人公の後ろ */
+    opacity: 0.8;
+    pointer-events: none;
+    animation: paradox-spin 20s infinite linear;
+}
+
+@keyframes paradox-spin {
+    0% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.1) rotate(5deg);
+        filter: brightness(1.5);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+    }
+}
+
+/* 頭上の猫のアイコン */
+.quantum-box-mark {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 30px;
+    z-index: 100;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    animation: bounce 2s infinite ease-in-out;
+}
+
+/* 頭上のステータスは削除されました */
+
+@keyframes cat-status-float {
+
+    0%,
+    100% {
+        transform: translate(-50%, 0);
+    }
+
+    50% {
+        transform: translate(-50%, -10px);
+    }
+}
+
+@keyframes cat-flicker {
+    0% {
+        content: '🐱';
+        opacity: 1;
+    }
+
+    33% {
+        content: '💖';
+        opacity: 1;
+    }
+
+    66% {
+        content: '💀';
+        opacity: 1;
+    }
+
+    100% {
+        content: '📦';
+        opacity: 0.5;
+    }
+}
+
+/* 文字をCSSで変えるのは擬似要素が必要なので調整 */
+.cat-live::after {
+    content: '💖';
+}
+
+.cat-dead::after {
+    content: '💀';
+}
+
+.cat-unknown::after {
+    content: '❓';
 }
 
 /* モーダルの縦幅を無理やりコンパクトにする */
