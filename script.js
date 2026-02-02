@@ -3116,7 +3116,7 @@ function showDailyGoalModal() {
                 「${subjectLabel}」の修行を開始します
             </p>
             ${tutorialComment}
-            <p style="margin-bottom:20px; font-size:12px; color:#2c1810;">
+            <p style="margin-bottom:20px; font-size:12px; color:#2c1810; font-weight: bold;">
                 今日は何分間、修行に励みますか？<br>
                 <small>(完遂すると特別な報酬がもらえます！)</small>
             </p>
