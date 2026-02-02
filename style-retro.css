@@ -1942,7 +1942,8 @@ textarea {
 /* 主人公からのアドバイスメッセージボックス */
 .hero-advice-box {
     width: 100%;
-    padding: 12px 16px;
+    padding: 12px 16px 12px 35px;
+    /* 左側にアイコン用の余白を確保 */
     background: linear-gradient(135deg, rgba(255, 248, 220, 0.95) 0%, rgba(255, 235, 180, 0.95) 100%);
     border: 3px solid #8b4513;
     border-radius: 8px;
@@ -1956,10 +1957,12 @@ textarea {
 .hero-advice-box::before {
     content: "💬";
     position: absolute;
-    left: 8px;
+    left: 10px;
+    /* 少し内側に寄せる */
     top: 50%;
     transform: translateY(-50%);
-    font-size: 20px;
+    font-size: 18px;
+    /* 少し小さくして重なりを防止 */
 }
 
 .hero-advice-text {

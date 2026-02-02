@@ -3568,10 +3568,9 @@ function finishStudySessionCleanUp() {
         // これにより、showScreen('home-screen')内のStage 3→4処理が実行される
         gameData.tutorialProgress.hasReceivedWelcomeReward = true;
 
-        // 🎁 お祝いの100コインを付与
-        gameData.player.coins += 100;
+        // 🎁 お祝いの100コインは saveStudySession 内で付与済みのため、ここでは付与しない（二重付与防止）
         saveGameData();
-        console.log("💰 チュートリアル：お祝いの100コインを付与しました");
+        console.log("💰 チュートリアル：お祝いの100コインは付与済みです");
     }
 
     // 🔴 追伸：大ボスの演出画面が残っていたら確実に消す
@@ -3735,10 +3734,10 @@ function saveStudySession(actualSeconds, isComplete = false) {
 
     // 画面更新
     if (gameData.currentChallenge && gameData.currentChallenge.quest) {
-        showBossDamageAnimation(minutes, isComplete, levelUpInfo, earnedCoins);
+        showBossDamageAnimation(minutes, isComplete, levelUpInfo, earnedCoins, tutorialBonusCoins);
     } else {
         handleDeferredLevelUp(levelUpInfo, () => {
-            showQuestResult(minutes, isComplete, earnedCoins);
+            showQuestResult(minutes, isComplete, earnedCoins, tutorialBonusCoins);
         });
     }
 
@@ -3749,7 +3748,7 @@ function saveStudySession(actualSeconds, isComplete = false) {
     return { earnedCoins, earnedExp, levelUpInfo };
 }
 
-function showQuestResult(minutes, isComplete, earnedCoins = 0) {
+function showQuestResult(minutes, isComplete, earnedCoins = 0, tutorialBonus = 0) {
     if (!gameData.activeQuest) return;
     const { rank, monster } = gameData.activeQuest;
     const rewards = RANK_REWARDS[rank];
@@ -3775,7 +3774,7 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0) {
                 </div>
                 <div class="reward-item">
                     <span class="reward-icon">💰</span>
-                    <span>獲得コイン：+${earnedCoins + (isComplete ? 50 : 0)}</span>
+                    <span>獲得コイン：+${earnedCoins + (isComplete ? 50 : 0)}${tutorialBonus > 0 ? ` (+${tutorialBonus}初回ボーナス!)` : ''}</span>
                 </div>
             </div>
     `;
@@ -3957,16 +3956,16 @@ function selectBossForQuest(rank) {
 /**
  * 大ボスダメージ演出画面（ドラクエ風）を表示
  */
-function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, earnedCoins = 0) {
+function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, earnedCoins = 0, tutorialBonus = 0) {
     const screen = document.getElementById('bossDamageScreen');
     if (!screen) {
         // ボスダメージ画面がない場合は、直接結果画面へ (レベルアップがあれば先に表示)
         if (levelUpInfo) {
             showLevelUpModal(levelUpInfo.oldLevel, levelUpInfo.newLevel, () => {
-                showQuestResult(damageMinutes, isComplete);
+                showQuestResult(damageMinutes, isComplete, earnedCoins, tutorialBonus);
             });
         } else {
-            showQuestResult(damageMinutes, isComplete);
+            showQuestResult(damageMinutes, isComplete, earnedCoins, tutorialBonus);
         }
         return;
     }
@@ -4101,10 +4100,10 @@ function showBossDamageAnimation(damageMinutes, isComplete, levelUpInfo = null, 
                         } else {
                             if (levelUpInfo) {
                                 handleDeferredLevelUp(levelUpInfo, () => {
-                                    showQuestResult(damageMinutes, isComplete, earnedCoins);
+                                    showQuestResult(damageMinutes, isComplete, earnedCoins, tutorialBonus);
                                 });
                             } else {
-                                showQuestResult(damageMinutes, isComplete, earnedCoins);
+                                showQuestResult(damageMinutes, isComplete, earnedCoins, tutorialBonus);
                             }
                         }
                     }, 2000); // メッセージを読ませるための余韻

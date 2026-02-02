@@ -56,10 +56,10 @@
     background: rgba(0, 0, 0, 0.4);
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding-top: 60px;
-    /* 大ボスのHPバーのすぐ下に配置 */
-    z-index: 1000;
+    align-items: center;
+    /* 中央に配置 */
+    padding: 20px;
+    z-index: 10000;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.5s ease;
