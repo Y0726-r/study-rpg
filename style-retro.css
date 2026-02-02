@@ -5058,6 +5058,45 @@ body.gacha-mode {
     }
 }
 
+/* --- 静寂の耳栓：没入エフェクト --- */
+.silence-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 50;
+    /* キャラクター(1001)より下、天体(5)より上 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease-in-out;
+}
+
+body.silence-mode .silence-overlay {
+    opacity: 1;
+}
+
+/* 没入中の背景要素（さらにぼかす） */
+body.silence-mode #time-effect-layer,
+body.silence-mode #celestial-layer {
+    filter: blur(15px) saturate(30%) !important;
+}
+
+/* 没入中のホーム画面のテキストなどを少し暗く */
+body.silence-mode #home-screen {
+    filter: brightness(0.8) !important;
+}
+
+/* キャラクターを浮き上がらせる */
+.character-wrapper.silence-highlight {
+    z-index: 1001 !important;
+    filter: brightness(1.2) drop-shadow(0 0 15px rgba(255, 255, 255, 0.9)) !important;
+    transition: filter 1s ease-in-out !important;
+}
+
 /* --- アイテムを捨てた時のメッセージ（下からスッと出る） --- */
 .discard-toast {
     position: fixed;

@@ -5005,58 +5005,26 @@ function createUltraRareEffect() {
  * 静寂の耳栓エフェクト：キャラクターを完全保護（背景分離版）
  */
 function applySilenceEffect() {
-    console.log("🎧 静寂の耳栓エフェクト：背景分離モード発動");
+    console.log("🎧 静寂の耳栓エフェクト：CSSクラスモード発動");
 
     const duration = 8000;
     const charWrapper = document.querySelector('.character-wrapper');
-    const homeScreen = document.getElementById('home-screen');
-    const statusScreen = document.getElementById('status-screen');
+    const body = document.body;
 
-    // 1. キャラクターを含まない背景レイヤーのみにblurをかける
-    const bgElements = document.querySelectorAll('#time-effect-layer, #celestial-layer');
-    bgElements.forEach(el => {
-        el.style.transition = 'filter 1s ease-out';
-        el.style.filter = 'blur(10px) saturate(40%)';
-    });
-
-    // 2. home-screen全体を暗くして静寂感を出す（blurは使わない）
-    if (homeScreen) {
-        homeScreen.style.transition = 'background-color 1s ease-out';
-        homeScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
-    }
-
-    // 2-2. status-screenも一緒に暗くする（巻物を柔らかく）
-    if (statusScreen) {
-        statusScreen.style.transition = 'background-color 1s ease-out';
-        statusScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
-    }
-
-    // 3. キャラクターを明るく強調
+    // 1. クラスを付与してCSS側でエフェクトを制御（!important負けしないため）
+    body.classList.add('silence-mode');
     if (charWrapper) {
-        const charImages = charWrapper.querySelectorAll('img');
-        charImages.forEach(img => {
-            img.style.transition = 'filter 1s ease-out';
-            img.style.filter = 'brightness(1.3) drop-shadow(0 0 15px rgba(255, 255, 255, 0.9))';
-        });
-        charWrapper.style.zIndex = "1000";
+        charWrapper.classList.add('silence-highlight');
     }
 
     const msgEl = document.getElementById("characterMessage");
-    if (msgEl) msgEl.textContent = "全集中...";
+    if (msgEl) msgEl.textContent = "全周囲の音が消え、深い静寂に包まれた...";
 
-    // 4. 8秒後にリセット
+    // 2. 8秒後にリセット
     setTimeout(() => {
-        bgElements.forEach(el => el.style.filter = '');
-        if (homeScreen) {
-            homeScreen.style.backgroundColor = '';
-        }
-        if (statusScreen) {
-            statusScreen.style.backgroundColor = '';
-        }
+        body.classList.remove('silence-mode');
         if (charWrapper) {
-            const charImages = charWrapper.querySelectorAll('img');
-            charImages.forEach(img => img.style.filter = '');
-            charWrapper.style.zIndex = "";
+            charWrapper.classList.remove('silence-highlight');
         }
         updateCharacterMessage(true);
         console.log("🎧 エフェクト終了：キャラクター完全保護成功");
