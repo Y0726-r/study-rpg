@@ -3009,7 +3009,7 @@ function updateHeroAdviceMessage() {
     const level = gameData?.player?.level || 1;
     const messages = [
         "自分のペースですすめば大丈夫だよ。",
-        "まずは【⚙️作戦会議】で目標時間を刻もう。準備はいいかい？",
+        "右上の【⚙️作戦会議】で目標時間を刻もう。準備はいいかい？",
         "修行の時間は君が決めるんだ。右上の⚙️ボタンを押してみて！",
         "さあ、今日も冒険に出発だ！"
     ];
@@ -6255,7 +6255,7 @@ window.openAdventureGuide = function () {
             【きろく】これまでの修行の全記録</p>
 
             <p style="color: #d32f2f; font-weight: bold; border-bottom: 2px solid #d32f2f; margin-top: 15px; margin-bottom: 8px;">🐉 伝説の噂</p>
-            <p>修行を極めし者は、伝説の龍と巡り会えるという…。Lv.45で「鱗」を、Lv.60で「誕生」を、そしてLv.99で「真の主」となるだろう。</p>
+            <p>修行を極めし者は、伝説の龍と巡り会えるという…。Lv.45で「鱗」を、Lv.70で「命の卵」を、そしてLv.99で「真の主」となるだろう。</p>
 
             <hr style="border: 1px dashed #8d6e63; margin: 15px 0;">
             <p style="font-size: 10px; color: #6b4400;">※もしタイマーが止まった時は、下の儀式を試してね</p>
