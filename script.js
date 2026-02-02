@@ -6255,8 +6255,12 @@ window.openAdventureGuide = function () {
             【きろく】これまでの修行の全記録</p>
 
             <p style="color: #d32f2f; font-weight: bold; border-bottom: 2px solid #d32f2f; margin-top: 15px; margin-bottom: 8px;">🐉 伝説の噂</p>
-            <p>修行を極めし者は、伝説の龍と巡り会えるという…。Lv.45で「鱗」を、Lv.70で「命の卵」を、そしてLv.99で「真の主」となるだろう。</p>
-
+            <p>修行を極めし者は、伝説の龍と巡り会えるという…。</p>
+            <p style="line-height: 1.8; margin-top: 5px;">
+               <span style="background: linear-gradient(transparent 70%, #ffc107 70%); padding: 0 2px;">Lv.45で「鱗」</span>を、
+               <span style="background: linear-gradient(transparent 70%, #ff9800 70%); padding: 0 2px;">Lv.70で「命の卵」</span>を、<br>
+               そして<span style="color: #ff4500; font-weight: bold; letter-spacing: 1px; border: 1px solid #ff4500; padding: 2px 8px; border-radius: 4px; background: rgba(255,69,0,0.05); display: inline-block; margin-top: 5px;">Lv.99で「真の主」</span>となるだろう。
+            </p>
             <hr style="border: 1px dashed #8d6e63; margin: 15px 0;">
             <p style="font-size: 10px; color: #6b4400;">※もしタイマーが止まった時は、下の儀式を試してね</p>
             <button onclick="confirmRepair()" style="width:100%; padding:10px; background:#8d6e63; color:white; border:3px double white; cursor:pointer; font-family: inherit;">
