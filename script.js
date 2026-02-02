@@ -1791,14 +1791,18 @@ function loadGameData() {
 
         // Tutorial Progress System initialization & Migration for existing players
         if (!gameData.tutorialProgress) {
-            // Lv.2以上なら完了したとみなす
-            const initialStage = (gameData.player && gameData.player.level > 1) ? 4 : 0;
             gameData.tutorialProgress = {
-                stage: initialStage,
-                hasCompletedFirstQuest: initialStage === 4,
-                hasReceivedWelcomeReward: initialStage === 4
+                stage: 0,
+                hasCompletedFirstQuest: false,
+                hasReceivedWelcomeReward: false
             };
-            console.log(`📊 既プレイ者のチュートリアルを自動完了しました (Stage: ${initialStage})`);
+        }
+        // 既プレイ者向けの救済：Lv.2以上なら強制的に完了状態にする
+        if (gameData.player && gameData.player.level > 1 && gameData.tutorialProgress.stage < 4) {
+            gameData.tutorialProgress.stage = 4;
+            gameData.tutorialProgress.hasCompletedFirstQuest = true;
+            gameData.tutorialProgress.hasReceivedWelcomeReward = true;
+            console.log(`📊 既プレイ者のチュートリアルを強制完了しました (Level: ${gameData.player.level})`);
         }
 
         // NEW: Monster Quest System initialization

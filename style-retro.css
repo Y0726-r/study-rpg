@@ -1698,7 +1698,6 @@ textarea {
     position: relative;
     z-index: 20;
     padding-bottom: env(safe-area-inset-bottom, 24px);
-
 }
 
 .nav-button {
