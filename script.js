@@ -5754,16 +5754,24 @@ window.setTestStats = function (focus, intellect, strength) {
         return;
     }
 
-    // 現在がレベル上げイベント用のセリフでない場合、または強制リセットの場合のみ更新
-    const isSpecial = ["あれ？ 卵に変化が……", "なんか最近、卵が割れそう・・・・？"].includes(messageEl.textContent);
+    // --- 修正ポイントここから ---
+    const lv = gameData?.player?.level || 1;
+    const isHatched = gameData.dragon && gameData.dragon.hatched;
 
-    if (!isSpecial || force) {
-        // レベルに応じた龍の噂話を追加
-        const lv = gameData?.player?.level || 1;
+    // 現在のメッセージが卵イベント用かチェック
+    const isEggMessage = ["あれ？ 卵に変化が……", "なんか最近、卵が割れそう・・・・？"].includes(messageEl.textContent);
+
+    // 「卵メッセージ」かつ「まだ生まれていない」時だけ、更新をブロックする
+    // つまり、誕生(isHatched)した後は、強制的に書き換えを許可する設定です
+    const shouldBlockUpdate = isEggMessage && !isHatched;
+
+    if (!shouldBlockUpdate || force) {
+        // --- 修正ポイントここまで ---
+
         console.log(`🎮 現在のレベル: ${lv}`);
 
         // ★ Lv99：伝説のドラゴンライダー
-        if (lv >= 99 && gameData.dragon.hatched) {
+        if (lv >= 99 && isHatched) {
             // 普通のメッセージはクリアして、特別なセリフだけに絞る（確実に出すため）
             messages.length = 0;
             messages.push("風が...ボクたちを祝ってくれているみたいだね！");
