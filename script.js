@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
         openingMovie.style.display = 'flex';  // 確実に表示させる
         openingMovie.style.opacity = '1';     // 透明度を1にする
         console.log("🎬 起動演出：龍の舞台を整えました。冒険の始まりです！");
+
+        // 🔴 チュートリアル：職業選択前は全ボタンを無効化
+        controlNavigationButtons('disable-all');
     }
 
     // 3. 裏側でひっそりゲームデータを読み込む
@@ -52,6 +55,50 @@ const OCCUPATION_PRESETS = {
     'student': { label: '学生', q: '国語の聖典', l: '英語の詠唱', b: '数学の魔導', o: '自由研究' },
     'business': { label: '社会人', q: '資格の試練', l: '語学の修行', b: '実務の鍛錬', o: '自己研鑽' },
     'freeman': { label: '自由人', q: '探求の旅', l: '異界の言葉', b: '錬金術の儀', o: '日々の習慣' }
+};
+
+// ========================================
+// 🎯 チュートリアル：ナビゲーションボタンの制御
+// ========================================
+
+/**
+ * ナビゲーションボタンを無効化・有効化する
+ * @param {string} mode - 'disable-all' | 'enable-study-only' | 'enable-all'
+ */
+window.controlNavigationButtons = function (mode) {
+    const navButtons = document.querySelectorAll('.nav-button');
+
+    if (mode === 'disable-all') {
+        // 全てのボタンを無効化
+        navButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('nav-disabled');
+        });
+        console.log('🔒 全てのナビゲーションボタンを無効化しました');
+    }
+    else if (mode === 'enable-study-only') {
+        // 「まなぶ」ボタン（最初のボタン）だけを有効化
+        navButtons.forEach((btn, index) => {
+            if (index === 0) {
+                // 最初のボタン（まなぶ）を有効化
+                btn.disabled = false;
+                btn.classList.remove('nav-disabled');
+            } else {
+                // 他のボタンは無効化
+                btn.disabled = true;
+                btn.classList.add('nav-disabled');
+            }
+        });
+        console.log('✅ 「まなぶ」ボタンだけを有効化しました');
+    }
+    else if (mode === 'enable-all') {
+        // 全てのボタンを有効化
+        navButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('nav-disabled');
+        });
+        console.log('✅ 全てのナビゲーションボタンを有効化しました');
+    }
 };
 
 window.applyOccupation = function (jobKey) {
@@ -89,6 +136,9 @@ window.applyOccupation = function (jobKey) {
     }
     gameData.tutorialProgress.stage = 1;
     saveGameData();
+
+    // 🔴 チュートリアル：「まなぶ」ボタンだけを有効化
+    controlNavigationButtons('enable-study-only');
 
     console.log(`✨ 職業「${preset.label}」の修行目録をセットしました`);
 
@@ -133,7 +183,7 @@ const STUDY_SUBJECTS = [
 ];
 
 const RANK_REWARDS = {
-    'F-ERANK': { coins: 100, exp: 500, medal: "初心者の証" },
+    'F-ERANK': { coins: 100, exp: 300, medal: "初心者の証" },
     'D-CRANK': { coins: 300, exp: 1500, medal: "努力の勲章" },
     'B-ARANK': { coins: 1000, exp: 3000, medal: "継続の証", title: "修行者" },
     'SRANK': { coins: 2000, exp: 8000, medal: "超越の勲章", title: "求道者" },
@@ -1186,12 +1236,45 @@ function updateStudyScreenUI() {
     const hasActiveSession = gameData.dailySession && gameData.dailySession.targetMinutes > 0;
     const isRunning = timerInterval || (gameData.timer && gameData.timer.isRunning);
 
+    // 🎯 チュートリアル中（Stage 2-3）かどうかをチェック
+    const isTutorial = gameData.tutorialProgress &&
+        (gameData.tutorialProgress.stage === 2 || gameData.tutorialProgress.stage === 3);
+
     if (isRunning) {
         if (pauseBtn) {
             pauseBtn.classList.remove('hidden');
             pauseBtn.textContent = 'ひとやすみ';
             pauseBtn.classList.remove('is-paused');
+
+            // 🎯 チュートリアル中は無効化
+            if (isTutorial) {
+                pauseBtn.disabled = true;
+                pauseBtn.style.opacity = '0.4';
+                pauseBtn.style.cursor = 'not-allowed';
+                pauseBtn.style.pointerEvents = 'none';
+            } else {
+                pauseBtn.disabled = false;
+                pauseBtn.style.opacity = '';
+                pauseBtn.style.cursor = '';
+                pauseBtn.style.pointerEvents = '';
+            }
         }
+
+        // 🎯 「おわる」ボタンもチュートリアル中は無効化
+        if (stopBtn) {
+            if (isTutorial) {
+                stopBtn.disabled = true;
+                stopBtn.style.opacity = '0.4';
+                stopBtn.style.cursor = 'not-allowed';
+                stopBtn.style.pointerEvents = 'none';
+            } else {
+                stopBtn.disabled = false;
+                stopBtn.style.opacity = '';
+                stopBtn.style.cursor = '';
+                stopBtn.style.pointerEvents = '';
+            }
+        }
+
         if (preBattle) preBattle.classList.add('hidden');
         if (battle) battle.classList.remove('hidden');
     } else if (hasActiveSession) {
@@ -1199,6 +1282,19 @@ function updateStudyScreenUI() {
             pauseBtn.classList.remove('hidden');
             pauseBtn.textContent = 'つづける';
             pauseBtn.classList.add('is-paused');
+
+            // 🎯 チュートリアル中は無効化
+            if (isTutorial) {
+                pauseBtn.disabled = true;
+                pauseBtn.style.opacity = '0.4';
+                pauseBtn.style.cursor = 'not-allowed';
+                pauseBtn.style.pointerEvents = 'none';
+            } else {
+                pauseBtn.disabled = false;
+                pauseBtn.style.opacity = '';
+                pauseBtn.style.cursor = '';
+                pauseBtn.style.pointerEvents = '';
+            }
         }
         if (preBattle) preBattle.classList.add('hidden');
         if (battle) battle.classList.remove('hidden');
@@ -1492,6 +1588,23 @@ function initGame() {
             gameData.dragonMilestones.scaleAwarded = true;
             saveGameData();
         }
+    }
+
+    // 🎯 チュートリアル状態に応じてナビゲーションボタンを制御
+    const tutorialStage = gameData.tutorialProgress ? gameData.tutorialProgress.stage : 0;
+
+    if (tutorialStage === 0) {
+        // Stage 0: オープニング中 - 全ボタン無効
+        controlNavigationButtons('disable-all');
+        console.log('🎯 チュートリアル Stage 0: 全ボタン無効化');
+    } else if (tutorialStage === 1 || tutorialStage === 2 || tutorialStage === 3) {
+        // Stage 1-3: チュートリアル中 - まなぶボタンのみ有効
+        controlNavigationButtons('enable-study-only');
+        console.log('🎯 チュートリアル Stage 1-3: まなぶボタンのみ有効化');
+    } else {
+        // Stage 4以降: チュートリアル完了 - 全ボタン有効
+        controlNavigationButtons('enable-all');
+        console.log('🎯 チュートリアル完了: 全ボタン有効化');
     }
 
     console.log("Game initialized!");
@@ -1814,6 +1927,10 @@ function showScreen(screenId) {
                 gameData.isSelectingJob = false;
                 saveGameData();
 
+                // 🔴 重要：全てのナビゲーションボタンを有効化
+                controlNavigationButtons('enable-all');
+                console.log('🎉 チュートリアル完了: 全ボタンを有効化しました');
+
                 // 通常のランダムセリフモードへ移行
                 setTimeout(() => {
                     updateCharacterMessage(true);
@@ -1871,24 +1988,119 @@ function showScreen(screenId) {
         document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.subject === gameData.currentSubject);
         });
-    }
-    // 🎯 チュートリアル：作戦会議ボタンのハイライト
-    // Stage 1（職業選択後、目標設定前）の時だけハイライト
-    const isTutorialStage1 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 1;
-    const isNoOccupation = window.isSelectingJob && STUDY_SUBJECTS.length > 0 && !localStorage.getItem('player_occupation');
-    let firstSubjName = (STUDY_SUBJECTS.length > 0) ? STUDY_SUBJECTS[0].label : "科目";
 
-    const settingsWrapper = document.querySelector('.settings-btn-wrapper');
-    if (settingsWrapper) {
-        if (isTutorialStage1 || isNoOccupation) {
-            settingsWrapper.classList.add('tutorial-highlight');
-            settingsWrapper.setAttribute('data-tutorial-hint', '👆ここだよ！');
+        // 🎯 チュートリアルStage 1: 設定ボタン以外を全て無効化
+        const isTutorialStage1 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 1;
+        const isTutorialStage2 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 2;
+
+        console.log('🎯 チュートリアルステージ確認:', {
+            stage: gameData.tutorialProgress?.stage,
+            isTutorialStage1,
+            isTutorialStage2
+        });
+
+        if (isTutorialStage1) {
+            console.log('🎯 チュートリアルStage 1: 全ボタンを無効化');
+            // 戻るボタンを無効化
+            const backBtn = document.querySelector('#study-screen .pixel-back-btn');
+            if (backBtn) {
+                backBtn.disabled = true;
+                backBtn.classList.add('tutorial-disabled-btn');
+            }
+
+            // 冒険に出るボタンを無効化
+            const adventureBtn = document.querySelector('.start-adventure-btn');
+            if (adventureBtn) {
+                adventureBtn.disabled = true;
+                adventureBtn.classList.add('tutorial-disabled-btn');
+            }
+
+            // 修復ボタンを無効化
+            const repairBtn = document.querySelector('.repair-mini-btn');
+            if (repairBtn) {
+                repairBtn.disabled = true;
+                repairBtn.classList.add('tutorial-disabled-btn');
+            }
+
+            // 全ての科目ボタンを無効化
+            document.querySelectorAll('.subject-btn-mvp').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('tutorial-disabled');
+            });
+            document.querySelectorAll('.subject-label-mvp').forEach(label => {
+                label.classList.add('tutorial-disabled');
+            });
+        } else if (isTutorialStage2) {
+            console.log('🎯 チュートリアルStage 2: 冒険に出るボタンを有効化');
+            // Stage 2: 戻るボタンと修復ボタンは無効化、冒険に出るボタンは有効化
+            const backBtn = document.querySelector('#study-screen .pixel-back-btn');
+            if (backBtn) {
+                backBtn.disabled = true;
+                backBtn.classList.add('tutorial-disabled-btn');
+            }
+
+            const adventureBtn = document.querySelector('.start-adventure-btn');
+            if (adventureBtn) {
+                console.log('🎯 冒険に出るボタンを有効化:', adventureBtn);
+                adventureBtn.disabled = false;
+                adventureBtn.classList.remove('tutorial-disabled-btn');
+                // 🔴 強制的にスタイルを削除
+                adventureBtn.style.opacity = '';
+                adventureBtn.style.pointerEvents = '';
+                adventureBtn.style.cursor = '';
+                adventureBtn.style.filter = '';
+                console.log('🎯 冒険に出るボタンのクラス:', adventureBtn.className);
+                console.log('🎯 冒険に出るボタンのdisabled:', adventureBtn.disabled);
+            }
+
+            const repairBtn = document.querySelector('.repair-mini-btn');
+            if (repairBtn) {
+                repairBtn.disabled = true;
+                repairBtn.classList.add('tutorial-disabled-btn');
+            }
+
+            // 科目ボタンはgenerateSubjectButtons()で制御済み（最初の科目のみ有効）
         } else {
-            // Stage 2 以降は確実に消す
-            settingsWrapper.classList.remove('tutorial-highlight');
-            settingsWrapper.removeAttribute('data-tutorial-hint');
+            console.log('🎯 チュートリアル完了: 全ボタンを有効化');
+            // チュートリアル完了後は無効化を解除
+            const backBtn = document.querySelector('#study-screen .pixel-back-btn');
+            if (backBtn) {
+                backBtn.disabled = false;
+                backBtn.classList.remove('tutorial-disabled-btn');
+            }
+
+            const adventureBtn = document.querySelector('.start-adventure-btn');
+            if (adventureBtn) {
+                adventureBtn.disabled = false;
+                adventureBtn.classList.remove('tutorial-disabled-btn');
+            }
+
+            const repairBtn = document.querySelector('.repair-mini-btn');
+            if (repairBtn) {
+                repairBtn.disabled = false;
+                repairBtn.classList.remove('tutorial-disabled-btn');
+            }
+        }
+
+        // 🎯 チュートリアル：設定ボタンのハイライト（Stage 1のみ）
+        if (isTutorialStage1) {
+            const settingsWrapper = document.querySelector('.settings-btn-wrapper');
+            if (settingsWrapper) {
+                settingsWrapper.classList.add('tutorial-highlight');
+                settingsWrapper.setAttribute('data-tutorial-hint', '👆ここだよ！');
+            }
+        } else {
+            // Stage 2以降はハイライトを削除
+            const settingsWrapper = document.querySelector('.settings-btn-wrapper');
+            if (settingsWrapper) {
+                settingsWrapper.classList.remove('tutorial-highlight');
+                settingsWrapper.removeAttribute('data-tutorial-hint');
+            }
         }
     }
+    // 🎯 チュートリアル：ホーム画面用の変数定義
+    const isNoOccupation = window.isSelectingJob && STUDY_SUBJECTS.length > 0 && !localStorage.getItem('player_occupation');
+    let firstSubjName = (STUDY_SUBJECTS.length > 0) ? STUDY_SUBJECTS[0].label : "科目";
 
     // 吹き出しの初期化
     const studyBubble = document.getElementById('characterMessageStudy');
@@ -2443,9 +2655,21 @@ window.startRenamingSubject = function (id, currentName) {
     const currentTargetHours = subj ? (subj.targetMinutes / 60) : 0;
 
     // 🔴 修正：チュートリアル中で1番目の科目の場合は「10」を、そうでなければ既存の値をセット
-    const isTutorialFirstSubject = (window.isSelectingJob && STUDY_SUBJECTS.length > 0 && currentName === STUDY_SUBJECTS[0].label);
-    const defaultHours = isTutorialFirstSubject ? 10 : (currentTargetHours || 0);
+    const isTutorial = gameData.tutorialProgress && gameData.tutorialProgress.stage === 1;
+    const isFirstSubject = STUDY_SUBJECTS.length > 0 && currentName === STUDY_SUBJECTS[0].label;
+    const defaultHours = (isTutorial && isFirstSubject) ? 10 : (currentTargetHours || 0);
 
+
+    // 🎯 チュートリアル中のみ表示する説明文
+    const tutorialHint = isTutorial ? `
+        <div style="background: rgba(243, 240, 232, 0.95); border: 2px solid #fad230ff; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 12px; color: #2c1810; line-height: 1.6; font-weight: bold;">
+                💡 ひとまずは目標時間を<span style="color: #d4af37; font-size: 14px;">10時間</span>に設定しておいたから、<br>
+                「これにする！」を押してね<br>
+                <span style="font-size: 11px; color: #666;">(後から変更できるよ)</span>
+            </p>
+        </div>
+    ` : '';
 
     let html = `
         <div style="text-align:center; padding:10px;">
@@ -2460,7 +2684,7 @@ window.startRenamingSubject = function (id, currentName) {
             <input type="text" id="subject-rename-input" value="${currentName}" autocomplete="off"
                 style="width:90%; padding:10px; background:rgba(255,255,255,0.1); border:none; border-bottom:3px double #2c1810; color:#2c1810; font-family: 'DotGothic16', sans-serif; font-size:16px; margin-bottom:20px; text-align:center; outline:none; border-radius:0;">
 
-            <p style="margin-bottom:10px; font-size:12px; color:#2c1810;">
+            <p style="margin-bottom:10px; font-size:12px; color:#2c1810; font-weight:bold;">
                 この章のボスはどれくらい強そう？
             </p>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:20px;">
@@ -2473,6 +2697,8 @@ window.startRenamingSubject = function (id, currentName) {
                 <button class="settings-btn" style="position:static; transform:none; font-size:11px; padding:8px 4px; filter: grayscale(0.8);" 
                     onclick="window.setRandomTargetHours()">🎲 正体不明 (？h)</button>
             </div>
+
+            ${tutorialHint}
 
             <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:30px;">
                 <input type="number" id="subject-target-input" value="${defaultHours}" placeholder="${currentTargetHours}" min="0" step="1"
@@ -2633,6 +2859,7 @@ window.saveSubjectRename = function (id) {
 
     // 🎯 チュートリアル進行チェック (Stage 1 → 2)
     if (gameData.tutorialProgress && gameData.tutorialProgress.stage === 1) {
+        console.log('🎯 チュートリアルStage 1 → 2 に進行します');
         gameData.tutorialProgress.stage = 2;
         saveGameData();
 
@@ -2644,6 +2871,10 @@ window.saveSubjectRename = function (id) {
             closeMessageModal();
 
             setTimeout(() => {
+                // 🔴 重要：画面を再描画してボタンの状態を更新
+                console.log('🎯 study-screenを再描画してボタン状態を更新');
+                showScreen('study-screen');
+
                 // 修行画面のアドバイスメッセージを更新
                 const adviceEl = document.getElementById("hero-advice-message");
                 if (adviceEl) {
@@ -2652,10 +2883,11 @@ window.saveSubjectRename = function (id) {
                 }
 
                 // 「冒険に出る」ボタンを探して光らせる
-                const adventureBtn = document.querySelector('[onclick*="startStudyWithAnimation"]');
+                const adventureBtn = document.querySelector('.start-adventure-btn');
                 if (adventureBtn) {
+                    console.log('🎯 冒険に出るボタンをハイライト');
                     adventureBtn.classList.add('tutorial-highlight');
-                    adventureBtn.setAttribute('data-tutorial-hint', '👆ここだよ！');
+                    // 🔴 「ここだよ！」アナウンスは削除（ハイライトのみ）
                 }
             }, 800);
         }, 2000); // 魔法演出の時間を確保
@@ -2695,7 +2927,10 @@ function generateSubjectButtons() {
     // Clear existing static buttons
     container.innerHTML = '';
 
-    STUDY_SUBJECTS.forEach((subj) => {
+    // 🎯 チュートリアルStage 2かどうかをチェック
+    const isTutorialStage2 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 2;
+
+    STUDY_SUBJECTS.forEach((subj, index) => {
         // 元のデザイン通り、ラッパー要素を作成する
         const wrapper = document.createElement('div');
         wrapper.className = 'subject-item-wrapper';
@@ -2706,6 +2941,13 @@ function generateSubjectButtons() {
         btn.id = subj.id;
         btn.dataset.subject = subj.label;
         btn.onclick = () => selectSubject(btn);
+
+        // 🎯 チュートリアルStage 2: 最初の科目以外を無効化
+        if (isTutorialStage2 && index !== 0) {
+            btn.disabled = true;
+            btn.classList.add('tutorial-disabled');
+            btn.onclick = null; // クリックイベントを無効化
+        }
 
         let iconClass = 'math';
         if (subj.type === 'qualification') iconClass = 'math';
@@ -2718,6 +2960,11 @@ function generateSubjectButtons() {
         const label = document.createElement('span');
         label.className = 'subject-label-mvp';
         label.textContent = subj.label;
+
+        // 🎯 チュートリアルStage 2: ラベルも無効化スタイル
+        if (isTutorialStage2 && index !== 0) {
+            label.classList.add('tutorial-disabled');
+        }
 
         // ボタンとラベルをラッパーに追加
         wrapper.appendChild(btn);
@@ -2904,9 +3151,17 @@ window.startQuestSession = function () {
 
     localStorage.setItem('last_daily_goal_' + gameData.currentSubject, mins.toString());
 
-    // 🔴 修理：修行開始＝チュートリアル卒業とみなしてフラグを完全に折る
+    // 🔴 チュートリアル誘導の解除（ここだよ！を消す）
     window.isSelectingJob = false;
     gameData.isSelectingJob = false;
+
+    // ハイライトとヒントを確実に消す
+    const adventureBtn = document.querySelector('.start-adventure-btn');
+    if (adventureBtn) {
+        adventureBtn.classList.remove('tutorial-highlight');
+        adventureBtn.removeAttribute('data-tutorial-hint');
+    }
+
     // 生き残っているオンボーディングタイマーを全て破棄
     if (window.onboardingTimers) {
         window.onboardingTimers.forEach(t => clearTimeout(t));
@@ -3519,23 +3774,32 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0) {
     `;
 
     if (isComplete) {
+        // 🎯 チュートリアルStage 3の特別処理
+        const isTutorialStage3 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 3;
+
+        // 🔴 完遂報酬エリア全体をクリック可能に（中央揃えを強化）
+        const rewardAreaOnclick = isTutorialStage3 ? ' onclick="handleTutorialRewardClick()"' : '';
+        const rewardAreaStyle = ' style="cursor: ' + (isTutorialStage3 ? 'pointer' : 'default') + '; position: relative; display: flex; flex-direction: column; align-items: center; width: 100%;"';
+
         html += `
-            <div class="reward-chest">🎁</div>
-            <p style="font-size:14px; color:#d32f2f; font-weight:bold; margin-bottom:10px;">完遂報酬をゲット！</p>
-            <div class="result-rewards" style="background: rgba(255,215,0,0.1); padding:10px; border-radius:8px;">
-                <div class="reward-item">
-                    <span class="reward-icon">💰</span>
-                    <span>コイン：+${rewards.coins}</span>
+            <div class="reward-completion-area"${rewardAreaOnclick}${rewardAreaStyle}>
+                <div class="reward-chest" style="cursor: ${isTutorialStage3 ? 'pointer' : 'default'}; animation: ${isTutorialStage3 ? 'bounce 1s infinite' : 'none'};">🎁</div>
+                <p style="font-size:14px; color:#d32f2f; font-weight:bold; margin-bottom:10px;">完遂報酬をゲット！</p>
+                <div class="result-rewards" style="background: rgba(255,215,0,0.1); padding:10px; border-radius:8px;">
+                    <div class="reward-item">
+                        <span class="reward-icon">💰</span>
+                        <span>コイン：+${rewards.coins}</span>
+                    </div>
+                    <div class="reward-item">
+                        <span class="reward-icon">🎖️</span>
+                        <span>勲章：${rewards.medal}</span>
+                    </div>
+                    ${rewards.title ? `
+                    <div class="reward-item">
+                        <span class="reward-icon">👑</span>
+                        <span>称号：${rewards.title}</span>
+                    </div>` : ''}
                 </div>
-                <div class="reward-item">
-                    <span class="reward-icon">🎖️</span>
-                    <span>勲章：${rewards.medal}</span>
-                </div>
-                ${rewards.title ? `
-                <div class="reward-item">
-                    <span class="reward-icon">👑</span>
-                    <span>称号：${rewards.title}</span>
-                </div>` : ''}
             </div>
         `;
 
@@ -3543,8 +3807,13 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0) {
         createSparkleEffect();
     }
 
+    // 🎯 チュートリアル中は「里へもどる」ボタンを最初は非表示、それ以外は中央配置
+    const isTutorialStage3 = gameData.tutorialProgress && gameData.tutorialProgress.stage === 3;
+    const initialDisplay = isTutorialStage3 ? 'none' : 'block';
+    const backButtonId = isTutorialStage3 ? ' id="tutorial-back-button"' : '';
+
     html += `
-            <button class="settings-btn" style="position:static; transform:none; margin-top:25px; padding:10px 40px;" onclick="finishStudySessionCleanUp(); closeMessageModal();">里へもどる</button>
+            <button class="settings-btn"${backButtonId} style="display: ${initialDisplay}; position:static; transform:none; margin: 25px auto 0 auto; padding:10px 40px;" onclick="finishStudySessionCleanUp(); closeMessageModal();">里へもどる</button>
         </div>
     `;
 
@@ -3560,6 +3829,94 @@ function showQuestResult(minutes, isComplete, earnedCoins = 0) {
                 msgEl.textContent = `「すごい、修行の成果で レベル2 になったよ！お祝いでガチャ1回分のコインも用意しておいたから、左から二番目の【たからばこ】を覗いてみてね！」`;
             }
         }, 2000);
+    }
+}
+
+/**
+ * 🎯 チュートリアル：完遂報酬エリアクリックハンドラー
+ */
+window.handleTutorialRewardClick = function () {
+    console.log('🎁 チュートリアル：完遂報酬エリアをクリック');
+
+    // 報酬エリアを非表示にする
+    const rewardArea = document.querySelector('.reward-completion-area');
+    if (rewardArea) {
+        rewardArea.style.pointerEvents = 'none';
+        rewardArea.style.opacity = '0';
+        rewardArea.style.transition = 'opacity 0.5s ease';
+
+        setTimeout(() => {
+            rewardArea.style.display = 'none';
+        }, 500);
+    }
+
+    // コインが降ってくるアニメーション
+    setTimeout(() => {
+        createCoinRainAnimation();
+    }, 600);
+
+    // アニメーション後に「里へもどる」ボタンを表示・光らせる
+    setTimeout(() => {
+        const backButton = document.getElementById('tutorial-back-button');
+        if (backButton) {
+            backButton.style.display = 'block';
+            backButton.classList.add('tutorial-highlight');
+            backButton.setAttribute('data-tutorial-hint', '👆ここだよ！');
+        }
+
+        // 主人公のメッセージを更新
+        const msgEl = document.getElementById("characterMessage");
+        if (msgEl) {
+            msgEl.textContent = '「報酬を受け取ったね！【里へもどる】ボタンを押して、冒険を終えよう！」';
+        }
+    }, 3000); // コインアニメーションの時間を考慮
+};
+
+// 🔴 旧関数は削除（互換性のため残す場合はエイリアスに）
+window.handleTutorialChestClick = window.handleTutorialRewardClick;
+
+
+/**
+ * コインが降ってくるアニメーション
+ */
+/**
+ * コインが降ってくるアニメーション（プレミアム演出）
+ */
+function createCoinRainAnimation() {
+    console.log("💰 コインアニメーション開始");
+    const container = document.body;
+    const coinCount = 25;
+
+    for (let i = 0; i < coinCount; i++) {
+        setTimeout(() => {
+            const coin = document.createElement('div');
+            // ドット絵コインの見た目
+            coin.innerHTML = `<img src="./assets/coin.png" style="width: 24px; height: 24px; image-rendering: pixelated; display: block;">`;
+            coin.style.position = 'fixed';
+            coin.style.left = (Math.random() * 80 + 10) + '%';
+            coin.style.top = '-50px';
+            coin.style.zIndex = '20000';
+            coin.style.pointerEvents = 'none';
+            // 物理的に降ってくるような transition
+            coin.style.transition = 'top 1.8s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 1.8s ease-in, transform 1.8s linear';
+            coin.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+            container.appendChild(coin);
+
+            // アニメーション実行
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    coin.style.top = (window.innerHeight + 50) + 'px';
+                    coin.style.opacity = '1';
+                    coin.style.transform = `rotate(${Math.random() * 720}deg) scale(1.2)`;
+                }, 20);
+            });
+
+            // 終了後に削除
+            setTimeout(() => {
+                coin.remove();
+            }, 2000);
+        }, i * 80);
     }
 }
 

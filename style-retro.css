@@ -6126,7 +6126,7 @@ img,
 }
 
 .tutorial-highlight::after {
-    content: "👆ここだよ！";
+    content: "ここだよ！";
     position: absolute;
     top: 45px;
     left: 50%;
@@ -6170,4 +6170,64 @@ img,
 /* 巻物（メッセージモーダル）の配置を調整して主人公と被りにくくする */
 #message-modal .modal-content.rpg-window {
     margin-top: -100px !important;
+}
+
+/* ========================================
+   🎯 チュートリアル：無効化されたナビゲーションボタン
+   ======================================== */
+.nav-button.nav-disabled {
+    opacity: 0.3 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+    filter: grayscale(100%) !important;
+}
+
+.nav-button.nav-disabled .nav-icon {
+    opacity: 0.3 !important;
+}
+
+.nav-button.nav-disabled .nav-label {
+    opacity: 0.3 !important;
+}
+
+/* ========================================
+   🎯 チュートリアル：無効化された科目ボタン
+   ======================================== */
+.subject-btn-mvp.tutorial-disabled,
+.subject-label-mvp.tutorial-disabled {
+    opacity: 0.4 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+    filter: grayscale(80%) !important;
+}
+
+.subject-btn-mvp.tutorial-disabled .subject-icon {
+    opacity: 0.4 !important;
+}
+
+/* ========================================
+   🎯 チュートリアル：無効化された戻るボタン・冒険に出るボタン
+   ======================================== */
+.pixel-back-btn.tutorial-disabled-btn,
+.start-adventure-btn.tutorial-disabled-btn,
+.repair-mini-btn.tutorial-disabled-btn {
+    opacity: 0.4 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+    filter: grayscale(80%) !important;
+}
+
+/* ========================================
+   🎯 チュートリアル：宝箱のbounceアニメーション
+   ======================================== */
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
 }
