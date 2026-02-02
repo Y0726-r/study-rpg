@@ -6030,6 +6030,25 @@ window.confirmRepair = function () {
         "やめる"    // キャンセルボタンのテキスト
     );
 };
+// 「冒険のしおり」を開く魔法
+window.openAdventureGuide = function () {
+    // しおりの中身（説明文 ＋ 既存の修復ボタンを呼ぶボタン）
+    const content = `
+        <div style="text-align: left; line-height: 1.6;">
+            <p><strong>修行（勉強）の進め方</strong></p>
+            <p>・⚙️で作戦会議（目標時間を設定）<br>
+               ・科目を選んで「冒険に出る」！</p>
+            <hr>
+            <p style="font-size: 11px;">※もしタイマーが変な時は、下の修復儀式を試してね</p>
+            <button onclick="confirmRepair()" style="width:100%; padding:8px; background:#8d6e63; color:white; border:none; cursor:pointer;">
+                🔧 時の修復儀式をはじめる
+            </button>
+        </div>
+    `;
+
+    // 既存のモーダルで表示
+    showMessageModal("❓ 冒険のしおり", content);
+};
 
 /**
  * 2. 実際の修復処理
@@ -6233,3 +6252,30 @@ function createSparkle(container) {
 
     setTimeout(() => sparkle.remove(), 5000); // キラキラを5秒間残す
 }
+window.openAdventureGuide = function () {
+    const content = `
+        <div style="text-align: left; line-height: 1.6; font-family: 'PixelMplus12', sans-serif; font-size: 12px; color: #2c1810;">
+            <p style="color: #8b4513; font-weight: bold; border-bottom: 2px solid #8b4513; margin-bottom: 8px;">⚔️ 冒険の進め方</p>
+            <p>・右上【⚙️】で目標時間をセット！<br>
+               ・科目を選んで「冒険に出る」で修行開始！<br>
+               ・1分につき1ダメージ。敵を倒して報酬をゲットしよう。</p>
+
+            <p style="color: #8b4513; font-weight: bold; border-bottom: 2px solid #8b4513; margin-top: 15px; margin-bottom: 8px;">🏰 里の施設</p>
+            <p>
+            【まなぶ】まずはここから<br>
+            【たからばこ】100枚で装備をゲット<br>
+            【どうぐ】装備の変更やアイテム確認<br>
+            【きろく】これまでの修行の全記録</p>
+
+            <p style="color: #d32f2f; font-weight: bold; border-bottom: 2px solid #d32f2f; margin-top: 15px; margin-bottom: 8px;">🐉 伝説の噂</p>
+            <p>修行を極めし者は、伝説の龍と巡り会えるという…。Lv.45で「鱗」を、Lv.60で「誕生」を、そしてLv.99で「真の主」となるだろう。</p>
+
+            <hr style="border: 1px dashed #8d6e63; margin: 15px 0;">
+            <p style="font-size: 10px; color: #6b4400;">※もしタイマーが止まった時は、下の儀式を試してね</p>
+            <button onclick="confirmRepair()" style="width:100%; padding:10px; background:#8d6e63; color:white; border:3px double white; cursor:pointer; font-family: inherit;">
+                🔧 時の修復儀式（タイマー初期化）
+            </button>
+        </div>
+    `;
+    showMessageModal("❓ 冒険のしおり", content);
+};
