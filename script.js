@@ -1984,7 +1984,7 @@ function showScreen(screenId) {
     } else if (screenId === 'study-screen') {
         // タイトルを初期状態に戻す
         const titleElement = document.getElementById('study-screen-title');
-        if (titleElement) titleElement.textContent = "刻（とき）の試練";
+        if (titleElement) titleElement.textContent = "刻の試練";
 
         generateSubjectButtons();
         calculateTodayStats();
