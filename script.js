@@ -5423,7 +5423,7 @@ function updateInventoryScreen() {
             const iconHtml = `<div class="card-icon-box image-sprite" style="background-image: ${cleanBgImage} !important; background-position: ${style.backgroundPosition || 'center'} !important; background-size: ${style.backgroundSize || 'contain'} !important; background-repeat: no-repeat !important; image-rendering: pixelated !important;"></div>`;
 
             let actionBtn = '';
-            const equippableTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot', 'legs'];
+            const equippableTypes = ['weapon', 'armor', 'shield', 'accessory', 'head', 'foot', 'legs', 'cloak'];
             if (equippableTypes.includes(safeType)) {
                 const btnText = isEquipped ? 'はずす' : '装備する';
                 const btnClass = isEquipped ? 'unequip' : 'equip';
