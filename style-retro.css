@@ -744,8 +744,8 @@ body {
 
 .celestial-body {
     position: absolute;
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     image-rendering: pixelated;
     transition: all 1s linear;
     /* ゆっくり移動 */

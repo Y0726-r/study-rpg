@@ -2261,6 +2261,36 @@ function showScreen(screenId) {
             }, 1000);
         }
 
+        // 🆕 チュートリアル完了直後のガイダンス (Stage 4 で初回のみ)
+        if (gameData.tutorialProgress &&
+            gameData.tutorialProgress.stage === 4 &&
+            !gameData.tutorialProgress.hasSeenFinalGuidance) {
+
+            setTimeout(() => {
+                const msgEl = document.getElementById("characterMessage");
+                if (msgEl) {
+                    // 1回目のメッセージ
+                    msgEl.textContent = `「これから一緒に頑張ろうね！」`;
+                }
+
+                // 3秒後に2回目のメッセージ
+                setTimeout(() => {
+                    if (msgEl) {
+                        msgEl.textContent = `「わからないことは【まなぶ】→右上の？マーク→【冒険のしおり】で確認できるよ！」`;
+                    }
+
+                    // このメッセージは一度だけ表示
+                    gameData.tutorialProgress.hasSeenFinalGuidance = true;
+                    saveGameData();
+
+                    // さらに5秒後に通常のランダムセリフに戻す
+                    setTimeout(() => {
+                        updateCharacterMessage(true);
+                    }, 5000);
+                }, 3000);
+            }, 500);
+        }
+
         // 確実に画面が出てから、一回だけ呼ぶ
         setTimeout(() => {
             triggerPendingEffect();
