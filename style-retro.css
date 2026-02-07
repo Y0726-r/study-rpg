@@ -1152,6 +1152,46 @@ textarea {
     /* 画像の上に表示 */
 }
 
+/* 継続日数バッジ */
+.streak-display-mvp {
+    position: absolute;
+    right: 10%;
+    top: 40%;
+    width: 10%;
+    height: 22%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.streak-icon {
+    font-size: 12px;
+    filter: drop-shadow(0 0 3px rgba(255, 100, 0, 0.8));
+}
+
+#streak-count {
+    font-family: "Press Start 2P", cursive;
+    font-size: 9px;
+    color: #ff6b35;
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        0 0 5px rgba(255, 107, 53, 0.5);
+    transform: translateX(80%) translateY(4%);
+}
+
+.streak-label {
+    font-family: 'PixelMplus12', sans-serif;
+    font-size: 8px;
+    color: white;
+    text-shadow: 1px 1px 0 #000;
+    transform: translateX(90%) translateY(4%);
+}
+
+
 /* ステータス画面（専用背景画像リメイク） */
 .status-scroll-container {
     display: flex;

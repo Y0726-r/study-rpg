@@ -281,7 +281,11 @@ let gameData = {
     },
 
     // NEW: Chapter System
-    chapters: {} // [chapterName]: { targetMinutes, completedMinutes, progress, boss, bossRank, bossImage, firstTime, ... }
+    chapters: {}, // [chapterName]: { targetMinutes, completedMinutes, progress, boss, bossRank, bossImage, firstTime, ... }
+
+    // NEW: Login Streak System
+    lastLoginDate: null, // 最終ログイン日 (YYYY-MM-DD形式)
+    loginStreak: 0 // 継続ログイン日数
 };
 
 // タイマー関連 (Session state, initialized from gameData at load)
@@ -1829,6 +1833,7 @@ window.resetItemVisuals = function (id) {
 
 function initGame() {
     loadGameData();
+    checkLoginStreak(); // 継続日数のチェックと更新
     updateHomeScreen();
     calculateTodayStats();
 
@@ -2145,6 +2150,141 @@ function saveGameData() {
     localStorage.setItem('studyQuestData', JSON.stringify(gameData));
     console.log("Game data saved");
 }
+
+/**
+ * 継続日数のチェックと更新
+ * 1日の最初のログイン時に呼ばれ、継続日数を更新する
+ */
+function checkLoginStreak() {
+    // 今日の日付を取得 (YYYY-MM-DD形式)
+    const today = new Date().toISOString().split('T')[0];
+
+    // 初回ログインの場合
+    if (!gameData.lastLoginDate) {
+        gameData.lastLoginDate = today;
+        gameData.loginStreak = 1;
+        saveGameData();
+        console.log('🎉 初回ログイン！継続日数: 1日目');
+        return;
+    }
+
+    // 最終ログイン日と今日の日付を比較
+    const lastLogin = new Date(gameData.lastLoginDate);
+    const todayDate = new Date(today);
+
+    // 日数の差を計算
+    const diffTime = todayDate - lastLogin;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        // 今日既にログイン済み
+        console.log('📅 本日既にログイン済み。継続日数:', gameData.loginStreak);
+        return;
+    } else if (diffDays === 1) {
+        // 前日からの継続ログイン
+        gameData.loginStreak += 1;
+        gameData.lastLoginDate = today;
+        saveGameData();
+        console.log('🔥 継続ログイン！継続日数:', gameData.loginStreak);
+
+        // 継続日数に応じた褒めメッセージを表示
+        showLoginStreakMessage(gameData.loginStreak);
+    } else {
+        // 継続が途切れた
+        const previousStreak = gameData.loginStreak;
+        gameData.loginStreak = 1;
+        gameData.lastLoginDate = today;
+        saveGameData();
+        console.log(`💔 継続が途切れました (前回: ${previousStreak}日)。新たに1日目からスタート！`);
+
+        // リセットメッセージを表示
+        showStreakResetMessage(previousStreak);
+    }
+}
+
+/**
+ * 継続日数に応じた褒めメッセージを表示
+ * @param {number} streak - 継続日数
+ */
+function showLoginStreakMessage(streak) {
+    // モーダルの要素を取得
+    const modal = document.getElementById('login-bonus-modal');
+    const streakEl = document.getElementById('login-bonus-streak');
+    const messageEl = document.getElementById('login-bonus-message');
+
+    if (!modal || !streakEl || !messageEl) return;
+
+    let message = '';
+
+    // 継続日数に応じたメッセージ
+    if (streak === 1) {
+        message = '今日から新しい冒険の始まりだね！一緒に頑張ろう！';
+    } else if (streak === 2) {
+        message = 'おかえり！今日で2日連続だよ！この調子で続けよう！';
+    } else if (streak === 3) {
+        message = 'すごい！3日連続だね！習慣化の第一歩だよ！';
+    } else if (streak === 7) {
+        message = 'やったね！1週間連続達成！🎉\n君の努力が実を結んでるよ！';
+    } else if (streak === 14) {
+        message = '2週間連続！🌟\nもう立派な習慣になってきたね！';
+    } else if (streak === 30) {
+        message = '1ヶ月連続！！🎊\n素晴らしい継続力だ！君は本物の冒険者だよ！';
+    } else if (streak === 50) {
+        message = '50日連続！！💎\n驚異的な継続力だ！伝説の域に達してるよ！';
+    } else if (streak === 100) {
+        message = '100日連続！！！👑\n伝説級の継続力！君は時の支配者だ！';
+    } else if (streak % 10 === 0) {
+        message = `${streak}日連続！素晴らしい！\nこの調子で頑張ろう！`;
+    } else {
+        message = `おかえり！今日で${streak}日連続だよ！\n毎日コツコツ、すごいね！`;
+    }
+
+    // 継続日数とメッセージを設定
+    streakEl.textContent = streak;
+    messageEl.textContent = message;
+    messageEl.style.whiteSpace = 'pre-line'; // 改行を有効にする
+
+    // モーダルを表示
+    modal.classList.remove('hidden');
+
+    // キラキラエフェクト（7日以上）
+    if (streak >= 7) {
+        createSparkleEffect();
+    }
+}
+
+
+/**
+ * 継続が途切れた時のメッセージを表示
+ * @param {number} previousStreak - 前回の継続日数
+ */
+function showStreakResetMessage(previousStreak) {
+    // モーダルの要素を取得
+    const modal = document.getElementById('login-bonus-modal');
+    const streakEl = document.getElementById('login-bonus-streak');
+    const messageEl = document.getElementById('login-bonus-message');
+
+    if (!modal || !streakEl || !messageEl) return;
+
+    let message = '';
+
+    if (previousStreak >= 7) {
+        message = `おかえり！前回は${previousStreak}日も続いたね。\nまた一緒に頑張ろう！`;
+    } else if (previousStreak >= 3) {
+        message = 'おかえり！今日からまた新しいスタートだね！\n一緒に頑張ろう！';
+    } else {
+        message = 'おかえり！今日も一緒に頑張ろうね！';
+    }
+
+    // 継続日数を1に設定（新しいスタート）
+    streakEl.textContent = '1';
+    messageEl.textContent = message;
+    messageEl.style.whiteSpace = 'pre-line';
+
+    // モーダルを表示
+    modal.classList.remove('hidden');
+}
+
 
 /**
  * ボタンを押した見た目を強制的に出す
@@ -2582,6 +2722,18 @@ function updateHomeScreen() {
     // コイン表示
     const coinEl = document.getElementById('coin-count');
     if (coinEl) coinEl.textContent = player.coins;
+
+    // 継続日数バッジの表示
+    const streakDisplay = document.getElementById('streak-display');
+    const streakCount = document.getElementById('streak-count');
+    if (streakDisplay && streakCount) {
+        if (gameData.loginStreak && gameData.loginStreak > 0) {
+            streakDisplay.style.display = 'flex';
+            streakCount.textContent = gameData.loginStreak;
+        } else {
+            streakDisplay.style.display = 'none';
+        }
+    }
 
     // ドラゴン表示の更新
     updateDragonUI();
@@ -6338,6 +6490,13 @@ function showMessageModal(title, content, useScrollWindow = false) {
     }
 }
 
+function closeLoginBonusModal() {
+    const modal = document.getElementById('login-bonus-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
 function closeMessageModal() {
     const modal = document.getElementById('message-modal');
     if (modal) {
@@ -7021,3 +7180,115 @@ window.openAdventureGuide = function () {
     `;
     showMessageModal("❓ 冒険のしおり", content);
 };
+
+// ========================================
+// 🧪 継続日数テスト用関数（コンソールから使用可能）
+// ========================================
+
+/**
+ * 継続日数の現在の状態を表示
+ * コンソールで testStreak() を実行
+ */
+window.testStreak = function () {
+    console.log('=== 継続日数の状態 ===');
+    console.log('最終ログイン日:', gameData.lastLoginDate || '未設定');
+    console.log('継続日数:', gameData.loginStreak || 0, '日');
+    console.log('今日の日付:', new Date().toISOString().split('T')[0]);
+    console.log('===================');
+};
+
+/**
+ * 継続日数を手動で設定（テスト用）
+ * 例: setStreak(7) で7日連続に設定
+ */
+window.setStreak = function (days) {
+    if (typeof days !== 'number' || days < 0) {
+        console.error('❌ エラー: 正の数値を指定してください');
+        return;
+    }
+    gameData.loginStreak = days;
+    gameData.lastLoginDate = new Date().toISOString().split('T')[0];
+    saveGameData();
+    updateHomeScreen();
+    console.log(`✅ 継続日数を ${days} 日に設定しました`);
+    testStreak();
+};
+
+/**
+ * 最終ログイン日を手動で設定（テスト用）
+ * 例: setLastLogin('2026-02-06') で昨日に設定
+ */
+window.setLastLogin = function (dateString) {
+    if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        console.error('❌ エラー: YYYY-MM-DD形式で指定してください（例: 2026-02-06）');
+        return;
+    }
+    gameData.lastLoginDate = dateString;
+    saveGameData();
+    console.log(`✅ 最終ログイン日を ${dateString} に設定しました`);
+    testStreak();
+};
+
+/**
+ * 継続日数をリセット
+ */
+window.resetStreak = function () {
+    gameData.loginStreak = 0;
+    gameData.lastLoginDate = null;
+    saveGameData();
+    updateHomeScreen();
+    console.log('✅ 継続日数をリセットしました');
+    testStreak();
+};
+
+/**
+ * 継続日数のメッセージをテスト表示
+ * 例: testStreakMessage(7) で7日連続のメッセージを表示
+ */
+window.testStreakMessage = function (days) {
+    if (typeof days !== 'number' || days < 1) {
+        console.error('❌ エラー: 1以上の数値を指定してください');
+        return;
+    }
+    console.log(`🧪 ${days}日連続のメッセージをテスト表示します...`);
+    showLoginStreakMessage(days);
+};
+
+/**
+ * 明日のログインをシミュレート
+ */
+window.simulateNextDayLogin = function () {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    gameData.lastLoginDate = yesterday.toISOString().split('T')[0];
+    if (!gameData.loginStreak) gameData.loginStreak = 0;
+    saveGameData();
+
+    console.log('📅 前日のログイン状態に設定しました');
+    console.log('次にページをリロードすると、継続日数が+1されます');
+    testStreak();
+};
+
+// 使い方をコンソールに表示
+console.log(`
+🔥 継続日数テスト機能が有効です！
+
+【使い方】
+testStreak()              - 現在の継続日数を確認
+setStreak(7)              - 継続日数を7日に設定
+setLastLogin('2026-02-06') - 最終ログイン日を設定
+resetStreak()             - 継続日数をリセット
+testStreakMessage(7)      - 7日連続のメッセージを表示
+simulateNextDayLogin()    - 明日のログインをシミュレート
+
+【テストシナリオ例】
+1. resetStreak() でリセット
+2. ページをリロード → 初回ログインメッセージ
+3. setLastLogin('2026-02-06') で昨日に設定
+4. ページをリロード → 2日連続のメッセージ
+5. setStreak(6) で6日に設定
+6. simulateNextDayLogin() で前日状態に
+7. ページをリロード → 7日連続（1週間達成）のメッセージ
+`);

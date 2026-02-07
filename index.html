@@ -92,6 +92,12 @@
                 <img src="assets/coin.png" class="coin-bg-image" alt="">
                 <span id="coin-count">0</span>
             </div>
+            <!-- 継続日数バッジ -->
+            <div class="streak-display-mvp" id="streak-display" style="display: none;">
+                <span class="streak-icon">🔥</span>
+                <span id="streak-count">0</span>
+                <span class="streak-label">日</span>
+            </div>
         </div>
 
         <div class="field-container">
@@ -585,6 +591,49 @@
             </p>
             <button class="ok-button" onclick="closeMessageModal()"
                 style="width: 100%; padding: 12px; background: #4a5568;">とじる</button>
+        </div>
+    </div>
+
+    <!-- ログインボーナスモーダル -->
+    <div id="login-bonus-modal" class="modal hidden">
+        <div class="modal-content rpg-window" style="text-align: center; max-width: 400px;">
+            <h2 class="screen-title-mvp" style="color: #ff6b35; font-size: 18px; margin-bottom: 15px;">
+                🔥 ログインボーナス 🔥
+            </h2>
+
+            <!-- 継続日数表示 -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        padding: 20px; border-radius: 8px; margin-bottom: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                <div style="font-size: 14px; color: #fff; margin-bottom: 8px; font-family: 'PixelMplus12', sans-serif;">
+                    継続ログイン
+                </div>
+                <div style="font-size: 48px; font-weight: bold; color: #ffd700; 
+                            text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+                            0 0 20px rgba(255, 215, 0, 0.8);
+                            font-family: 'Press Start 2P', cursive;">
+                    <span id="login-bonus-streak">1</span>
+                </div>
+                <div style="font-size: 24px; color: #fff; font-family: 'PixelMplus12', sans-serif;
+                            text-shadow: 2px 2px 0 #000;">
+                    日目
+                </div>
+            </div>
+
+            <!-- メッセージ -->
+            <div id="login-bonus-message" style="font-size: 14px; margin-bottom: 20px; line-height: 1.8;
+                                                   font-family: 'PixelMplus12', sans-serif; color: #2c1810;
+                                                   padding: 15px; background: rgba(255,255,255,0.5); 
+                                                   border-radius: 8px; border: 2px solid #6b4400;">
+                おかえり！今日も一緒に頑張ろう！
+            </div>
+
+            <!-- ボタン -->
+            <button class="ok-button" onclick="closeLoginBonusModal()" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                       font-size: 16px; font-family: 'PixelMplus12', sans-serif;
+                       border: 3px solid #fff; box-shadow: 0 4px 0 #4a5568;">
+                今日もがんばる！
+            </button>
         </div>
     </div>
 
