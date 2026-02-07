@@ -1948,6 +1948,11 @@ function skipOpening() {
         saveGameData();
         updateCharacterMessage(true);
         console.log("🛡️ スキップガード：職業設定済みのためチュートリアルを回避しました");
+
+        // ログインボーナスを表示（オープニング後）
+        setTimeout(() => {
+            checkAndShowLoginBonus();
+        }, 500);
         return;
     }
 
@@ -2152,6 +2157,32 @@ function saveGameData() {
 }
 
 /**
+ * ログインボーナスを表示するかチェックして表示
+ * オープニング後に呼ばれる
+ */
+function checkAndShowLoginBonus() {
+    const today = new Date().toISOString().split('T')[0];
+
+    // 今日まだログインボーナスを表示していない場合のみ表示
+    if (!gameData.lastBonusShown || gameData.lastBonusShown !== today) {
+        // ログインボーナスを表示済みとしてマーク
+        gameData.lastBonusShown = today;
+        saveGameData();
+
+        // 継続が途切れた場合（前回の継続日数がある場合）
+        if (gameData.previousStreak && gameData.previousStreak > 0) {
+            showStreakResetMessage(gameData.previousStreak);
+            gameData.previousStreak = 0; // リセット
+            saveGameData();
+        }
+        // 通常の継続ログイン
+        else if (gameData.loginStreak && gameData.loginStreak > 0) {
+            showLoginStreakMessage(gameData.loginStreak);
+        }
+    }
+}
+
+/**
  * 継続日数のチェックと更新
  * 1日の最初のログイン時に呼ばれ、継続日数を更新する
  */
@@ -2165,6 +2196,7 @@ function checkLoginStreak() {
         gameData.loginStreak = 1;
         saveGameData();
         console.log('🎉 初回ログイン！継続日数: 1日目');
+        // メッセージはオープニング後にcheckAndShowLoginBonusで表示
         return;
     }
 
@@ -2186,19 +2218,16 @@ function checkLoginStreak() {
         gameData.lastLoginDate = today;
         saveGameData();
         console.log('🔥 継続ログイン！継続日数:', gameData.loginStreak);
-
-        // 継続日数に応じた褒めメッセージを表示
-        showLoginStreakMessage(gameData.loginStreak);
+        // メッセージはオープニング後にcheckAndShowLoginBonusで表示
     } else {
         // 継続が途切れた
         const previousStreak = gameData.loginStreak;
         gameData.loginStreak = 1;
         gameData.lastLoginDate = today;
+        gameData.previousStreak = previousStreak; // 前回の継続日数を保存
         saveGameData();
         console.log(`💔 継続が途切れました (前回: ${previousStreak}日)。新たに1日目からスタート！`);
-
-        // リセットメッセージを表示
-        showStreakResetMessage(previousStreak);
+        // メッセージはオープニング後にcheckAndShowLoginBonusで表示
     }
 }
 
