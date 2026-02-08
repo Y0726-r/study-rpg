@@ -6158,7 +6158,7 @@ img,
 
 /* 1. 画面全体の連動を整理し、他の画面を邪魔しないようにする */
 #study-screen {
-    position: relative !important;
+    /* position: relative !important; を削除 - .screenの中央配置を維持 */
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
@@ -6438,9 +6438,17 @@ img,
     border: 4px double #fff;
     padding: 15px;
     box-sizing: border-box;
-    display: flex;
+    display: none;
+    /* 初期状態で非表示 */
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.boss-message-window.show {
+    display: flex;
+    /* 表示時にflexレイアウト */
 }
 
 .boss-message {

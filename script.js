@@ -1338,11 +1338,113 @@ function updateTimerFromElapsed() {
     updateHPBarUI(); // ダメージ連動
     updateGrandBossUI(); // 大ボスのHP更新
 
+    // モンスターの弱音チェック
+    checkBossWeakness(elapsedMs, targetMs);
+
     // 砂時計（EXランクのみ）
     if (gameData.activeQuest && gameData.activeQuest.monster.isEX) {
         updateHourglassUI();
     }
 }
+
+/**
+ * モンスターの弱音をチェックして表示
+ * @param {number} elapsedMs - 経過時間（ミリ秒）
+ * @param {number} targetMs - 目標時間（ミリ秒）
+ */
+function checkBossWeakness(elapsedMs, targetMs) {
+    const progress = (elapsedMs / targetMs) * 100;
+
+    // 弱音を表示済みかチェック（セッションごとに1回だけ表示）
+    if (!gameData.dailySession.weaknessShown) {
+        gameData.dailySession.weaknessShown = {};
+    }
+
+    // study-screen内のbossMessageWindowを取得
+    const studyScreen = document.getElementById('study-screen');
+    const bossMessageEl = studyScreen?.querySelector('#bossMessage');
+    const bossMessageWindow = studyScreen?.querySelector('#bossMessageWindow');
+
+    if (!bossMessageEl || !bossMessageWindow) return;
+
+    let message = '';
+    let shouldShow = false;
+
+    // 90%達成時（残り10%）- 瀕死
+    if (progress >= 90 && !gameData.dailySession.weaknessShown['90']) {
+        const messages = [
+            'ギ...ギブアップ...！',
+            'も...もうダメだ...！',
+            'ひぃぃ...許してくれ...！',
+            'こ...これまでか...！',
+            '瀕死...だ...！'
+        ];
+        message = messages[Math.floor(Math.random() * messages.length)];
+        gameData.dailySession.weaknessShown['90'] = true;
+        shouldShow = true;
+    }
+    // 75%達成時（残り25%）- かなり弱っている
+    else if (progress >= 75 && !gameData.dailySession.weaknessShown['75']) {
+        const messages = [
+            'く...苦しい...！',
+            'もう...だめだ...',
+            'こ...こんなはずでは...！',
+            'つ...強すぎる...！',
+            'ま...負けそうだ...'
+        ];
+        message = messages[Math.floor(Math.random() * messages.length)];
+        gameData.dailySession.weaknessShown['75'] = true;
+        shouldShow = true;
+    }
+    // 50%達成時（目標の半分）- 弱り始め
+    else if (progress >= 50 && !gameData.dailySession.weaknessShown['50']) {
+        const messages = [
+            'ぐぬぬ...！',
+            'く...くそっ...！',
+            'な...なかなかやるな...！',
+            'ば...馬鹿な...！',
+            'こ...この程度で...！'
+        ];
+        message = messages[Math.floor(Math.random() * messages.length)];
+        gameData.dailySession.weaknessShown['50'] = true;
+        shouldShow = true;
+    }
+
+    if (shouldShow && message) {
+        // メッセージを表示
+        bossMessageEl.textContent = message;
+        if (bossMessageWindow) {
+            // CSSクラスで表示
+            bossMessageWindow.classList.add('show');
+            // 少し遅れてopacityを1にする（アニメーション効果）
+            setTimeout(() => {
+                bossMessageWindow.style.opacity = '1';
+            }, 10);
+
+            // モンスター画像を揺らす演出
+            const bossImage = document.getElementById('bossDisplayImage');
+            if (bossImage) {
+                bossImage.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    bossImage.style.animation = '';
+                }, 500);
+            }
+
+            // 3秒後にメッセージを消す
+            setTimeout(() => {
+                if (bossMessageWindow) {
+                    bossMessageWindow.style.opacity = '0';
+                    setTimeout(() => {
+                        bossMessageWindow.classList.remove('show');
+                    }, 300);
+                }
+            }, 3000);
+        }
+
+        saveGameData();
+    }
+}
+
 
 
 // -----------------------------------------------------------------------------
@@ -7320,4 +7422,91 @@ simulateNextDayLogin()    - 明日のログインをシミュレート
 5. setStreak(6) で6日に設定
 6. simulateNextDayLogin() で前日状態に
 7. ページをリロード → 7日連続（1週間達成）のメッセージ
+`);
+
+// ========================================
+// 🧪 モンスター弱音テスト用関数（コンソールから使用可能）
+// ========================================
+
+/**
+ * モンスターの弱音を手動でテスト表示
+ * 例: testBossWeakness(50) で50%達成時のメッセージを表示
+ */
+window.testBossWeakness = function (percentage) {
+    if (typeof percentage !== 'number' || percentage < 0 || percentage > 100) {
+        console.error('❌ エラー: 0-100の数値を指定してください');
+        return;
+    }
+
+    console.log(`🧪 ${percentage}%達成時のモンスター弱音をテスト表示します...`);
+
+    // テスト用にdailySessionを初期化
+    if (!gameData.dailySession) {
+        gameData.dailySession = {};
+    }
+    gameData.dailySession.weaknessShown = {};
+
+    // 目標時間を仮設定（60分）
+    const targetMs = 60 * 60 * 1000;
+    const elapsedMs = (percentage / 100) * targetMs;
+
+    // 弱音チェック関数を呼び出し
+    checkBossWeakness(elapsedMs, targetMs);
+
+    console.log(`✅ ${percentage}%のメッセージを表示しました`);
+};
+
+/**
+ * 全ての弱音メッセージを順番に表示
+ */
+window.testAllBossWeakness = function () {
+    console.log('🧪 全ての弱音メッセージを順番に表示します...');
+
+    const percentages = [50, 75, 90];
+    let index = 0;
+
+    const showNext = () => {
+        if (index < percentages.length) {
+            const pct = percentages[index];
+            console.log(`\n--- ${pct}%達成時 ---`);
+            testBossWeakness(pct);
+            index++;
+            setTimeout(showNext, 4000); // 4秒後に次を表示
+        } else {
+            console.log('\n✅ 全てのメッセージを表示しました');
+        }
+    };
+
+    showNext();
+};
+
+/**
+ * モンスターの弱音をリセット（再度表示できるようにする）
+ */
+window.resetBossWeakness = function () {
+    if (gameData.dailySession) {
+        gameData.dailySession.weaknessShown = {};
+        saveGameData();
+        console.log('✅ モンスターの弱音表示状態をリセットしました');
+    } else {
+        console.log('⚠️ セッションが存在しません');
+    }
+};
+
+// 使い方をコンソールに表示
+console.log(`
+💀 モンスター弱音テスト機能が有効です！
+
+【使い方】
+testBossWeakness(50)      - 50%達成時の弱音を表示
+testBossWeakness(75)      - 75%達成時の弱音を表示
+testBossWeakness(90)      - 90%達成時の弱音を表示
+testAllBossWeakness()     - 全ての弱音を順番に表示
+resetBossWeakness()       - 弱音表示状態をリセット
+
+【テストシナリオ例】
+1. testBossWeakness(50) → 「ぐぬぬ...！」などが表示
+2. testBossWeakness(75) → 「く...苦しい...！」などが表示
+3. testBossWeakness(90) → 「ギ...ギブアップ...！」などが表示
+4. testAllBossWeakness() → 全てを順番に表示（4秒間隔）
 `);
