@@ -167,6 +167,11 @@ window.applyOccupation = function (jobKey) {
                     studyBtn.classList.add('tutorial-highlight');
                     console.log("✨ チュートリアル：STUDYボタンをハイライトしました");
                 }
+
+                // ログインボーナスを表示（職業選択後）
+                setTimeout(() => {
+                    checkAndShowLoginBonus();
+                }, 1000);
             }, 3500);
             window.onboardingTimers.push(t2);
         }, 3500);
@@ -1686,7 +1691,7 @@ const ITEM_MASTER = [
     { id: 16, name: "消しゴムのカス", rarity: 3, file: "eraser_dust.png", type: "consumable", useMessage: "これは君の努力の結晶だ。試験合格へ一歩近づいたよ！", description: "沢山の勉強を積み重ねた証。光り輝いている。", effects: { focus: 50, intellect: 50, strength: 50 } },
     { id: 17, name: "使い古したノート", rarity: 1, file: "worn_notebook.png", type: "consumable", useMessage: "これまでの努力が思い出される…よし、もう一踏ん張り！", description: "読み返すとやる気が湧いてくる。" },
     { id: 31, name: "布のズボン", rarity: 1, file: "cloth_pants.png", type: "legs", effects: { strength: 2 }, description: "素朴で動きやすい旅人用ズボン。まずは“続ける力”を支えてくれる。", equipMessage: "布のズボンを装着した。準備完了。さあ、クエスト（勉強）に出発だ。", visuals: { x: 10, y: 35, width: 97 }, equipImage: "assets/item/gacha_equipment/cloth_pants_equip.png" },
-    { id: 40, name: "麦わら帽子", rarity: 1, file: "straw_hat.png", type: "head", effects: { strength: 2 }, description: "日差しから頭を守る。集中力が途切れにくい。", equipMessage: "麦わら帽子を被った。涼しくて快適だ！", iconSize: "240%", visuals: { x: 0, y: -20, scale: 10 } },
+    { id: 40, name: "麦わら帽子", rarity: 1, file: "straw_hat.png", type: "head", effects: { strength: 2 }, description: "日差しから頭を守る。集中力が途切れにくい。", equipMessage: "麦わら帽子を被った。涼しくて快適だ！", iconSize: "360%", visuals: { x: -65, y: -60, width: 250, scale: 1.5 } },
     { id: 41, name: "木の杖", rarity: 1, file: "wooden_staff.png", type: "weapon", effects: { intellect: 2 }, description: "初心者魔法使いの相棒。", equipMessage: "木の杖を握った。魔力が少し感じられる。", iconSize: "240%", },
     { id: 42, name: "旅人のマント", rarity: 1, file: "traveler_cloak.png", type: "cloak", effects: { focus: 2 }, description: "長旅に耐える丈夫なマント。", equipMessage: "旅人のマントを羽織った。冒険の準備は万全だ！", iconSize: "240%", visuals: { x: 0, y: 0, scale: 0.5 }, equipImage: "assets/item/gacha_equipment/traveler_cloak_equip.png" },
     { id: 43, name: "おにぎり", rarity: 1, file: "onigiri.png", type: "consumable", useMessage: "お腹いっぱい！", description: "シンプルだけど最高の一品。" },

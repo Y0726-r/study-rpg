@@ -6433,7 +6433,7 @@ img,
 /* メッセージウィンドウ */
 .boss-message-window {
     width: 90%;
-    height: 100px;
+    height: 80px;
     background: #000;
     border: 4px double #fff;
     padding: 15px;
