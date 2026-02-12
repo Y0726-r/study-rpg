@@ -376,6 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     console.log('✅ 月次総評システムを初期化しました');
+
+    // 🆕 過去のログからアーカイブを自動復元（サイレント実行）
+    if (window.syncArchiveFromTotalLogs) {
+        // 第1引数をtrueにするとアラートを出さない設定にします（後で修正）
+        syncArchiveFromTotalLogs(true);
+    }
 });
 
 // ========================================
@@ -420,5 +426,84 @@ window.createTestArchiveData = function () {
     console.log('✅ ダミーデータを保存しました。ログ画面のアーカイブボタンから確認してください。');
 };
 
-console.log('💡 月次総評テスト: testMonthlyReview() / createTestArchiveData() が使用可能です');
+/**
+ * 過去のすべての学習ログをスキャンして、アーカイブを再構築する
+ * (新機能導入前の記録をアーカイブに反映させるためのツール)
+ * @param {boolean} silent - アラートを表示しない場合はtrue
+ */
+window.syncArchiveFromTotalLogs = function (silent = false) {
+    if (!silent) console.log('🔄 過去のログからアーカイブを再構築しています...');
+
+    if (!gameData.studyLogs || gameData.studyLogs.length === 0) {
+        if (!silent) console.warn('⚠️ 学習ログが空のため、再構築を中止しました');
+        return;
+    }
+
+    // ログを年月ごとにグループ化
+    const monthlyGroups = {};
+    gameData.studyLogs.forEach(log => {
+        const date = new Date(log.date);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (!monthlyGroups[key]) monthlyGroups[key] = [];
+        monthlyGroups[key].push(log);
+    });
+
+    if (!gameData.monthlyReviews) gameData.monthlyReviews = {};
+
+    let count = 0;
+    Object.keys(monthlyGroups).forEach(key => {
+        // すでに存在する場合はスキップ（上書きしたい場合はここを調整）
+        if (gameData.monthlyReviews[key]) return;
+
+        const logs = monthlyGroups[key];
+        const [year, month] = key.split('-');
+
+        // 統計計算
+        const totalMinutes = logs.reduce((sum, log) => sum + log.minutes, 0);
+        const totalSessions = logs.length;
+        const totalCoins = logs.reduce((sum, log) => sum + (log.coins || log.minutes), 0);
+        const totalExp = logs.reduce((sum, log) => sum + (log.exp || log.minutes * 10), 0);
+
+        const subjectStats = {};
+        logs.forEach(l => {
+            if (!subjectStats[l.subject]) subjectStats[l.subject] = 0;
+            subjectStats[l.subject] += l.minutes;
+        });
+
+        // アーカイブデータの作成
+        gameData.monthlyReviews[key] = {
+            totalMinutes,
+            totalSessions,
+            totalCoins,
+            totalExp,
+            subjectStats,
+            completedChapters: [], // 過去の完了状況の特定は難しいため空
+            startLevel: 1, // 推定
+            currentLevel: gameData.player.level,
+            startDate: `${year}/${month}/01`,
+            endDate: `${year}/${month}/31`, // 簡易
+            monthKey: key,
+            displayName: `${year}年${parseInt(month)}月`,
+            savedAt: new Date().toISOString()
+        };
+        count++;
+    });
+
+    if (count > 0) {
+        saveGameData();
+        if (!silent) {
+            console.log(`✅ 再構築完了: ${count}ヶ月分の記録をアーカイブに追加しました`);
+            alert(`${count}ヶ月分の過去の記録を「冒険の全記録」に追加しました！`);
+        } else {
+            console.log(`✅ 自動同期完了: ${count}ヶ月分の記録をアーカイブに追加しました`);
+        }
+    } else {
+        if (!silent) {
+            console.log('ℹ️ すべての月の記録はすでにアーカイブされています');
+            alert('過去の記録はすべて反映済みです！');
+        }
+    }
+};
+
+console.log('💡 月次総評テスト: testMonthlyReview() / syncArchiveFromTotalLogs() が使用可能です');
 
