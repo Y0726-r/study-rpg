@@ -290,7 +290,10 @@ let gameData = {
 
     // NEW: Login Streak System
     lastLoginDate: null, // 最終ログイン日 (YYYY-MM-DD形式)
-    loginStreak: 0 // 継続ログイン日数
+    loginStreak: 0, // 継続ログイン日数
+
+    // NEW: Monthly Review Archive System
+    monthlyReviews: {} // { "2026-01": { totalMinutes, totalSessions, ... }, "2026-02": {...} }
 };
 
 // タイマー関連 (Session state, initialized from gameData at load)

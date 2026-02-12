@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="style-retro.css">
     <link rel="stylesheet" href="victory.css">
     <link rel="stylesheet" href="tutorial-styles.css">
+    <link rel="stylesheet" href="monthly-review.css">
+    <link rel="stylesheet" href="monthly-review-archive.css">
 </head>
 
 <body>
@@ -511,6 +513,14 @@
         <div class="log-container-mvp" id="log-container">
             <p class="empty-message">まだ勉強記録がありません</p>
         </div>
+
+        <!-- 月次総評アーカイブボタン -->
+        <div style="margin-top: 20px; text-align: center;">
+            <button class="settings-btn" onclick="showMonthlyReviewArchive()"
+                style="position: static; transform: none; padding: 12px 30px; font-size: 14px;">
+                📚 冒険の全記録📚
+            </button>
+        </div>
     </div>
 
     <!-- レベルアップモーダル -->
@@ -642,6 +652,107 @@
         </div>
     </div>
 
+    <!-- 月次総評画面 (30日継続達成) -->
+    <div id="monthly-review-screen" class="modal hidden">
+        <div class="monthly-review-overlay"></div>
+        <div class="monthly-review-content">
+            <!-- 巻物の背景 -->
+            <div class="scroll-decoration">
+                <div class="scroll-top"></div>
+                <div class="scroll-body-bg">
+                    <!-- タイトル -->
+                    <div class="review-header">
+                        <h1 class="review-title">📜 30日間の修行記録 📜</h1>
+                        <p class="review-subtitle">～ 継続は力なり ～</p>
+                    </div>
+
+                    <!-- 統計情報 -->
+                    <div class="review-stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-label">総学習時間</div>
+                            <div class="stat-value" id="review-total-time">0時間00分</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">📚</div>
+                            <div class="stat-label">学習セッション</div>
+                            <div class="stat-value" id="review-total-sessions">0回</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">💰</div>
+                            <div class="stat-label">獲得コイン</div>
+                            <div class="stat-value" id="review-total-coins">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-label">獲得経験値</div>
+                            <div class="stat-value" id="review-total-exp">0</div>
+                        </div>
+                    </div>
+
+                    <!-- 達成項目 -->
+                    <div class="review-achievements">
+                        <h2 class="section-title">🏆 達成した試練</h2>
+                        <div class="achievements-list" id="review-achievements-list">
+                            <p class="empty-message">まだ試練を達成していません</p>
+                        </div>
+                    </div>
+
+                    <!-- 科目別統計 -->
+                    <div class="review-subjects">
+                        <h2 class="section-title">📖 科目別の修行時間</h2>
+                        <div class="subjects-bars" id="review-subjects-bars">
+                            <!-- 動的に生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 成長の軌跡 -->
+                    <div class="review-growth">
+                        <h2 class="section-title">📈 成長の軌跡</h2>
+                        <div class="growth-info">
+                            <p>開始時: <span class="growth-value" id="review-start-level">Lv.1</span></p>
+                            <p>現在: <span class="growth-value" id="review-current-level">Lv.1</span></p>
+                            <p class="growth-highlight">成長: <span id="review-level-growth">+0</span> レベル</p>
+                        </div>
+                    </div>
+
+                    <!-- キャラクターのコメント -->
+                    <div class="review-message">
+                        <div class="character-comment">
+                            <p id="review-character-message">「30日間、本当によく頑張ったね！この調子で一緒に成長していこう！」</p>
+                        </div>
+                    </div>
+
+                    <!-- ボタンエリア -->
+                    <div class="review-footer-buttons">
+                        <button id="review-back-to-archive-btn" class="review-close-btn archive-back"
+                            onclick="backToArchiveList()">📜 リストにもどる</button>
+                        <button class="review-close-btn shugyo-continue" onclick="closeMonthlyReview()">修行を続ける</button>
+                    </div>
+                </div>
+                <div class="scroll-bottom"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 月次総評アーカイブ画面 -->
+    <div id="monthly-review-archive" class="modal hidden">
+        <div class="monthly-review-overlay"></div>
+        <div class="archive-content">
+            <div class="archive-header">
+                <h1 class="archive-title">📚 修行の記録帳 📚</h1>
+                <p class="archive-subtitle">～ 過去の月次総評 ～</p>
+            </div>
+
+            <div class="archive-list" id="archive-list-container">
+                <!-- 動的に生成 -->
+                <p class="empty-message">まだ月次総評の記録がありません</p>
+            </div>
+
+            <button class="archive-close-btn" onclick="closeMonthlyReviewArchive()">閉じる</button>
+        </div>
+    </div>
+
     <!-- 科目未選択モーダル -->
     <div id="subject-warning-modal" class="modal hidden">
         <div class="modal-content rpg-window" style="text-align: center;">
@@ -728,6 +839,7 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="monthly-review.js"></script>
 </body>
 
 </html>

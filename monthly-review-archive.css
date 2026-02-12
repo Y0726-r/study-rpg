@@ -1,0 +1,218 @@
+/* ========================================
+   📚 月次総評アーカイブ画面のスタイル
+   ======================================== */
+
+/* アーカイブコンテンツ */
+.archive-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    background: linear-gradient(135deg, #f4e4c1 0%, #e8d4a8 100%);
+    border: 4px solid #8b6f47;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: slideDown 0.5s ease-out;
+    font-family: 'PixelMplus12', 'DotGothic16', sans-serif;
+}
+
+/* ヘッダー */
+.archive-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.archive-title {
+    font-family: 'Press Start 2P', 'PixelMplus12', cursive;
+    font-size: 20px;
+    color: #6b4400;
+    text-shadow: 2px 2px 0 #fff, -1px -1px 0 #8b6f47;
+    margin-bottom: 10px;
+}
+
+.archive-subtitle {
+    font-size: 13px;
+    color: #8b6f47;
+    font-style: italic;
+}
+
+/* アーカイブリスト */
+.archive-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid #8b6f47;
+    border-radius: 8px;
+}
+
+/* アーカイブアイテム */
+.archive-item {
+    background: rgba(255, 255, 255, 0.8);
+    border: 3px solid #8b6f47;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.archive-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.archive-item:hover::before {
+    left: 100%;
+}
+
+.archive-item:hover {
+    transform: translateX(5px);
+    border-color: #6b4400;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.archive-item:active {
+    transform: translateX(3px) scale(0.98);
+}
+
+/* 月表示 */
+.archive-month {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    color: #2c1810;
+    font-weight: bold;
+    min-width: 120px;
+}
+
+/* 統計情報 */
+.archive-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    margin: 0 15px;
+}
+
+.archive-stat {
+    font-size: 12px;
+    color: #6b4400;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* 矢印 */
+.archive-arrow {
+    font-size: 20px;
+    color: #8b6f47;
+    transition: transform 0.3s;
+}
+
+.archive-item:hover .archive-arrow {
+    transform: translateX(5px);
+    color: #6b4400;
+}
+
+/* 閉じるボタン */
+.archive-close-btn {
+    width: 100%;
+    padding: 12px;
+    font-family: 'PixelMplus12', 'DotGothic16', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(135deg, #8b6f47 0%, #6b4400 100%);
+    border: 3px solid #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #4a3000, 0 6px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+
+.archive-close-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #4a3000, 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.archive-close-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #4a3000, 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* スクロールバー */
+.archive-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.archive-list::-webkit-scrollbar-track {
+    background: rgba(139, 111, 71, 0.2);
+    border-radius: 5px;
+}
+
+.archive-list::-webkit-scrollbar-thumb {
+    background: #8b6f47;
+    border-radius: 5px;
+    border: 2px solid #f4e4c1;
+}
+
+.archive-list::-webkit-scrollbar-thumb:hover {
+    background: #6b4400;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .archive-content {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .archive-title {
+        font-size: 16px;
+    }
+
+    .archive-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .archive-month {
+        min-width: auto;
+    }
+
+    .archive-stats {
+        margin: 0;
+        width: 100%;
+    }
+
+    .archive-arrow {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .archive-item:hover .archive-arrow {
+        transform: translateY(-50%) translateX(5px);
+    }
+}
