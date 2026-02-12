@@ -179,6 +179,27 @@ window.applyOccupation = function (jobKey) {
     }
 }; // 🔴 applyOccupation関数の終わり
 
+/**
+ * 日付を YYYY-MM-DD 形式の文字列に変換（ローカル時間）
+ * @param {Date} date - 変換する日付オブジェクト
+ * @returns {string} YYYY-MM-DD 形式の文字列
+ */
+function formatDateToYYYYMMDD(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+/**
+ * 今日の日付を YYYY-MM-DD 形式の文字列で取得（ローカル時間）
+ * @returns {string} YYYY-MM-DD 形式の日付文字列
+ */
+function getTodayDateString() {
+    return formatDateToYYYYMMDD(new Date());
+}
+
+
 // 勉強科目の定義（カスタマイズ可能）
 const STUDY_SUBJECTS = [
     { id: 'subject-qualification', label: localStorage.getItem('subject_qualification_label') || '資格', targetMinutes: parseInt(localStorage.getItem('subject_qualification_target') || '0'), currentDamage: parseInt(localStorage.getItem('subject_qualification_damage') || '0'), type: 'qualification' },
@@ -2271,7 +2292,7 @@ function saveGameData() {
  * オープニング後に呼ばれる
  */
 function checkAndShowLoginBonus() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayDateString();
 
     // 今日まだログインボーナスを表示していない場合のみ表示
     if (!gameData.lastBonusShown || gameData.lastBonusShown !== today) {
@@ -2298,7 +2319,7 @@ function checkAndShowLoginBonus() {
  */
 function checkLoginStreak() {
     // 今日の日付を取得 (YYYY-MM-DD形式)
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayDateString();
 
     // 初回ログインの場合
     if (!gameData.lastLoginDate) {
@@ -7332,7 +7353,7 @@ window.testStreak = function () {
     console.log('=== 継続日数の状態 ===');
     console.log('最終ログイン日:', gameData.lastLoginDate || '未設定');
     console.log('継続日数:', gameData.loginStreak || 0, '日');
-    console.log('今日の日付:', new Date().toISOString().split('T')[0]);
+    console.log('今日の日付:', getTodayDateString());
     console.log('===================');
 };
 
@@ -7346,7 +7367,7 @@ window.setStreak = function (days) {
         return;
     }
     gameData.loginStreak = days;
-    gameData.lastLoginDate = new Date().toISOString().split('T')[0];
+    gameData.lastLoginDate = getTodayDateString();
     saveGameData();
     updateHomeScreen();
     console.log(`✅ 継続日数を ${days} 日に設定しました`);
@@ -7401,7 +7422,7 @@ window.simulateNextDayLogin = function () {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    gameData.lastLoginDate = yesterday.toISOString().split('T')[0];
+    gameData.lastLoginDate = formatDateToYYYYMMDD(yesterday);
     if (!gameData.loginStreak) gameData.loginStreak = 0;
     saveGameData();
 
