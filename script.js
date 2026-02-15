@@ -2158,8 +2158,34 @@ function loadGameData() {
                 startTime: null,
                 pausedTime: null,
                 elapsedAtPause: 0,
-                isCompleted: false
+                isCompleted: false,
+                subjectLabel: null
             };
+        } else {
+            // 既存データの補完（アップデート対策）
+            if (gameData.dailySession.targetMinutes === undefined) gameData.dailySession.targetMinutes = 0;
+            if (gameData.dailySession.startTime === undefined) gameData.dailySession.startTime = null;
+            if (gameData.dailySession.pausedTime === undefined) gameData.dailySession.pausedTime = null;
+            if (gameData.dailySession.elapsedAtPause === undefined) {
+                // 古いデータ形式（remainingSeconds）からの移行
+                if (gameData.dailySession.remainingSeconds !== undefined) {
+                    const totalMs = gameData.dailySession.targetMinutes * 60 * 1000;
+                    const remainingMs = gameData.dailySession.remainingSeconds * 1000;
+                    gameData.dailySession.elapsedAtPause = Math.max(0, totalMs - remainingMs);
+                    delete gameData.dailySession.remainingSeconds;
+                } else {
+                    gameData.dailySession.elapsedAtPause = 0;
+                }
+            }
+            if (gameData.dailySession.isCompleted === undefined) gameData.dailySession.isCompleted = false;
+            if (gameData.dailySession.subjectLabel === undefined) gameData.dailySession.subjectLabel = gameData.currentSubject || null;
+        }
+
+        // 不正なタイマー状態の救済：isRunning なのに startTime がない場合はリセットする
+        if (gameData.timer && gameData.timer.isRunning && (!gameData.dailySession || !gameData.dailySession.startTime)) {
+            console.log("🛠️ データ不整合を検知：古いバージョンのタイマー状態をリセットします");
+            gameData.timer.isRunning = false;
+            gameData.timer.startTime = null;
         }
         // Ensure player and equipment exist
         if (!gameData.player) {
@@ -2257,13 +2283,7 @@ function loadGameData() {
 
         // NEW: Monster Quest System initialization
         if (!gameData.activeQuest) gameData.activeQuest = null;
-        if (!gameData.dailySession) {
-            gameData.dailySession = {
-                targetMinutes: 0,
-                remainingSeconds: 0,
-                isCompleted: false
-            };
-        }
+        // (Redundant block removed)
 
         if (!gameData.currentChallenge) {
             gameData.currentChallenge = {
@@ -3967,7 +3987,7 @@ function showDailyGoalModal() {
     // 🎯 チュートリアル中（Stage 2）は25分に設定
     const isTutorial = gameData.tutorialProgress && gameData.tutorialProgress.stage === 2;
     const lastGoal = localStorage.getItem('last_daily_goal_' + subjectLabel);
-    const defaultMins = isTutorial ? 25 : (lastGoal ? parseInt(lastGoal) : 0);
+    const defaultMins = isTutorial ? 25 : (lastGoal ? parseInt(lastGoal) : 25);
 
     // 🎯 チュートリアル用のコメント
     const tutorialComment = isTutorial
