@@ -6,10 +6,14 @@
  * 月次総評データを生成して表示する
  */
 window.generateAndShowMonthlyReview = function () {
-    console.log('🎊 30日継続達成！月次総評を生成します...');
+    console.log('🎊 月次総評を生成します...');
 
-    // 過去30日分のデータを集計
-    const reviewData = calculateMonthlyReviewData(30);
+    // 現在の年月をキーとして使用 (例: "2026-02")
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    // カレンダー月ベースでデータを集計
+    const reviewData = calculateMonthlyReviewData(monthKey);
 
     // 🆕 月次総評データを保存（アーカイブ）
     saveMonthlyReviewToArchive(reviewData);
@@ -36,15 +40,38 @@ window.generateAndShowMonthlyReview = function () {
  * @param {number} days - 集計する日数
  * @returns {Object} 集計データ
  */
-function calculateMonthlyReviewData(days) {
+/**
+ * 特定の月（または過去N日分）の学習データを集計
+ * @param {number|string} target - 集計する日数または "YYYY-MM" 形式の文字列
+ * @returns {Object} 集計データ
+ */
+function calculateMonthlyReviewData(target) {
     const now = new Date();
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - days);
+    let startDate, endDate;
+
+    if (typeof target === 'string' && target.includes('-')) {
+        // "YYYY-MM" 形式の場合
+        const [year, month] = target.split('-').map(Number);
+        startDate = new Date(year, month - 1, 1);
+        endDate = new Date(year, month, 0, 23, 59, 59); // 月末
+
+        // もし現在時刻がその月の中なら、endDateを現在時刻にする（リアルタイム反映のため）
+        if (now >= startDate && now <= endDate) {
+            endDate = now;
+        }
+    } else {
+        // デフォルトは過去30日
+        const days = typeof target === 'number' ? target : 30;
+        endDate = now;
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - days);
+        startDate.setHours(0, 0, 0, 0);
+    }
 
     // 期間内のログをフィルタリング
     const periodLogs = gameData.studyLogs.filter(log => {
         const logDate = new Date(log.date);
-        return logDate >= startDate && logDate <= now;
+        return logDate >= startDate && logDate <= endDate;
     });
 
     // 総学習時間
@@ -62,27 +89,49 @@ function calculateMonthlyReviewData(days) {
         subjectStats[log.subject] += log.minutes;
     });
 
-    // 獲得コイン・経験値の推定（ログに記録されていない場合）
+    // 獲得コイン・経験値の合計
     const totalCoins = periodLogs.reduce((sum, log) => sum + (log.coins || log.minutes), 0);
     const totalExp = periodLogs.reduce((sum, log) => sum + (log.exp || log.minutes * 10), 0);
 
-    // 達成した章（完了したボス）
-    const completedChapters = [];
-    if (gameData.chapters) {
-        Object.values(gameData.chapters).forEach(chapter => {
-            if (chapter.progress >= 1) {
-                completedChapters.push({
-                    name: chapter.name,
-                    boss: chapter.boss,
-                    rank: chapter.bossRank
-                });
-            }
-        });
-    }
+    // 🆕 グラフ用データ（日ごとのレベル推移）の生成
+    const dailyData = [];
+    const logsAfter = gameData.studyLogs.filter(log => new Date(log.date) > endDate);
+    const expAfter = logsAfter.reduce((sum, log) => sum + (log.exp || log.minutes * 10), 0);
+    let runningExp = gameData.player.exp - expAfter; // 集計終了時点の累計EXP
 
-    // 開始時のレベル（推定）
-    const currentLevel = gameData.player.level;
-    const estimatedStartLevel = Math.max(1, currentLevel - Math.floor(totalExp / 1000));
+    // 期間内のログを日付ごとに集計
+    const dayMap = {};
+    periodLogs.forEach(log => {
+        const d = new Date(log.date);
+        const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+        if (!dayMap[key]) dayMap[key] = 0;
+        dayMap[key] += (log.exp || log.minutes * 10);
+    });
+
+    // 開始日から終了日までの各日のEXPとレベルを算出（後ろから逆算）
+    const dayCount = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    let tempExp = runningExp;
+
+    for (let i = dayCount - 1; i >= 0; i--) {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+
+        const level = getLevelFromExpValue(tempExp);
+        dailyData.push({
+            date: d,
+            exp: tempExp,
+            level: level,
+            label: `${d.getMonth() + 1}/${d.getDate()}`
+        });
+
+        // 前の日のEXPに戻る
+        tempExp -= (dayMap[key] || 0);
+    }
+    dailyData.reverse(); // 時系列順に直す
+
+    const startLevel = dailyData.length > 0 ? dailyData[0].level : gameData.player.level;
+    const currentLevel = dailyData.length > 0 ? dailyData[dailyData.length - 1].level : gameData.player.level;
 
     return {
         totalMinutes,
@@ -90,12 +139,49 @@ function calculateMonthlyReviewData(days) {
         totalCoins,
         totalExp,
         subjectStats,
-        completedChapters,
-        startLevel: estimatedStartLevel,
+        completedChapters: getCompletedChapters(),
+        startLevel,
         currentLevel,
         startDate: startDate.toLocaleDateString('ja-JP'),
-        endDate: now.toLocaleDateString('ja-JP')
+        endDate: endDate.toLocaleDateString('ja-JP'),
+        dailyData,
+        monthKey: typeof target === 'string' ? target : null
     };
+}
+
+/**
+ * 累計経験値からレベルを算出する（script.jsのLEVEL_TABLEを使用）
+ */
+function getLevelFromExpValue(exp) {
+    if (typeof LEVEL_TABLE === 'undefined' || Object.keys(LEVEL_TABLE).length === 0) return 1;
+    let level = 1;
+    for (let l = 2; l <= 99; l++) {
+        if (exp >= LEVEL_TABLE[l]) {
+            level = l;
+        } else {
+            break;
+        }
+    }
+    return level;
+}
+
+/**
+ * 完了した試練を取得
+ */
+function getCompletedChapters() {
+    const chapters = [];
+    if (gameData.chapters) {
+        Object.values(gameData.chapters).forEach(chapter => {
+            if (chapter.progress >= 1) {
+                chapters.push({
+                    name: chapter.name,
+                    boss: chapter.boss,
+                    rank: chapter.bossRank
+                });
+            }
+        });
+    }
+    return chapters;
 }
 
 /**
@@ -140,26 +226,36 @@ function populateMonthlyReviewScreen(data) {
     // 科目別統計（バーグラフ）
     const subjectBars = document.getElementById('review-subjects-bars');
     if (subjectBars) {
-        const maxMinutes = Math.max(...Object.values(data.subjectStats), 1);
+        const statsEntries = Object.entries(data.subjectStats);
+        if (statsEntries.length > 0) {
+            const maxMinutes = Math.max(...Object.values(data.subjectStats), 1);
+            subjectBars.innerHTML = statsEntries.map(([subject, minutes]) => {
+                const percentage = (minutes / maxMinutes) * 100;
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
 
-        subjectBars.innerHTML = Object.entries(data.subjectStats).map(([subject, minutes]) => {
-            const percentage = (minutes / maxMinutes) * 100;
-            const hours = Math.floor(minutes / 60);
-            const mins = minutes % 60;
-
-            return `
-                <div class="subject-bar-item">
-                    <div class="subject-bar-label">${subject}</div>
-                    <div class="subject-bar-container">
-                        <div class="subject-bar-fill" style="width: ${percentage}%"></div>
+                return `
+                    <div class="subject-bar-item">
+                        <div class="subject-bar-label">${subject}</div>
+                        <div class="subject-bar-container">
+                            <div class="subject-bar-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="subject-bar-value">${hours}h ${mins}m</div>
                     </div>
-                    <div class="subject-bar-value">${hours}h ${mins}m</div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+        } else {
+            subjectBars.innerHTML = '<p class="empty-message">期間中の学習記録がありません</p>';
+        }
     }
 
-    // 成長の軌跡
+    // 成長の軌跡グラフの描画
+    // 🆕 モーダルが表示されてから描画されるよう、少し遅延させる
+    setTimeout(() => {
+        renderGrowthChart(data.dailyData);
+    }, 100);
+
+    // 成長の軌跡テキスト
     const startLevelEl = document.getElementById('review-start-level');
     const currentLevelEl = document.getElementById('review-current-level');
     const growthEl = document.getElementById('review-level-growth');
@@ -170,15 +266,105 @@ function populateMonthlyReviewScreen(data) {
 
     // キャラクターのコメント
     const messages = [
-        '「30日間、本当によく頑張ったね！この調子で一緒に成長していこう！」',
-        '「1ヶ月間の努力が、こんなに素晴らしい成果になったよ！誇りに思っていいよ！」',
-        '「継続は力なり...まさに君のことだね！これからも一緒に頑張ろう！」',
-        '「30日間休まず続けるなんて、本当にすごいよ！君の努力を尊敬するよ！」',
-        '「この1ヶ月で、君は確実に成長したね！次の30日も一緒に冒険しよう！」'
+        '「この1ヶ月、本当によく頑張ったね！着実な成長がグラフにも表れているよ！」',
+        '「1ヶ月間の努力が、こんなに素晴らしい成果になったよ！このまま突き進もう！」',
+        '「継続は力なり...まさに君のことだね！これからも一緒に伝説を作ろう！」',
+        '「見て、この成長曲線！君の努力が形になってる。本当に尊敬するよ！」',
+        '「この1ヶ月で、君は確実に強くなったね。次の1ヶ月も、また一緒に冒険しよう！」'
     ];
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     const messageEl = document.getElementById('review-character-message');
     if (messageEl) messageEl.textContent = randomMessage;
+}
+
+/**
+ * 成長グラフ (SVG) を描画
+ * @param {Array} dailyData - 日ごとのデータ
+ */
+function renderGrowthChart(dailyData) {
+    const container = document.getElementById('review-growth-chart');
+    if (!container) return;
+
+    if (!dailyData || dailyData.length === 0) {
+        container.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#8b6f47; font-size:12px;">データがありません</div>';
+        return;
+    }
+
+    // 🆕 1点しかない場合はグラフにならないので、2点に増幅するか専用の表示にする
+    let displayData = [...dailyData];
+    if (displayData.length === 1) {
+        const d = displayData[0];
+        displayData = [
+            { ...d, label: '' },
+            d
+        ];
+    }
+
+    const width = container.clientWidth || 400; // 取得できない場合のフォールバック
+    const height = container.clientHeight || 140;
+    const padding = { top: 15, right: 15, bottom: 25, left: 35 };
+    const chartWidth = Math.max(width - padding.left - padding.right, 100);
+    const chartHeight = Math.max(height - padding.top - padding.bottom, 50);
+
+    // レベルの最小・最大値
+    const minLevel = Math.min(...displayData.map(d => d.level));
+    const maxLevel = Math.max(...displayData.map(d => d.level));
+    const yMin = Math.max(1, minLevel - 1);
+    const yMax = maxLevel + 1;
+    const yRange = yMax - yMin;
+
+    // SVG生成
+    let svg = `<svg viewBox="0 0 ${width} ${height}" class="growth-chart-svg" xmlns="http://www.w3.org/2000/svg">`;
+
+    // 1. 横軸グリッド・ラベル
+    const xStep = chartWidth / (displayData.length - 1);
+    displayData.forEach((d, i) => {
+        const x = padding.left + i * xStep;
+        if (i === 0 || i === displayData.length - 1 || i % 5 === 0) {
+            svg += `<text x="${x}" y="${height - 5}" class="chart-label-x">${d.label}</text>`;
+            svg += `<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" class="chart-grid-line" />`;
+        }
+    });
+
+    // 2. 縦軸グリッド・ラベル
+    const yLevels = [yMin, Math.floor((yMin + yMax) / 2), yMax];
+    yLevels.forEach(lv => {
+        const y = padding.top + chartHeight - ((lv - yMin) / yRange * chartHeight);
+        svg += `<text x="${padding.left - 5}" y="${y + 3}" class="chart-label-y">Lv.${lv}</text>`;
+        svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" class="chart-grid-line" />`;
+    });
+
+    // 3. 塗りつぶしエリア
+    let areaPath = `M ${padding.left} ${height - padding.bottom} `;
+    displayData.forEach((d, i) => {
+        const x = padding.left + i * xStep;
+        const y = padding.top + chartHeight - ((d.level - yMin) / yRange * chartHeight);
+        areaPath += `L ${x} ${y} `;
+    });
+    areaPath += `L ${padding.left + chartWidth} ${height - padding.bottom} Z`;
+    svg += `<path d="${areaPath}" class="chart-area" />`;
+
+    // 4. 折れ線
+    let linePath = "";
+    displayData.forEach((d, i) => {
+        const x = padding.left + i * xStep;
+        const y = padding.top + chartHeight - ((d.level - yMin) / yRange * chartHeight);
+        linePath += (i === 0 ? "M" : "L") + ` ${x} ${y} `;
+    });
+    svg += `<path d="${linePath}" class="chart-line" />`;
+
+    // 5. データポイント
+    displayData.forEach((d, i) => {
+        const isLevelUp = i > 0 && d.level > displayData[i - 1].level;
+        if (displayData.length <= 10 || isLevelUp || i === 0 || i === displayData.length - 1) {
+            const x = padding.left + i * xStep;
+            const y = padding.top + chartHeight - ((d.level - yMin) / yRange * chartHeight);
+            svg += `<circle cx="${x}" cy="${y}" r="3" class="chart-point" />`;
+        }
+    });
+
+    svg += `</svg>`;
+    container.innerHTML = svg;
 }
 
 /**
@@ -282,11 +468,12 @@ function populateArchiveList() {
  * @param {string} monthKey - 月のキー (例: "2026-02")
  */
 window.showMonthlyReviewDetail = function (monthKey) {
-    const review = gameData.monthlyReviews[monthKey];
-    if (!review) {
-        console.error(`❌ 月次総評が見つかりません: ${monthKey}`);
-        return;
-    }
+    // 🆕 常に最新の計算データ（グラフ用データ含む）を使用するように変更
+    const review = calculateMonthlyReviewData(monthKey);
+
+    // 表示用の名称をアーカイブから取得、なければ生成
+    const savedReview = (gameData.monthlyReviews && gameData.monthlyReviews[monthKey]) ? gameData.monthlyReviews[monthKey] : null;
+    const displayName = savedReview ? savedReview.displayName : monthKey.replace('-', '年') + '月';
 
     // アーカイブ画面を閉じる
     const archiveModal = document.getElementById('monthly-review-archive');
@@ -300,7 +487,7 @@ window.showMonthlyReviewDetail = function (monthKey) {
     // タイトルを変更（過去の記録であることを明示）
     const titleEl = document.querySelector('.review-title');
     if (titleEl) {
-        titleEl.textContent = `📜 ${review.displayName}の修行記録 📜`;
+        titleEl.textContent = `📜 ${displayName}の修行記録 📜`;
     }
 
     // 月次総評画面を表示
