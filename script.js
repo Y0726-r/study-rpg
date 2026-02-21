@@ -386,8 +386,9 @@ let startTime = null;
 let elapsedBeforePause = 0;
 
 // タイマーのアラート音
-// タイマーのアラート音
 const alertSound = new Audio('./assets/sounds/alart.mp3');
+// モンスターの弱音時の音
+const weaknessSound = new Audio('./assets/sounds/weakness.mp3');
 
 // Notification permission request wrapper
 function requestNotificationPermission() {
@@ -1440,6 +1441,10 @@ function checkBossWeakness(elapsedMs, targetMs) {
     }
 
     if (shouldShow && message) {
+        // 🔊 弱音時の音楽（効果音）を再生
+        weaknessSound.currentTime = 0; // 重複再生しても最初から流れるように
+        weaknessSound.play().catch(err => console.log("Audio play blocked:", err));
+
         // メッセージを表示
         bossMessageEl.textContent = message;
         if (bossMessageWindow) {
@@ -4364,6 +4369,9 @@ function stopTimer(forcedComplete) {
     const now = Date.now();
     let elapsedMs = 0;
 
+    // 目標時間（ミリ秒）を上限として設定
+    const targetMs = (gameData.dailySession.targetMinutes || 0) * 60 * 1000;
+
     // 🔴 重要：一時停止していた場合は、pausedTime時点での経過時間を使う
     if (gameData.dailySession.pausedTime && gameData.dailySession.elapsedAtPause) {
         // 一時停止中だった → 保存されていた経過時間を使用
@@ -4373,6 +4381,12 @@ function stopTimer(forcedComplete) {
         // タイマー実行中だった → 現在時刻から計算
         elapsedMs = now - gameData.dailySession.startTime;
         console.log(`▶️ 実行中に終了: 経過時間 ${Math.floor(elapsedMs / 1000)}秒`);
+    }
+
+    // 🔴 上限チェック：ユーザーが設定した目標時間を超えないようにキャップ
+    if (targetMs > 0 && elapsedMs > targetMs) {
+        console.log(`⚠️ 経過時間 ${Math.floor(elapsedMs / 1000)}秒 が目標時間 ${Math.floor(targetMs / 1000)}秒 を超えているため、目標時間でキャップします`);
+        elapsedMs = targetMs;
     }
 
     const elapsedSecondsInSession = Math.floor(elapsedMs / 1000);
