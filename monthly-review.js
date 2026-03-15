@@ -445,13 +445,16 @@ function populateArchiveList() {
     }
 
     listContainer.innerHTML = monthKeys.map(monthKey => {
-        const review = reviews[monthKey];
+        const savedReview = reviews[monthKey];
+        // 常に最新のログから再計算して詳細画面と一致させる
+        const review = calculateMonthlyReviewData(monthKey);
         const hours = Math.floor(review.totalMinutes / 60);
         const minutes = review.totalMinutes % 60;
+        const displayName = savedReview ? savedReview.displayName : monthKey.replace('-', '年') + '月';
 
         return `
             <div class="archive-item" onclick="showMonthlyReviewDetail('${monthKey}')">
-                <div class="archive-month">${review.displayName}</div>
+                <div class="archive-month">${displayName}</div>
                 <div class="archive-stats">
                     <span class="archive-stat">⏱️ ${hours}h ${minutes}m</span>
                     <span class="archive-stat">📚 ${review.totalSessions}回</span>
